@@ -23,7 +23,7 @@ If you have any issue with the procedure explained below, just remove everything
 
 #### Learning to use the terminal !
 
- If you don't know how to use a terminal, how to change directories within a terminal etc. see [the tutorial on using the terminal](terminal_tutorial.html)
+ If you don't know how to use a terminal, how to change directories within a terminal etc. see [the tutorial on using the terminal](terminal_tutorial.md)
 
 #### Installing dependencies:
 
@@ -63,7 +63,7 @@ If you have any issue with the procedure explained below, just remove everything
 
 #### Learning to use the terminal !
 
- If you don't know how to use a terminal, how to change directories within a terminal etc. see [the tutorial on using the terminal](terminal_tutorial.html)
+ If you don't know how to use a terminal, how to change directories within a terminal etc. see [the tutorial on using the terminal](terminal_tutorial.md)
 
 **Installing dependencies:**
 
