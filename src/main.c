@@ -6,7 +6,8 @@ int main(int argc, char *argv[])
 {
 	window_t* window = window_new(1080,640, argv[0]);
 
-	text_t* hello_world = text_new("Hello World !", GL_STATIC_DRAW);
+	text_t* hello_world = text_new((unsigned char []){"Hello World !"},
+		                           GL_STATIC_DRAW);
 
 	while(!window_is_closed(window)){
 		text_draw(window, hello_world);

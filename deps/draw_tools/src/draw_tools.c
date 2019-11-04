@@ -635,18 +635,18 @@ order_t* order_new(GLuint* elements, size_t n, GLenum usage) {
 
     glGenBuffers(1, &order->ebo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, order->ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, n*sizeof(GLuint), elements, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, n*sizeof(GLuint), elements, usage);
     order->eboCapacity = n;
     return order;
 }
 
 
-order_t* order_update(order_t* order, GLuint* elements, size_t n) {
+order_t* order_update(order_t* order, GLuint* elements, size_t n, GLenum usage) {
     order->eboLen = elements==NULL ? 0 : n;
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, order->ebo);
     if(order->eboLen > order->eboCapacity){
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, n*sizeof(GLuint), elements, GL_DYNAMIC_DRAW);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, n*sizeof(GLuint), elements, usage);
         order->eboCapacity = order->eboLen;
     }
     else if(elements!=NULL){
@@ -706,10 +706,11 @@ static size_t fill_text_data(float* data, const unsigned char* string, size_t le
             // up, semi-up, semi-down...  x01 - 06, e1 - e6, c0 -df, f0 - ff  could mean something
             case '\f':  // back to the beginning
                 pen_y = 0;
+                /* FALLTHRU */
             case '\n':  // newline
-            
             case '\r':  // carriage return
                 pen_x = 0;
+                /* FALLTHRU */
             case ' ':   // space
             case '\a':  // goes up :-)
             case '\v':  // vertical space
@@ -767,11 +768,11 @@ text_t* text_new(unsigned char* string, GLenum usage){
     CHECK_MALLOC(text);
 
     text->param = (object_param_t){
-                    0.0, 0.0, 0.0, 1.0, // color
-                    1.0 ,1.0, 1.0, 1.0, // outlineColor
-                    0.0 ,0.0,           // other
-                    0.0, 0.0,           // localPos
-                    0.05, 0.05,         // localScale
+                    {0.0, 0.0, 0.0, 1.0}, // color
+                    {1.0 ,1.0, 1.0, 1.0}, // outlineColor
+                    {0.0 ,0.0},           // other
+                    {0.0, 0.0},           // localPos
+                    {0.05, 0.05},         // localScale
                     0.0,                // width
                     -1.0,               // outlineWidth
                     // 0.0,                // rotation
@@ -792,7 +793,7 @@ text_t* text_new(unsigned char* string, GLenum usage){
     glEnableVertexAttribArray(TEX_LOCATION);
 
     if(string!=NULL) {
-        text->dataCapacity = strlen(string);
+        text->dataCapacity = strlen((const char *)string);
 
         // data for text contain... 4 vertex per letter
         // for each letter, we must have
@@ -828,7 +829,7 @@ void text_delete(text_t* text){
 
 text_t* text_update(text_t* text, unsigned char* string){
     // see if the length is not longer than the original string
-    size_t newLen = strlen(string);
+    size_t newLen = strlen((const char *)string);
 
     if(newLen > text->dataCapacity){
         free(text->data);
@@ -886,11 +887,11 @@ points_t* points_new(float* coords, size_t n, GLenum usage) {
     points->vboLen = coords==NULL ? 0: n;
 
     points->param = (object_param_t){
-                    0.0, 0.0, 0.0, 1.0, // color
-                    1.0 ,1.0, 1.0, 1.0, // outlineColor
-                    0.0 ,0.0,           // other
-                    0.0, 0.0,           // localPos
-                    1.0, 1.0,           // localScale
+                    {0.0, 0.0, 0.0, 1.0}, // color
+                    {1.0 ,1.0, 1.0, 1.0}, // outlineColor
+                    {0.0 ,0.0},           // other
+                    {0.0, 0.0},           // localPos
+                    {1.0, 1.0},           // localScale
                     0.025,              // width
                     -1.0,               // outlineWidth
                     // 0.0,                // rotation

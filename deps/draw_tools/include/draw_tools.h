@@ -149,7 +149,7 @@ void points_delete(points_t* points);
 order_t* order_new(GLuint* elements, size_t n, GLenum usage);
 
 /* change the content of the order object (the maximum capacity can be increased) */
-order_t* order_update(order_t* order, GLuint* elements, size_t n);
+order_t* order_update(order_t* order, GLuint* elements, size_t n, GLenum usage);
 
 /* change the content of the points object, but only from start to end (the maximum capacity cannot be increased) */
 order_t* order_partial_update(order_t* order, GLuint* elements, size_t start, size_t end, size_t newN);
