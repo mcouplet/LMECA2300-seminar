@@ -22,7 +22,7 @@ foreach(fileGLSL ${shadersGLSL})
     file(RELATIVE_PATH printFileGLSL ${CMAKE_SOURCE_DIR} ${fileGLSL})
 
     add_custom_command(OUTPUT ${fileH}
-                       COMMAND cmake -DIN=${fileGLSL} -DOUT=${fileH} -P ${CMAKE_CURRENT_SOURCE_DIR}/shaders/shaderToString.cmake
+                       COMMAND cmake -DIN=${fileGLSL} -DVAR=${basename} -DOUT=${fileH} -P ${CMAKE_CURRENT_SOURCE_DIR}/shaders/shaderToString.cmake
                        DEPENDS ${fileGLSL}
                        COMMENT "generating include file ${printFileH} from shader ${printFileGLSL}")
 endforeach(fileGLSL)

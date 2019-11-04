@@ -1,3 +1,5 @@
+#define _CRT_SECURE_NO_WARNINGS // for MSVC to be happy
+
 #include "draw_tools.h"
 /***************************************
  *   FONT DEFINITION                   *
@@ -7,38 +9,15 @@
 /***************************************
  *   SHADERS                           *
  ***************************************/
-static GLchar points_vert[] = (GLchar[]) {
+// a la https://github.com/christophercrouzet/opengl-bootstrap
 #include "points_vert.h"
-};
-
-static GLchar points_geom[] = (GLchar[]) {
 #include "points_geom.h"
-};
-
-static GLchar points_frag[] = (GLchar[]) {
 #include "points_frag.h"
-};
-
-static GLchar lines_geom[] = (GLchar[]) {
 #include "lines_geom.h"
-};
-
-static GLchar lines_frag[] = (GLchar[]) {
 #include "lines_frag.h"
-};
-
-static GLchar curve_geom[] = (GLchar[]) {
 #include "curve_geom.h"
-};
-
-static GLchar text_vert[] = (GLchar[]) {
 #include "text_vert.h"
-};
-
-static GLchar text_frag[] = (GLchar[]) {
 #include "text_frag.h"
-};
-
 
 #define POS_LOCATION 0
 #define TEX_LOCATION 1
@@ -57,8 +36,8 @@ static GLchar text_frag[] = (GLchar[]) {
  %%%%%%%%%%%%%%%%%%%%%%%%%*/
 struct order_struct{
     GLuint ebo;
-    size_t eboCapacity;
-    size_t eboLen;
+    GLsizei eboCapacity;
+    GLsizei eboLen;
 };
 
 /*%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -96,7 +75,7 @@ static int checkivError(GLuint object, GLenum pname,
         GLint logsize;
         glGetiv(object, GL_INFO_LOG_LENGTH, &logsize);
 
-        char *log = malloc(logsize + 1);
+        char *log = malloc((size_t) logsize + 1);
         CHECK_MALLOC(log);
 
         glGetInfoLog(object, logsize, &logsize, log);
@@ -249,12 +228,12 @@ static void scroll_callback(GLFWwindow* self, double x, double y) {
     window_t* window = (window_t*) glfwGetWindowUserPointer(self);
 
     if(y>0.0) {
-        window->param.scale[0] *= 1 + .1*y;
-        window->param.scale[1] *= 1 + .1*y;
+        window->param.scale[0] *= (GLfloat) (1.0 + 0.1*y);
+        window->param.scale[1] *= (GLfloat)(1.0 + 0.1 * y);
     }
     else if(y<0.0) {
-        window->param.scale[0] /= 1-.1*y;
-        window->param.scale[1] /= 1-.1*y;
+        window->param.scale[0] /= (GLfloat)(1.0 - 0.1 * y);
+        window->param.scale[1] /= (GLfloat)(1.0 - 0.1 * y);
     }
 }
 
@@ -267,16 +246,16 @@ static void cursor_pos_callback(GLFWwindow* self, double x, double y)
     window_t* window = (window_t*) glfwGetWindowUserPointer(self);
 
     // TODO: modify this to use the scale
-    float newX = (2.0*x/window->size[0]-1.0)/window->param.scale[0];
-    float newY = (2.0*(1.0 - y/window->size[1])-1.0)/window->param.scale[1];
+    double newX = (2.0f*x/window->size[0]-1.0f)/window->param.scale[0];
+    double newY = (2.0f*(1.0f - y/window->size[1])-1.0f)/window->param.scale[1];
 
     if(window->clickTime[0]>0.0 || window->clickTime[1]>0.0) {
-        window->param.translate[0] += (newX - window->cursorPos[0]);
-        window->param.translate[1] += (newY - window->cursorPos[1]);
+        window->param.translate[0] += (GLfloat) (newX - window->cursorPos[0]);
+        window->param.translate[1] += (GLfloat) (newY - window->cursorPos[1]);
     }
 
-    window->cursorPos[0] = newX;
-    window->cursorPos[1] = newY;
+    window->cursorPos[0] = (GLfloat) newX;
+    window->cursorPos[1] = (GLfloat) newY;
 }
 
 
@@ -326,8 +305,8 @@ static void key_callback(GLFWwindow* self, int key, int scancode, int action, in
 static void framebuffer_size_callback(GLFWwindow* self, int width, int height)
 {
     window_t* window = (window_t*) glfwGetWindowUserPointer(self);
-    window->param.res[0] = width;
-    window->param.res[1] = height;
+    window->param.res[0] = (GLfloat) width;
+    window->param.res[1] = (GLfloat) height;
     glViewport(0, 0, width, height);
 
     if(width>height) {
@@ -627,7 +606,7 @@ void window_delete(window_t* window)
 /*%%%%%%%%%%%%%%%%%%%%%%%%%
  %  Order object
  %%%%%%%%%%%%%%%%%%%%%%%%%*/
-order_t* order_new(GLuint* elements, size_t n, GLenum usage) {
+order_t* order_new(GLuint* elements, GLsizei n, GLenum usage) {
     order_t* order = malloc(sizeof(order_t));
     CHECK_MALLOC(order);
 
@@ -641,7 +620,7 @@ order_t* order_new(GLuint* elements, size_t n, GLenum usage) {
 }
 
 
-order_t* order_update(order_t* order, GLuint* elements, size_t n, GLenum usage) {
+order_t* order_update(order_t* order, GLuint* elements, GLsizei n, GLenum usage) {
     order->eboLen = elements==NULL ? 0 : n;
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, order->ebo);
@@ -656,7 +635,7 @@ order_t* order_update(order_t* order, GLuint* elements, size_t n, GLenum usage) 
     return order;
 }
 
-order_t* order_partial_update(order_t* order, GLuint* elements, size_t start, size_t end, size_t newN) {
+order_t* order_partial_update(order_t* order, GLuint* elements, GLsizei start, GLsizei end, GLsizei newN) {
     if(elements==NULL) {
         ERROR_LOG(PARAMETER_ERROR, "Cannot do a partial update whith a NULL pointer for array of elements");
         return NULL;
@@ -676,7 +655,7 @@ order_t* order_partial_update(order_t* order, GLuint* elements, size_t start, si
         return order;
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, order->ebo);
-    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, start, (end-start)*sizeof(GLuint), elements);
+    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, start, sizeof(GLuint) * (end - start), elements);
 
     return order;
 }
@@ -691,15 +670,15 @@ void order_delete(order_t* order) {
 /*%%%%%%%%%%%%%%%%%%%%%%%%%
  %  Text Object
  %%%%%%%%%%%%%%%%%%%%%%%%%*/
-static size_t fill_text_data(float* data, const unsigned char* string, size_t len)
+static GLsizei fill_text_data(GLfloat* data, const unsigned char* string, GLsizei len)
 {
-    float pen_x = 0;
-    float pen_y = 0;
-    float x,y,w,h;
-    // float direction = 1.0;
+    GLfloat pen_x = 0;
+    GLfloat pen_y = 0;
+    GLfloat x,y,w,h;
+    // GLfloat direction = 1.0;
 
-    size_t num = 0;
-    for (size_t i=0; i<len; i++) {
+    GLsizei num = 0;
+    for (GLsizei i=0; i<len; i++) {
         texture_glyph_t *glyph = font.glyphs + string[i];
 
         switch(glyph->codepoint){
@@ -768,14 +747,14 @@ text_t* text_new(unsigned char* string, GLenum usage){
     CHECK_MALLOC(text);
 
     text->param = (object_param_t){
-                    {0.0, 0.0, 0.0, 1.0}, // color
-                    {1.0 ,1.0, 1.0, 1.0}, // outlineColor
-                    {0.0 ,0.0},           // other
-                    {0.0, 0.0},           // localPos
-                    {0.05, 0.05},         // localScale
-                    0.0,                // width
-                    -1.0,               // outlineWidth
-                    // 0.0,                // rotation
+                    {0.0f, 0.0f, 0.0f, 1.0f}, // color
+                    {1.0f ,1.0f, 1.0f, 1.0f}, // outlineColor
+                    {0.0f ,0.0f},             // other
+                    {0.0f, 0.0f},             // localPos
+                    {0.05f, 0.05f},           // localScale
+                    0.0f,                     // width
+                    -1.0f,                    // outlineWidth
+                    // 0.0f,                      // rotation
                     NORMAL_SPACE};
 
     // Create Vertex Array Object
@@ -787,26 +766,26 @@ text_t* text_new(unsigned char* string, GLenum usage){
     glBindBuffer(GL_ARRAY_BUFFER, text->vbo);
 
     // specify the layout of the data
-    glVertexAttribPointer(POS_LOCATION, 2, GL_FLOAT, GL_FALSE, 4*sizeof(float), 0);
-    glVertexAttribPointer(TEX_LOCATION, 2, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*)(2*sizeof(float)));
+    glVertexAttribPointer(POS_LOCATION, 2, GL_FLOAT, GL_FALSE, 4*sizeof(GLfloat), 0);
+    glVertexAttribPointer(TEX_LOCATION, 2, GL_FLOAT, GL_FALSE, 4*sizeof(GLfloat), (void*)(2*sizeof(GLfloat)));
     glEnableVertexAttribArray(POS_LOCATION);
     glEnableVertexAttribArray(TEX_LOCATION);
 
     if(string!=NULL) {
-        text->dataCapacity = strlen((const char *)string);
+        text->dataCapacity = (GLsizei) strlen((const char *)string);
 
         // data for text contain... 4 vertex per letter
         // for each letter, we must have
         // 2 screen coordinates      4f
         // 2 texture coordinates     4f
 
-        text->data = malloc(24*text->dataCapacity*sizeof(float));
+        text->data = malloc(sizeof(GLfloat) * 24 * text->dataCapacity);
         CHECK_MALLOC(text->data);
 
         // text->string = string;
 
         text->vboLen = fill_text_data(text->data, string, text->dataCapacity);
-        glBufferData(GL_ARRAY_BUFFER, 24*text->vboLen*sizeof(float), text->data, usage);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 24 * text->vboLen, text->data, usage);
         text->vboCapacity = text->vboLen;
     }
     else {
@@ -829,11 +808,11 @@ void text_delete(text_t* text){
 
 text_t* text_update(text_t* text, unsigned char* string){
     // see if the length is not longer than the original string
-    size_t newLen = strlen((const char *)string);
+    GLsizei newLen = (GLsizei) strlen((const char *)string);
 
     if(newLen > text->dataCapacity){
         free(text->data);
-        text->data = malloc(24*newLen*sizeof(float));
+        text->data = malloc(sizeof(GLfloat) * 24 * newLen);
         CHECK_MALLOC(text->data);
         text->dataCapacity = newLen;
     }
@@ -844,11 +823,11 @@ text_t* text_update(text_t* text, unsigned char* string){
 
     glBindBuffer(GL_ARRAY_BUFFER, text->vbo);
     if(text->vboLen > text->vboCapacity){
-        glBufferData(GL_ARRAY_BUFFER, 24*text->vboLen*sizeof(float), text->data, GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 24 * text->vboLen, text->data, GL_DYNAMIC_DRAW);
         text->vboCapacity = text->vboLen;
     }
     else{
-        glBufferSubData(GL_ARRAY_BUFFER, 0, 24*text->vboLen*sizeof(float), text->data);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(GLfloat) * 24 * text->vboLen, text->data);
     }
 
     return text;
@@ -880,21 +859,21 @@ void text_draw(window_t* window, text_t* text){
 /*%%%%%%%%%%%%%%%%%%%%%%%%%
  %  Points Object
  %%%%%%%%%%%%%%%%%%%%%%%%%*/
-points_t* points_new(float* coords, size_t n, GLenum usage) {
+points_t* points_new(GLfloat* coords, GLsizei n, GLenum usage) {
     points_t* points = malloc(sizeof(points_t));
     CHECK_MALLOC(points);
 
     points->vboLen = coords==NULL ? 0: n;
 
     points->param = (object_param_t){
-                    {0.0, 0.0, 0.0, 1.0}, // color
-                    {1.0 ,1.0, 1.0, 1.0}, // outlineColor
-                    {0.0 ,0.0},           // other
-                    {0.0, 0.0},           // localPos
-                    {1.0, 1.0},           // localScale
-                    0.025,              // width
-                    -1.0,               // outlineWidth
-                    // 0.0,                // rotation
+                    {0.0f, 0.0f, 0.0f, 1.0f}, // color
+                    {1.0f ,1.0f, 1.0f, 1.0f}, // outlineColor
+                    {0.0f ,0.0f},           // other
+                    {0.0f, 0.0f},           // localPos
+                    {1.0f, 1.0f},           // localScale
+                    0.025f,              // width
+                    -1.0f,               // outlineWidth
+                    // 0.0f,                // rotation
                     NORMAL_SPACE};
 
     // Create Vertex Array Object
@@ -909,7 +888,7 @@ points_t* points_new(float* coords, size_t n, GLenum usage) {
     glVertexAttribPointer(POS_LOCATION, 2, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(POS_LOCATION);
 
-    glBufferData(GL_ARRAY_BUFFER, 2*n*sizeof(float), coords, usage);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 2 * n, coords, usage);
     points->vboCapacity = n;
 
     // glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -918,23 +897,23 @@ points_t* points_new(float* coords, size_t n, GLenum usage) {
     return points;
 }
 
-points_t* points_update(points_t* points, float* coords, size_t n) {
+points_t* points_update(points_t* points, GLfloat* coords, GLsizei n) {
     points->vboLen = coords==NULL ? 0: n;
 
     glBindBuffer(GL_ARRAY_BUFFER, points->vbo);
     if(n > points->vboCapacity){
-        glBufferData(GL_ARRAY_BUFFER, 2*n*sizeof(float), coords, GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 2 * n, coords, GL_DYNAMIC_DRAW);
         points->vboCapacity = n;
     }
     else if(coords!=NULL){
-        glBufferSubData(GL_ARRAY_BUFFER, 0, 2*n*sizeof(float), coords);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(GLfloat) * 2 * n, coords);
     }
     // glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     return points;
 }
 
-points_t* points_partial_update(points_t* points, float* coords, size_t start, size_t end, size_t newN) {
+points_t* points_partial_update(points_t* points, GLfloat* coords, GLsizei start, GLsizei end, GLsizei newN) {
     if(coords==NULL) {
         ERROR_LOG(PARAMETER_ERROR, "Cannot do a partial update whith a NULL pointer for array of coordinates");
         return NULL;
@@ -954,7 +933,7 @@ points_t* points_partial_update(points_t* points, float* coords, size_t start, s
         return points;
 
     glBindBuffer(GL_ARRAY_BUFFER, points->vbo);
-    glBufferSubData(GL_ARRAY_BUFFER, start, (end-start)*2*sizeof(float), coords);
+    glBufferSubData(GL_ARRAY_BUFFER, start, sizeof(GLfloat) * 2 * (end - start), coords);
     // glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     return points;
@@ -1043,11 +1022,13 @@ void window_screenshot(window_t* window, char* filename) {
         return;
     }
 
-    int width = window->param.res[0];
-    int height = window->param.res[1];
+    int width = (int) window->param.res[0];
+    int height = (int) window->param.res[1];
 
-    int rowsize = (width*3+3)/4*4; // width of a row in byte
-    data = realloc(data, rowsize*height); // width is rounded to multiple of four
+    size_t rowsize = ((size_t) width*3+3)/4*4; // width of a row in byte
+    void* newData = realloc(data, rowsize*height); // width is rounded to multiple of four
+    CHECK_MALLOC(newData);
+    data = newData; // just for MSVC to be happy
 
     FILE *pFile;
 
@@ -1063,8 +1044,8 @@ void window_screenshot(window_t* window, char* filename) {
 
     // Write pixel data
     for(int i=height-1; i>=0; i--){
-        unsigned char *row = data + i*rowsize;
-        fwrite(row, 1, width*3, pFile);
+        unsigned char *row = data + rowsize * i;
+        fwrite(row, 1, (size_t) width*3, pFile);
     }
 
     // Close file

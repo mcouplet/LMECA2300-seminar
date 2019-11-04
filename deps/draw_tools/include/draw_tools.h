@@ -101,13 +101,13 @@ void text_delete(text_t* text);
  *    - GL_STATIC_DRAW if you don't intend to update the content of the point object regularly
  *    - GL_DYNAMIC_DRAW if you intend to change it regularly with the points_update or points_partial_update function
  */
-points_t* points_new(float* coords, size_t n, GLenum usage);
+points_t* points_new(GLfloat* coords, GLsizei n, GLenum usage);
 
 /* change the content of the points object (the maximum capacity can be increased) */
-points_t* points_update(points_t* points, float* coords, size_t n);
+points_t* points_update(points_t* points, GLfloat* coords, GLsizei n);
 
 /* change the content of the points object, but only from start to end (the maximum capacity cannot be increased) */
-points_t* points_partial_update(points_t* points, float* coords, size_t start, size_t end, size_t newN);
+points_t* points_partial_update(points_t* points, GLfloat* coords, GLsizei start, GLsizei end, GLsizei newN);
 
 /* draw points to the window */
 static inline void points_draw(window_t* window, points_t* pts);
@@ -146,13 +146,13 @@ void points_delete(points_t* points);
  *    - GL_STATIC_DRAW if you don't intend to update the content of the order object regularly
  *    - GL_DYNAMIC_DRAW if you intend to change it regularly with the order_update or order_partial_update function
  */
-order_t* order_new(GLuint* elements, size_t n, GLenum usage);
+order_t* order_new(GLuint* elements, GLsizei n, GLenum usage);
 
 /* change the content of the order object (the maximum capacity can be increased) */
-order_t* order_update(order_t* order, GLuint* elements, size_t n, GLenum usage);
+order_t* order_update(order_t* order, GLuint* elements, GLsizei n, GLenum usage);
 
 /* change the content of the points object, but only from start to end (the maximum capacity cannot be increased) */
-order_t* order_partial_update(order_t* order, GLuint* elements, size_t start, size_t end, size_t newN);
+order_t* order_partial_update(order_t* order, GLuint* elements, GLsizei start, GLsizei end, GLsizei newN);
 
 /* delete an order object */
 void order_delete(order_t* order);
@@ -164,11 +164,11 @@ void order_delete(order_t* order);
 static inline double window_get_time(window_t* window);
 
 /* get the resolution in pixel of the window */
-static inline float window_get_yres(window_t* window);
+static inline GLfloat window_get_yres(window_t* window);
 static inline int window_is_closed(window_t* window);
-static inline void window_set_color(window_t* window, float rgba[4]);
-static inline void window_translate(window_t* window, float posx, float posy);
-static inline void window_scale(window_t* window, float scale);
+static inline void window_set_color(window_t* window, GLfloat rgba[4]);
+static inline void window_translate(window_t* window, GLfloat posx, GLfloat posy);
+static inline void window_scale(window_t* window, GLfloat scale);
 
 /* take a screenshot and save it as a PPM with the name 'filename' */
 void window_screenshot(window_t* window, char* filename);
@@ -176,32 +176,32 @@ void window_screenshot(window_t* window, char* filename);
 /*%%%%%%%%%%%%%%%%%%%%%%%%%
  %  Text parameters
  %%%%%%%%%%%%%%%%%%%%%%%%%*/
-static inline void text_set_pos(text_t* text, float pos_x, float pos_y);
-static inline void text_set_scale(text_t* text, float scaleX, float scaleY);
-// static inline void text_set_rotation(text_t* text, float rotation); // not implemented yet
-static inline void text_set_color(text_t* text, float rgba[4]);
+static inline void text_set_pos(text_t* text, GLfloat pos_x, GLfloat pos_y);
+static inline void text_set_scale(text_t* text, GLfloat scaleX, GLfloat scaleY);
+// static inline void text_set_rotation(text_t* text, GLfloat rotation); // not implemented yet
+static inline void text_set_color(text_t* text, GLfloat rgba[4]);
 
 /* for text objects, the width is the boldness of the character, not its size !
  * use the scaling to set the size. ! */
-static inline void text_set_width(text_t* text, float width);
-static inline void text_set_outline_color(text_t* text, float rgba[4]);
-static inline void text_set_outline_width(text_t* text, float width);
-static inline void text_set_outline_shift(text_t* text, float shift_x, float shift_y);
+static inline void text_set_width(text_t* text, GLfloat width);
+static inline void text_set_outline_color(text_t* text, GLfloat rgba[4]);
+static inline void text_set_outline_width(text_t* text, GLfloat width);
+static inline void text_set_outline_shift(text_t* text, GLfloat shift_x, GLfloat shift_y);
 static inline void text_set_space_type(text_t* text, space_type_t space_type);
-static inline float text_get_line_height(text_t* text, float resolution_y);
+static inline GLfloat text_get_line_height(text_t* text, GLfloat resolution_y);
 
 /*%%%%%%%%%%%%%%%%%%%%%%%%%
  %  WPoints parameters
  %%%%%%%%%%%%%%%%%%%%%%%%%*/
-static inline void points_set_pos(points_t* points, float pos_x, float pos_y);
-static inline void points_set_scale(points_t* points, float scaleX, float scaleY);
-// static inline void points_set_rotation(points_t* points, float rotation); // not implemented yet
-static inline void points_set_width(points_t* points, float width);
-static inline void points_set_color(points_t* points, float rgba[4]);
-// static inline void points_set_pointiness(points_t* points, float pointiness);
-static inline void points_set_outline_color(points_t* points, float rgba[4]);
-static inline void points_set_outline_width(points_t* points, float width);
-static inline void points_set_marker(points_t* points, float marker);
+static inline void points_set_pos(points_t* points, GLfloat pos_x, GLfloat pos_y);
+static inline void points_set_scale(points_t* points, GLfloat scaleX, GLfloat scaleY);
+// static inline void points_set_rotation(points_t* points, GLfloat rotation); // not implemented yet
+static inline void points_set_width(points_t* points, GLfloat width);
+static inline void points_set_color(points_t* points, GLfloat rgba[4]);
+// static inline void points_set_pointiness(points_t* points, GLfloat pointiness);
+static inline void points_set_outline_color(points_t* points, GLfloat rgba[4]);
+static inline void points_set_outline_width(points_t* points, GLfloat width);
+static inline void points_set_marker(points_t* points, GLfloat marker);
 static inline void points_set_space_type(points_t* points, space_type_t space_type);
 
 static inline void program_wait_events();
@@ -262,11 +262,11 @@ static inline void program_wait_events();
  */
 
 struct world_param_struct{
-    float res[2];
-    float scale[2];
-    float translate[2];
-    // float rotation;
-    // float wtime;
+    GLfloat res[2];
+    GLfloat scale[2];
+    GLfloat translate[2];
+    // GLfloat rotation;
+    // GLfloat wtime;
 };
 
 struct object_param_struct {
@@ -297,7 +297,7 @@ struct window_struct
     GLuint ubo[2];       // one ubo for a world_param_t, one ubo for an object_param_t
 
     int last_program;
-    GLuint program[4];
+    GLuint program[6];
     GLuint texture;
     int texture_sloc;
 
@@ -307,19 +307,19 @@ struct window_struct
 struct text_struct {
     GLuint vao;
     GLuint vbo;
-    size_t vboCapacity; // capacity of the vbo
-    size_t vboLen;      // number of letter in vbo
+    GLsizei vboCapacity; // capacity of the vbo
+    GLsizei vboLen;      // number of letter in vbo
     // const unsigned char* string;
-    size_t dataCapacity; // length of the string
-    float* data;
+    GLsizei dataCapacity; // length of the string
+    GLfloat* data;
     object_param_t param;
 };
 
 struct points_struct{
     GLuint vao;
     GLuint vbo;
-    size_t vboCapacity; // numer of points in vbo
-    size_t vboLen;
+    GLsizei vboCapacity; // numer of points in vbo
+    GLsizei vboLen;
     object_param_t param;
 };
 
@@ -332,61 +332,61 @@ static inline double window_get_time(window_t* window){
     return window->wtime;
 }
 
-static inline float window_get_yres(window_t* window){
+static inline GLfloat window_get_yres(window_t* window){
     return window->param.res[1];
 }
 static inline int window_is_closed(window_t* window){
     return glfwWindowShouldClose(window->self);
 }
 
-static inline void window_set_color(window_t* window, float rgba[4]) {
+static inline void window_set_color(window_t* window, GLfloat rgba[4]) {
     glClearColor(rgba[0], rgba[1], rgba[2], rgba[3]);
 }
 
-static inline void window_translate(window_t* window, float posx, float posy) {
+static inline void window_translate(window_t* window, GLfloat posx, GLfloat posy) {
     window->param.translate[0] += posx;
     window->param.translate[1] += posy;
 }
 
-static inline void window_scale(window_t* window, float scale) {
+static inline void window_scale(window_t* window, GLfloat scale) {
     window->param.scale[0] *= scale;
     window->param.scale[1] *= scale;
 }
 
 
-static inline void text_set_pos(text_t* text, float pos_x, float pos_y) {
+static inline void text_set_pos(text_t* text, GLfloat pos_x, GLfloat pos_y) {
     text->param.localPos[0] = pos_x;
     text->param.localPos[1] = pos_y;
 }
 
-static inline void text_set_scale(text_t* text, float scaleX, float scaleY) {
+static inline void text_set_scale(text_t* text, GLfloat scaleX, GLfloat scaleY) {
     text->param.localScale[0] = scaleX;
     text->param.localScale[1] = scaleY;
 }
 
-// static inline void text_set_rotation(text_t* text, float rotation) {
+// static inline void text_set_rotation(text_t* text, GLfloat rotation) {
 //     text->param.rotation = rotation;
 // }
 
-static inline void text_set_color(text_t* text, float rgba[4]) {
+static inline void text_set_color(text_t* text, GLfloat rgba[4]) {
     for (int i=0; i<4; i++)
         text->param.fillColor[i] = rgba[i];
 }
 
-static inline void text_set_width(text_t* text, float width) {
+static inline void text_set_width(text_t* text, GLfloat width) {
     text->param.width = width;
 }
 
-static inline void text_set_outline_color(text_t* text, float rgba[4]) {
+static inline void text_set_outline_color(text_t* text, GLfloat rgba[4]) {
     for (int i=0; i<4; i++)
         text->param.outlineColor[i] = rgba[i];
 }
 
-static inline void text_set_outline_width(text_t* text, float width) {
+static inline void text_set_outline_width(text_t* text, GLfloat width) {
     text->param.outlineWidth = width;
 }
 
-static inline void text_set_outline_shift(text_t* text, float shift_x, float shift_y) {
+static inline void text_set_outline_shift(text_t* text, GLfloat shift_x, GLfloat shift_y) {
     text->param.other[0] = shift_x;
     text->param.other[1] = shift_y;
 }
@@ -395,51 +395,51 @@ static inline void text_set_space_type(text_t* text, space_type_t space_type) {
     text->param.space_type = space_type;
 }
 
-static inline float text_get_line_height(text_t* text, float resolution_y) {
+static inline GLfloat text_get_line_height(text_t* text, GLfloat resolution_y) {
     if(text->param.space_type == NORMAL_SPACE)
         return text->param.localScale[1];
     else
-        return text->param.localScale[1]*2.0/resolution_y;
+        return text->param.localScale[1]*2.0f/resolution_y;
 }
 
-static inline void points_set_pos(points_t* points, float pos_x, float pos_y) {
+static inline void points_set_pos(points_t* points, GLfloat pos_x, GLfloat pos_y) {
     points->param.localPos[0] = pos_x;
     points->param.localPos[1] = pos_y;
 }
 
-static inline void points_set_scale(points_t* points, float scaleX, float scaleY) {
+static inline void points_set_scale(points_t* points, GLfloat scaleX, GLfloat scaleY) {
     points->param.localScale[0] = scaleX;
     points->param.localScale[1] = scaleY;
 }
 
-// static inline void points_set_rotation(points_t* points, float rotation) {
+// static inline void points_set_rotation(points_t* points, GLfloat rotation) {
 //     points->param.rotation = rotation;
 // }
 
-static inline void points_set_width(points_t* points, float width) {
+static inline void points_set_width(points_t* points, GLfloat width) {
     points->param.width = width;
 }
 
-static inline void points_set_color(points_t* points, float rgba[4]) {
+static inline void points_set_color(points_t* points, GLfloat rgba[4]) {
     for (int i=0; i<4; i++)
         points->param.fillColor[i] = rgba[i];
 }
 
 // a number between 0 and 1
-// static inline void points_set_pointiness(points_t* points, float pointiness) {
+// static inline void points_set_pointiness(points_t* points, GLfloat pointiness) {
 //     points->param.other[0] = pointiness;
 // }
 
-static inline void points_set_outline_color(points_t* points, float rgba[4]) {
+static inline void points_set_outline_color(points_t* points, GLfloat rgba[4]) {
     for (int i=0; i<4; i++)
         points->param.outlineColor[i] = rgba[i];
 }
 
-static inline void points_set_outline_width(points_t* points, float width) {
+static inline void points_set_outline_width(points_t* points, GLfloat width) {
     points->param.outlineWidth = width;
 }
 
-static inline void points_set_marker(points_t* points, float marker) {
+static inline void points_set_marker(points_t* points, GLfloat marker) {
     points->param.other[1] = marker;
 }
 

@@ -10,16 +10,16 @@ typedef struct
 
 typedef struct
 {
-    size_t tex_width;
-    size_t tex_height;
-    size_t tex_depth;
+    unsigned tex_width;
+    unsigned tex_height;
+    unsigned tex_depth;
     char tex_data[65536];
     float size;
     float height;
     float linegap;
     float ascender;
     float descender;
-    size_t glyphs_count;
+    unsigned glyphs_count;
     texture_glyph_t glyphs[256];
 } texture_font_t;
 
