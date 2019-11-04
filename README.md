@@ -13,4 +13,4 @@ See [doc/COMPILING.md](doc/COMPILING.md) for a step by step tutorial on how to b
 
 See [src/main.c](src/main.c) for a small example that display "Hello world" using the draw_tools library.
 
-See [doc/Turorial.md](doc/Turorial.md) for a step by step tutorial on how to use the draw_tools library.
+See [doc/turorial.md](doc/turorial.md) for a step by step tutorial on how to use the draw_tools library.
