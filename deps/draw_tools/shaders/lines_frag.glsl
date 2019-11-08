@@ -1,25 +1,24 @@
 #version 150 core
 
-layout(std140) uniform objectBlock
+layout (std140) uniform objectBlock
 {
     vec4 fillColor;
     vec4 outlineColor;
-    vec2 otherParam; // x: pointiness y: ?
     vec2 localPos;
     vec2 localScale;
     float width;
+    float marker;
     float outlineWidth;
     // float rotation;
-    int space_type; // 0: normal sizes, 1: size in pixels, 2: size in pixels without translation
+    int space_type; // 0: normal sizes, 1: unzoomable, 2: unmodifable pixel size
 };
 
-layout(std140) uniform worldBlock
+layout (std140) uniform worldBlock
 {
     vec2 resolution;
     vec2 scale;
     vec2 translate;
     // float rotation;
-    // float wtime;
 };
 
 flat in vec2 p1_screen;

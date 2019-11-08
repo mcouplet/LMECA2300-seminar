@@ -34,8 +34,10 @@ typedef enum {
 
     UNZOOMABLE_SPACE = 1, // zooming will not change the size of the object
 
-    PIXEL_SPACE = 2,      // unzoomable, unmovable and positon and scaling must
-                          // be given in pixel coordinates
+    PIXEL_SPACE = 2,      // unzoomable, unmovable and positon and width/height
+                          // must be given in pixel coordinates.
+                          // In addition, the origin of the screen is the bottom
+                          // left corner and not the center 
 } space_type_t;
 
 
@@ -189,6 +191,9 @@ static inline GLfloat window_get_yres(window_t* window);
 
 /* tells if the window should close (because the user decided it) */
 static inline int window_should_close(window_t* window);
+
+/* sets the background color with a 4-channel color (red, blue, green, alpha).
+ * The alpha channel (transparency) is useless here */
 static inline void window_set_color(window_t* window, GLfloat rgba[4]);
 
 /* translates the content of the window (similar to dragging with the mouse */

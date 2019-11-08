@@ -37,7 +37,7 @@ void main(void)
     float glyph_center = 0.5 - 0.25*boldness;
     float outline_center = glyph_center + 0.25*shift;
 
-    float sdfWidth = min(outline_center*0.5, fwidth(sdf)); // length(dxdy);
+    float sdfWidth = fwidth(sdf); // length(dxdy);
 
     // glyph_center = min(glyph_center, outline_center);
     float opacity = smoothstep(glyph_center-sdfWidth, glyph_center+sdfWidth, sdf); // ~2 pixels antialising

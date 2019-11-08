@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.9)
 project(Project C)
 
 # TODO: add a for each loop for every file in a test directory
-add_executable(exec src/main.c)
+add_executable(exec src/text_style.c)
 set_target_properties(exec PROPERTIES C_STANDARD 99)
 
 # add dependency to draw_tools and the libm (math library)

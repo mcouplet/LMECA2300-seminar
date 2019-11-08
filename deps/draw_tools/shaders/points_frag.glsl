@@ -4,13 +4,13 @@ layout (std140) uniform objectBlock
 {
     vec4 fillColor;
     vec4 outlineColor;
-    vec2 otherParam; // x: pointiness y: marker
     vec2 localPos;
     vec2 localScale;
     float width;
+    float marker;
     float outlineWidth;
     // float rotation;
-    int space_type; // 0: normal sizes, 1: size in pixels, 2: size in pixels without translation
+    int space_type; // 0: normal sizes, 1: unzoomable, 2: unmodifable pixel size
 };
 
 layout (std140) uniform worldBlock
@@ -19,7 +19,6 @@ layout (std140) uniform worldBlock
     vec2 scale;
     vec2 translate;
     // float rotation;
-    // float wtime;
 };
 
 flat in vec2 center;
@@ -77,31 +76,31 @@ void main( void ) {
        square - rhombus - emptyCross - invCircle - rhombus - circle - square
     */
 
-    float marker = mod(otherParam.y, 6);
+    float markerMod6 = mod(marker, 6);
 
-    if(marker < 1.0) {
-        direction = normalize(mix(direction_square, direction_rhombus, marker - 0.0));
-        amplitude = mix(amplitude_square, amplitude_rhombus, marker - 0.0);
+    if(markerMod6 < 1.0) {
+        direction = normalize(mix(direction_square, direction_rhombus, markerMod6 - 0.0));
+        amplitude = mix(amplitude_square, amplitude_rhombus, markerMod6 - 0.0);
     }
-    else if(marker < 2.0) {
-        direction = normalize(mix(direction_rhombus, direction_emptyCross, marker - 1.0));
-        amplitude = mix(amplitude_rhombus, amplitude_emptyCross, marker - 1.0);
+    else if(markerMod6 < 2.0) {
+        direction = normalize(mix(direction_rhombus, direction_emptyCross, markerMod6 - 1.0));
+        amplitude = mix(amplitude_rhombus, amplitude_emptyCross, markerMod6 - 1.0);
     }
-    else if(marker < 3.0) {
-        direction = normalize(mix(direction_emptyCross, direction_invCircle, marker - 2.0));
-        amplitude = mix(amplitude_emptyCross, amplitude_invCircle, marker - 2.0);
+    else if(markerMod6 < 3.0) {
+        direction = normalize(mix(direction_emptyCross, direction_invCircle, markerMod6 - 2.0));
+        amplitude = mix(amplitude_emptyCross, amplitude_invCircle, markerMod6 - 2.0);
     }
-    else if(marker < 4.0) {
-        direction = normalize(mix(direction_invCircle, direction_rhombus, marker - 3.0));
-        amplitude = mix(amplitude_invCircle, amplitude_rhombus, marker - 3.0);
+    else if(markerMod6 < 4.0) {
+        direction = normalize(mix(direction_invCircle, direction_rhombus, markerMod6 - 3.0));
+        amplitude = mix(amplitude_invCircle, amplitude_rhombus, markerMod6 - 3.0);
     }
-    else if(marker < 5.0) {
-        direction = normalize(mix(direction_rhombus, direction_circle, marker - 4.0));
-        amplitude = mix(amplitude_rhombus, amplitude_circle, marker - 4.0);
+    else if(markerMod6 < 5.0) {
+        direction = normalize(mix(direction_rhombus, direction_circle, markerMod6 - 4.0));
+        amplitude = mix(amplitude_rhombus, amplitude_circle, markerMod6 - 4.0);
     }
     else {
-        direction = normalize(mix(direction_circle, direction_square, marker - 5.0));
-        amplitude = mix(amplitude_circle, amplitude_square, marker - 5.0);
+        direction = normalize(mix(direction_circle, direction_square, markerMod6 - 5.0));
+        amplitude = mix(amplitude_circle, amplitude_square, markerMod6 - 5.0);
     }
 
     // compute the length of the smoothstep in pixel

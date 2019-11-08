@@ -43,7 +43,7 @@ void main()
     }
     else if(space_type==1) {
         // no scaling of the height is applied
-        gl_Position = vec4(scale*(localPos + translate) + height, 0.0, 1.0);
+        gl_Position = vec4(scale*(localPos + translate) + normalize(scale)*height, 0.0, 1.0);
     }
     else {
         // everything is given in pixel, from the bottom left corner :-)
@@ -51,7 +51,7 @@ void main()
         // as the rasterization is done with centers, we will have
         // beautifully aligned pixels if the user choose a font size
         // that is a multiple of the font size :-)
-        vec2 pixelPos = floor(localPos + height);
+        vec2 pixelPos = floor(localPos + height)+0.5;
         gl_Position = vec4(pixelPos/resolution - 1.0, 0.0, 1.0);
     }
 }
