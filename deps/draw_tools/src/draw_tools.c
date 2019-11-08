@@ -408,6 +408,26 @@ static void window_size_callback(GLFWwindow* self, int width, int height)
  %  Window object
  %%%%%%%%%%%%%%%%%%%%%%%%%*/
 static void window_OpenGL_init(window_t* window) {
+#ifndef NDEBUG
+    {
+        text_param_t t;
+        points_param_t p;
+        if(sizeof(points_param_t)!=sizeof(text_param_t) ||
+           ((void*) &t.fillColor - (void*) &t) != ((void*) &p.fillColor - (void*) &p) ||
+           ((void*) &t.outlineColor - (void*) &t) != ((void*) &p.outlineColor - (void*) &p) ||
+           ((void*) &t.pos - (void*) &t) != ((void*) &p.pos - (void*) &p) ||
+           ((void*) &t.shift - (void*) &t) != ((void*) &p.scale - (void*) &p) ||
+           ((void*) &t.height - (void*) &t) != ((void*) &p.width - (void*) &p) ||
+           ((void*) &t.boldness - (void*) &t) != ((void*) &p.marker - (void*) &p) ||
+           ((void*) &t.outlineWidth - (void*) &t) != ((void*) &p.outlineWidth - (void*) &p)
+          ){
+            ERROR_LOG(SHADER_ERROR, "points_param_t and text_param_t must "
+                                    "have identical fields");
+            exit(EXIT_FAILURE);
+        }
+    }
+#endif
+
     // Create draw and object UBO
     glGenBuffers(2, window->ubo);
     glBindBuffer(GL_UNIFORM_BUFFER, window->ubo[0]);
@@ -415,8 +435,8 @@ static void window_OpenGL_init(window_t* window) {
     glBindBufferRange(GL_UNIFORM_BUFFER, 0, window->ubo[0], 0, sizeof(world_param_t));
 
     glBindBuffer(GL_UNIFORM_BUFFER, window->ubo[1]);
-    glBufferData(GL_UNIFORM_BUFFER, sizeof(object_param_t), NULL, GL_DYNAMIC_DRAW);
-    glBindBufferRange(GL_UNIFORM_BUFFER, 1, window->ubo[1], 0, sizeof(object_param_t));
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(points_param_t), NULL, GL_DYNAMIC_DRAW);
+    glBindBufferRange(GL_UNIFORM_BUFFER, 1, window->ubo[1], 0, sizeof(points_param_t));
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
     // compile shaders
@@ -820,16 +840,16 @@ text_t* text_new(unsigned char* string, GLenum usage){
     text_t* text = malloc(sizeof(text_t));
     CHECK_MALLOC(text);
 
-    text->param = (object_param_t){
-                    {0.0f, 0.0f, 0.0f, 1.0f}, // color
-                    {1.0f ,1.0f, 1.0f, 1.0f}, // outlineColor
-                    {0.0f ,0.0f},             // other
-                    {0.0f, 0.0f},             // localPos
-                    {0.05f, 0.05f},           // localScale
-                    0.0f,                     // width
-                    -1.0f,                    // outlineWidth
-                    // 0.0f,                      // rotation
-                    USUAL_SPACE};
+    text->param = (text_param_t){
+        .fillColor={0.0f, 0.0f, 0.0f, 1.0f},
+        .outlineColor={1.0f ,1.0f, 1.0f, 1.0f},
+        .pos={0.0f ,0.0f},
+        .shift={0.0f, 0.0f},
+        .height=0.05f,
+        .boldness=0.0f,
+        .outlineWidth=-1.0f,
+        // .rotation=0.0f,
+        .spaceType=USUAL_SPACE};
 
     // Create Vertex Array Object
     glGenVertexArrays(1, &text->vao);
@@ -919,7 +939,7 @@ void text_draw(window_t* window, text_t* text){
 
     // update the object ubo
     glBindBuffer(GL_UNIFORM_BUFFER, window->ubo[1]);
-    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(object_param_t), &text->param);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(text_param_t), &text->param);
     // glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
     glUniform1i(window->texture_sloc, 0);
@@ -939,16 +959,16 @@ points_t* points_new(GLfloat* coords, GLsizei n, GLenum usage) {
 
     points->vboLen = coords==NULL ? 0: n;
 
-    points->param = (object_param_t){
-                    {0.0f, 0.0f, 0.0f, 1.0f}, // color
-                    {1.0f ,1.0f, 1.0f, 1.0f}, // outlineColor
-                    {0.0f ,0.0f},           // other
-                    {0.0f, 0.0f},           // localPos
-                    {1.0f, 1.0f},           // localScale
-                    0.025f,              // width
-                    -1.0f,               // outlineWidth
-                    // 0.0f,                // rotation
-                    USUAL_SPACE};
+    points->param = (points_param_t){
+        .fillColor={0.0f, 0.0f, 0.0f, 1.0f}, // color
+        .outlineColor={1.0f ,1.0f, 1.0f, 1.0f}, // outlineColor
+        .pos={0.0f ,0.0f},           // other
+        .scale={1.0f, 1.0f},           // localPos
+        .width=0.025f,
+        .marker=0.0f,
+        .outlineWidth=-1.0f,
+        // .rotation=0.0f,
+        .spaceType=USUAL_SPACE};
 
     // Create Vertex Array Object
     glGenVertexArrays(1, &points->vao);
@@ -1020,7 +1040,7 @@ void points_delete(points_t* points){
 }
 
 
-static inline void switch_rasterizer_with_mode(window_t* window, GLenum mode)
+static inline void switch_rasterizer_with_mode(window_t* window, points_t* points, GLenum mode)
 {
     int index;
 
@@ -1052,20 +1072,20 @@ static inline void switch_rasterizer_with_mode(window_t* window, GLenum mode)
         glUseProgram(window->program[index]);
         window->last_program = index;
     }
+
+    // update the object ubo
+    glBindBuffer(GL_UNIFORM_BUFFER, window->ubo[1]);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(points_param_t), &points->param);
+    // glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+    glBindVertexArray(points->vao);
 }
 
 void points_draw_aux(window_t* window, points_t* points, GLenum mode) {
     if(points->vboLen==0)
         return;
 
-    switch_rasterizer_with_mode(window, mode);
-
-    // update the object ubo
-    glBindBuffer(GL_UNIFORM_BUFFER, window->ubo[1]);
-    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(object_param_t), &points->param);
-    // glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-    glBindVertexArray(points->vao);
+    switch_rasterizer_with_mode(window, points, mode);
     glDrawArrays(mode, 0, points->vboLen);
     // glBindVertexArray(0);
 }
@@ -1074,14 +1094,7 @@ void points_draw_with_order_aux(window_t* window, points_t* points, order_t* ord
     if(points->vboLen==0 || order->eboLen==0)
         return;
 
-    switch_rasterizer_with_mode(window, mode);
-
-    // update the object ubo
-    glBindBuffer(GL_UNIFORM_BUFFER, window->ubo[1]);
-    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(object_param_t), &points->param);
-    // glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-    glBindVertexArray(points->vao);
+    switch_rasterizer_with_mode(window, points, mode);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, order->ebo);
     glDrawElements(mode, order->eboLen, GL_UNSIGNED_INT, 0);
     // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);

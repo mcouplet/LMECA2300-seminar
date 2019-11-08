@@ -192,7 +192,7 @@ static inline int window_should_close(window_t* window);
 static inline void window_set_color(window_t* window, GLfloat rgba[4]);
 
 /* translates the content of the window (similar to dragging with the mouse */
-static inline void window_translate(window_t* window, GLfloat posx, GLfloat posy);
+static inline void window_translate(window_t* window, GLfloat pos[2]);
 
 /* scale the content of the window (similar to zooming) */
 static inline void window_scale(window_t* window, GLfloat scale);
@@ -206,7 +206,7 @@ void window_screenshot(window_t* window, char* filename);
 /* set the position of the text on the screen.
  * Note that coordinates must be given in pixels if the space type is set to
  * PIXEL_SPACE*/
-static inline void text_set_pos(text_t* text, GLfloat pos_x, GLfloat pos_y);
+static inline void text_set_pos(text_t* text, GLfloat pos[2]);
 
 /* set the height of the text object on the screen.
  * Note that this height must be given in pixels if
@@ -223,6 +223,7 @@ static inline void text_set_color(text_t* text, GLfloat rgba[4]);
  * how massive the font should be. -1 means light, 1 means bold */ 
 static inline void text_set_boldness(text_t* text, GLfloat width);
 
+/* sets the text outline color to a 4 channel color (red, gree, blue, alpha) */
 static inline void text_set_outline_color(text_t* text, GLfloat rgba[4]);
 
 /* for text, the outline width must be between 0 and 1
@@ -241,12 +242,34 @@ static inline void text_set_outline_width(text_t* text, GLfloat width);
  * actually, it uses the gradient of the sdf based font to calculate
  * the normal, and this gradient approaches 0 when zoomed in...
  */
-static inline void text_set_outline_shift(text_t* text, GLfloat shift_x, GLfloat shift_y);
+static inline void text_set_outline_shift(text_t* text, GLfloat shift[2]);
 
 /* for more detail on what this function does, see:
  * - the structure `space_type_t`
- * - the function `text_set_pos()` and `text_set_height()` */
-static inline void text_set_space_type(text_t* text, space_type_t space_type);
+ * - the function `text_set_pos()` and `text_set_height()`
+ *
+ * Changing the spaceType of a text object to PIXEL_SPACE also sets its
+ * position and scaling to meaningfull values (negative positions are set to
+ * zero, height less than 32 are set to 32) */
+static inline void text_set_space_type(text_t* text, space_type_t spaceType);
+
+/* a structure to hold all the parameters of a text object */
+typedef struct {
+    GLfloat fillColor[4];
+    GLfloat outlineColor[4];
+    GLfloat pos[2];
+    GLfloat shift[2];
+    GLfloat height;
+    GLfloat boldness;
+    GLfloat outlineWidth;
+    space_type_t spaceType;
+} text_param_t;
+
+/* retrieve all the parameters from a text object */
+static inline text_param_t text_get_param(text_t* text);
+
+/* set all the parameters of a text object at once */
+static inline void text_set_param(text_t* text, text_param_t parameters);
 
 
 /*%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -254,33 +277,56 @@ static inline void text_set_space_type(text_t* text, space_type_t space_type);
  %%%%%%%%%%%%%%%%%%%%%%%%%*/
 /* set the position of the points on the screen.
  * Note that coordinates must be given in pixels if the space type is set to
-* PIXEL_SPACE*/
-static inline void points_set_pos(points_t* points, GLfloat pos_x, GLfloat pos_y);
+ * PIXEL_SPACE*/
+static inline void points_set_pos(points_t* points, GLfloat pos[2]);
 
 /* you can give a local scaling factor to your set of points in both x and y
  * directions.*/
-static inline void points_scale(points_t* points, GLfloat scaleX, GLfloat scaleY);
+static inline void points_scale(points_t* points, GLfloat scale[2]);
 
 // not implemented yet
 // static inline void points_set_rotation(points_t* points, GLfloat rotation);
 
-/* set the width of the marker/line/curve/... associated with the points */
+/* set the width of the marker/line/curve/... associated with the points
+ * Note that the width must be given in pixels if the space type is set to
+ * PIXEL_SPACE*/
 static inline void points_set_width(points_t* points, GLfloat width);
 
 /* sets color of the marker/line/curve/... associated with the points to a 4 
  * channel color (red, gree, blue, alpha) */
 static inline void points_set_color(points_t* points, GLfloat rgba[4]);
-
-// not implemented yet
-// static inline void points_set_pointiness(points_t* points, GLfloat pointiness);
-
-
 static inline void points_set_outline_color(points_t* points, GLfloat rgba[4]);
 static inline void points_set_outline_width(points_t* points, GLfloat width);
-static inline void points_set_marker(points_t* points, GLfloat marker);
-static inline void points_set_space_type(points_t* points, space_type_t space_type);
 
-static inline void program_wait_events();
+/* TODO: document the different shapes */
+static inline void points_set_marker(points_t* points, GLfloat marker);
+
+/* for more detail on what this function does, see:
+ * - the structure `space_type_t`
+ * - the function `points_set_pos()` and `points_set_width()`
+ *
+ * Changing the spaceType of a text object to PIXEL_SPACE also sets its
+ * position and scaling to meaningfull values (negative positions are set to
+ * zero, height less than 32 are set to 32) */
+static inline void points_set_space_type(points_t* points, space_type_t spaceType);
+
+/* a structure to hold all the parameters of a points object */
+typedef struct {
+    GLfloat fillColor[4];
+    GLfloat outlineColor[4];
+    GLfloat pos[2];
+    GLfloat scale[2];
+    GLfloat width;
+    GLfloat marker;
+    GLfloat outlineWidth;
+    space_type_t spaceType;
+} points_param_t;
+
+/* retrieve all the parameters from a points object */
+static inline points_param_t points_get_param(points_t* points);
+
+/* set all the parameters of a points object at once */
+static inline void points_set_param(points_t* points, points_param_t parameters);
 
 
 /*%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -337,34 +383,17 @@ static inline void program_wait_events();
  *      \__,_|\___/|_| |_|  \__| |_|\___/ \___/|_|\_\ |_.__/ \___|_|\___/ \_/\_/
  */
 
-typedef struct world_param_struct world_param_t;
-typedef struct object_param_struct object_param_t;
-
-struct world_param_struct{
+typedef struct {
     GLfloat res[2];
     GLfloat scale[2];
     GLfloat translate[2];
     // GLfloat rotation;
-    // GLfloat wtime;
-};
-
-struct object_param_struct {
-    GLfloat fillColor[4];
-    GLfloat outlineColor[4];
-    GLfloat other[2];
-    GLfloat localPos[2];
-    GLfloat localScale[2];
-    GLfloat width;
-    GLfloat outlineWidth;
-    // GLfloat rotation;
-    GLint space_type;
-};
-
+} world_param_t;
 
 struct window_struct
 {
     GLFWwindow* self;
-    GLFWcursor* leftClickCursor;  // cursor for the left click
+    GLFWcursor* leftClickCursor;
 
     world_param_t param;
 
@@ -373,14 +402,14 @@ struct window_struct
     double clickTime[2]; // time of the click (left and right) or -1 if released
     double wtime;
 
-    GLuint ubo[2];       // one ubo for a world_param_t, one ubo for an object_param_t
+    GLuint ubo[2]; // 1 ubo for world params, 1 ubo for points and text params
 
     int last_program;
     GLuint program[6];
     GLuint texture;
     int texture_sloc;
 
-    int running;         // running or paused
+    int running;
 };
 
 struct text_struct {
@@ -391,21 +420,17 @@ struct text_struct {
     // const unsigned char* string;
     GLsizei dataCapacity; // length of the string
     GLfloat* data;
-    object_param_t param;
+    text_param_t param;
 };
 
 struct points_struct{
     GLuint vao;
     GLuint vbo;
-    GLsizei vboCapacity; // numer of points in vbo
+    GLsizei vboCapacity;
     GLsizei vboLen;
-    object_param_t param;
+    points_param_t param;
 };
 
-
-static inline void program_wait_events() {
-    glfwWaitEvents();
-}
 
 static inline double window_get_time(window_t* window){
     return window->wtime;
@@ -428,9 +453,9 @@ static inline void window_set_color(window_t* window, GLfloat rgba[4]) {
     glClearColor(rgba[0], rgba[1], rgba[2], rgba[3]);
 }
 
-static inline void window_translate(window_t* window, GLfloat posx, GLfloat posy) {
-    window->param.translate[0] += posx;
-    window->param.translate[1] += posy;
+static inline void window_translate(window_t* window, GLfloat pos[2]) {
+    window->param.translate[0] += pos[0];
+    window->param.translate[1] += pos[1];
 }
 
 static inline void window_scale(window_t* window, GLfloat scale) {
@@ -439,14 +464,13 @@ static inline void window_scale(window_t* window, GLfloat scale) {
 }
 
 
-static inline void text_set_pos(text_t* text, GLfloat pos_x, GLfloat pos_y) {
-    text->param.localPos[0] = pos_x;
-    text->param.localPos[1] = pos_y;
+static inline void text_set_pos(text_t* text, GLfloat pos[2]) {
+    text->param.pos[0] = pos[0];
+    text->param.pos[1] = pos[1];
 }
 
 static inline void text_set_height(text_t* text, GLfloat height) {
-    text->param.localScale[0] = height;
-    text->param.localScale[1] = height;
+    text->param.height = height;
 }
 
 // static inline void text_set_rotation(text_t* text, GLfloat rotation) {
@@ -459,7 +483,7 @@ static inline void text_set_color(text_t* text, GLfloat rgba[4]) {
 }
 
 static inline void text_set_boldness(text_t* text, GLfloat boldness) {
-    text->param.width = boldness;
+    text->param.boldness = boldness;
 }
 
 static inline void text_set_outline_color(text_t* text, GLfloat rgba[4]) {
@@ -471,25 +495,41 @@ static inline void text_set_outline_width(text_t* text, GLfloat width) {
     text->param.outlineWidth = width;
 }
 
-static inline void text_set_outline_shift(text_t* text, GLfloat shift_x, GLfloat shift_y) {
-    text->param.other[0] = shift_x;
-    text->param.other[1] = shift_y;
+static inline void text_set_outline_shift(text_t* text, GLfloat shift[2]) {
+    text->param.shift[0] = shift[0];
+    text->param.shift[1] = shift[1];
 }
 
-static inline void text_set_space_type(text_t* text, space_type_t space_type) {
-    text->param.space_type = space_type;
+static inline void text_set_space_type(text_t* text, space_type_t spaceType) {
+    if(spaceType==PIXEL_SPACE && text->param.spaceType!=PIXEL_SPACE) {
+        if(text->param.pos[0] < 5.0f)
+            text->param.pos[0] = 5.0f;
+        if(text->param.pos[1] < 5.0f)
+            text->param.pos[1] = 5.0f;
+        if(text->param.height < 32.0f)
+            text->param.height = 32.0f;
+    }
+
+    text->param.spaceType = spaceType;
+}
+
+static inline text_param_t text_get_param(text_t* text) {
+    return text->param;
+}
+
+static inline void text_set_param(text_t* text, text_param_t parameters) {
+    text->param = parameters;
 }
 
 
-
-static inline void points_set_pos(points_t* points, GLfloat pos_x, GLfloat pos_y) {
-    points->param.localPos[0] = pos_x;
-    points->param.localPos[1] = pos_y;
+static inline void points_set_pos(points_t* points, GLfloat pos[2]) {
+    points->param.pos[0] = pos[0];
+    points->param.pos[1] = pos[1];
 }
 
-static inline void points_scale(points_t* points, GLfloat scaleX, GLfloat scaleY) {
-    points->param.localScale[0] = scaleX;
-    points->param.localScale[1] = scaleY;
+static inline void points_scale(points_t* points, GLfloat scale[2]) {
+    points->param.scale[0] = scale[0];
+    points->param.scale[1] = scale[1];
 }
 
 // static inline void points_set_rotation(points_t* points, GLfloat rotation) {
@@ -505,11 +545,6 @@ static inline void points_set_color(points_t* points, GLfloat rgba[4]) {
         points->param.fillColor[i] = rgba[i];
 }
 
-// a number between 0 and 1
-// static inline void points_set_pointiness(points_t* points, GLfloat pointiness) {
-//     points->param.other[0] = pointiness;
-// }
-
 static inline void points_set_outline_color(points_t* points, GLfloat rgba[4]) {
     for (int i=0; i<4; i++)
         points->param.outlineColor[i] = rgba[i];
@@ -520,12 +555,29 @@ static inline void points_set_outline_width(points_t* points, GLfloat width) {
 }
 
 static inline void points_set_marker(points_t* points, GLfloat marker) {
-    points->param.other[1] = marker;
+    points->param.marker = marker;
 }
 
-static inline void points_set_space_type(points_t* points, space_type_t space_type) {
-    points->param.space_type = space_type;
+static inline void points_set_space_type(points_t* points, space_type_t spaceType) {
+    if(spaceType==PIXEL_SPACE && points->param.spaceType!=PIXEL_SPACE) {
+        if(points->param.pos[0] < 5.0f)
+            points->param.pos[0] = 5.0f;
+        if(points->param.pos[1] < 5.0f)
+            points->param.pos[1] = 5.0f;
+        if(points->param.width < 2.0f)
+            points->param.width = 2.0f;
+    }
+    points->param.spaceType = spaceType;
 }
+
+static inline points_param_t points_get_param(points_t* points) {
+    return points->param;
+}
+
+static inline void points_set_param(points_t* points, points_param_t parameters) {
+    points->param = parameters;
+}
+
 
 void points_draw_aux(window_t* window, points_t* pts, GLenum mode);
 void points_draw_with_order_aux(window_t* window, points_t* pts, order_t* order, GLenum mode);

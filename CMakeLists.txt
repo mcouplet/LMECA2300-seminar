@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.9)
 project(Project C)
 
+# TODO: add a for each loop for every file in a test directory
 add_executable(exec src/main.c)
 set_target_properties(exec PROPERTIES C_STANDARD 99)
 

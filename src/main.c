@@ -5,46 +5,56 @@
 int main(int argc, char *argv[])
 {
 	window_t* window = window_new(0,0, argv[0]);
+	window_set_color(window, (GLfloat[4]) {0.8,0.8,0.8,1.0});
 
-	text_t* outline = text_new("varying outline width", GL_STATIC_DRAW);
-	text_set_height(outline, 0.25);
-	text_set_outline_color(outline, (float[4]){1,0,0,1});
-	text_set_boldness(outline, 0.25);
-	text_set_pos(outline, -1.0, 0.33);
+	text_t* outline = text_new((unsigned char[]) {"varying outline width"},
+		                        GL_STATIC_DRAW);
+	text_param_t parameters = {.outlineColor={1,0,0,1},
+	                           .pos={-1.0, 0.33},
+	                           .fillColor={0},// completely transparent
+	                           .height=0.25,
+	                           .boldness=0.25,
+	                           .outlineWidth=0.5};
+	text_set_param(outline, parameters);
 
-	text_t* width = text_new("varying width", GL_STATIC_DRAW);
-	text_set_height(width, 0.25);
-	text_set_outline_color(width, (float[4]){1,0,0,1});
-	text_set_pos(width, -1.0, 0.00);
+	text_t* width = text_new((unsigned char[]) {"varying width"},
+		                     GL_STATIC_DRAW);
 
-	text_t* shift = text_new("varying outline shift\n(fake 3D)", GL_STATIC_DRAW);
-	text_set_height(shift, 0.25);
-	text_set_color(shift, (float[4]){1,1,1,1});
-	text_set_boldness(shift, 0.25);
-	text_set_outline_color(shift, (float[4]){0.1,0.1,0.1,1});
-	text_set_outline_width(shift, 0.5); // we don't want the outline to become negative with the shift
-	text_set_pos(shift, -1.0, -0.33);
+	text_set_param(width, parameters);
+	text_set_outline_width(width, -1.0);
+	text_set_color(width, (GLfloat[4]){0.2, 0.2, 0.2, 1});
+	text_set_pos(width, (GLfloat[2]){-1.0, 0.0});
 
-	window_set_color(window, (float[4]) {0.8,0.8,0.8,1.0});
+	text_t* shift = text_new((unsigned char[]) {"varying outline shift\n(fake 3D)"},
+		                     GL_STATIC_DRAW);
+	text_set_param(shift, parameters);
+	text_set_pos(shift, (GLfloat[2]){-1.0, -0.33});
+
+	text_t* pixel = text_new((unsigned char[]) {"This text is unmoovable and unzoomable."
+	                         "\tIts position and its size (height) must be given in pixels"},
+	                         GL_STATIC_DRAW);
+	text_set_space_type(pixel, PIXEL_SPACE);
+
+	
 
 	while(!window_should_close(window)){
 		double wtime = window_get_time(window);
 
-		double st = 0.5*sin(wtime);
-
-		text_set_outline_width(outline, st+0.5);
+		text_set_outline_width(outline, 0.7*sin(wtime)+0.5);
 		text_draw(window, outline);
 
-		text_set_boldness(width, st);
+		text_set_boldness(width, 0.5*sin(wtime)-0.1);
 		text_draw(window, width);
 
-		text_set_outline_shift(shift, 1.0*sin(3*wtime), 1.0*cos(3*wtime));
+		text_set_outline_shift(shift, (GLfloat[2]){1.0*sin(3*wtime), 1.0*cos(3*wtime)});
 		text_draw(window, shift);
+
+		text_draw(window, pixel);
 
 		window_update(window);
 	}
 
-	printf("Ended correctly - %.2f second\n", window_get_time(window));
+	printf("Ended correctly\n");
 
 	text_delete(outline);
 	text_delete(width);

@@ -4,9 +4,9 @@ layout (std140) uniform objectBlock
 {
     vec4 fillColor;
     vec4 outlineColor;
-    vec2 outlineShift;
     vec2 localPos;
-    vec2 textwidth;
+    vec2 outlineShift;
+    float textheight;
     float boldness;
     float outlineWidth;
     // float rotation;
@@ -36,14 +36,14 @@ void main()
     texCoord = tex;
 
     // note: conditional based on uniform should not slow the shader down
-    vec2 width = pos * textwidth;
+    vec2 height = pos * textheight;
     if(space_type==0) {
         // classical case
-        gl_Position = vec4(scale*(localPos + translate + width), 0.0, 1.0);
+        gl_Position = vec4(scale*(localPos + translate + height), 0.0, 1.0);
     }
     else if(space_type==1) {
-        // no scaling of the width is applied
-        gl_Position = vec4(scale*(localPos + translate) + width, 0.0, 1.0);
+        // no scaling of the height is applied
+        gl_Position = vec4(scale*(localPos + translate) + height, 0.0, 1.0);
     }
     else {
         // everything is given in pixel, from the bottom left corner :-)
@@ -51,7 +51,7 @@ void main()
         // as the rasterization is done with centers, we will have
         // beautifully aligned pixels if the user choose a font size
         // that is a multiple of the font size :-)
-        vec2 pixelPos = floor(localPos + width);
-        gl_Position = vec4(pixelPos/resolution + 1.0, 0.0, 1.0);
+        vec2 pixelPos = floor(localPos + height);
+        gl_Position = vec4(pixelPos/resolution - 1.0, 0.0, 1.0);
     }
 }
