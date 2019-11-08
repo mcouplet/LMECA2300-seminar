@@ -1,10 +1,11 @@
 #define _CRT_SECURE_NO_WARNINGS // for MSVC to be happy
 
 #include "draw_tools.h"
+#include <math.h>
 /***************************************
  *   FONT DEFINITION                   *
  ***************************************/
-#include "font.h"
+#include "big_font.h"
 
 /***************************************
  *   SHADERS                           *
@@ -144,7 +145,7 @@ static int program_init(window_t* window, int program_index, int n, ...)
     return 0;
 }
 
-static GLuint create_texture(GLsizei width, GLsizei height, const GLvoid * data, GLenum format, GLint filterParam, GLint wrapParam)
+static GLuint create_texture(GLsizei width, GLsizei height, const GLvoid * data, GLenum format, GLint wrapParam)
 {
     GLuint texture;
     glGenTextures(1, &texture);
@@ -152,11 +153,14 @@ static GLuint create_texture(GLsizei width, GLsizei height, const GLvoid * data,
 
     glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filterParam);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filterParam);
+    // glGenerateMipmap(GL_TEXTURE_2D);  //Generate mipmaps
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapParam);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapParam);
-
     // glBindTexture(GL_TEXTURE_2D, 0);
 
     return texture;
@@ -167,8 +171,83 @@ static GLuint create_texture(GLsizei width, GLsizei height, const GLvoid * data,
  %  Rasterizers
  %%%%%%%%%%%%%%%%%%%%%%%%%*/
 static void text_rasterizer_init(window_t* window) {
-    window->texture = create_texture(font.tex_width, font.tex_height, font.tex_data, GL_RED, GL_LINEAR, GL_CLAMP_TO_EDGE);
+    // TODO: make it a 3 component texture with integrated derivatives
+    unsigned char (*image)[4] = malloc(sizeof(char) * 4 * 
+                                       font.tex_width * font.tex_height);
+    CHECK_MALLOC(image);
+
+    // int smoothing[2] = {1., 2./*, 1.*/}; // smoothing in Sobel kernel
+    // int smoothing[2] = {3., 10./*, 3.*/};   // in Scharr kernel
+    int smoothing[2] = {47., 162./*, 47.*/};// wikipedia optimal Scharr
+
+    // compute derivatives with a sort of Sobel kernel, which is
+    // a combination of finite difference and smoothing
+    for(int y=1; y<font.tex_height-1; y++) {
+        int down = (y-1) * font.tex_width;
+        int this = y * font.tex_width;
+        int up = (y+1) * font.tex_width;
+
+        for(int x=1; x<font.tex_width-1; x++) {
+            int index = this + x;
+
+            double gx =  font.tex_data[down + x-1] * (+smoothing[0]) + 
+                         font.tex_data[down + x+1] * (-smoothing[0]) +
+                         font.tex_data[index-1]    * (+smoothing[1]) + 
+                         font.tex_data[index+1]    * (-smoothing[1]) +
+                         font.tex_data[up + x-1]   * (+smoothing[0]) + 
+                         font.tex_data[up + x+1]   * (-smoothing[0]);
+
+            double gy =  font.tex_data[down + x-1] * (+smoothing[0]) + 
+                         font.tex_data[down + x+0] * (+smoothing[1]) + 
+                         font.tex_data[down + x+1] * (+smoothing[0]) +
+                         font.tex_data[up + x-1]   * (-smoothing[0]) + 
+                         font.tex_data[up + x+0]   * (-smoothing[1]) + 
+                         font.tex_data[up + x+1]   * (-smoothing[0]);
+
+
+            image[index][0] = font.tex_data[index];
+            double ampl = sqrt(gx * gx + gy * gy);
+            image[index][1] = fmin(255.9, fmax(0.0, gx/ampl*128. + 128.));
+            image[index][2] = fmin(255.9, fmax(0.0, gy/ampl*128. + 128.));
+            image[index][3] = ampl;
+        }
+    }
+
+    const int size = font.tex_height*font.tex_width;
+    for(int y=0; y<size; y+=font.tex_width) {
+        image[y][0] = font.tex_data[y];
+        image[y][1] = 0;
+        image[y][2] = 0;
+        image[y][3] = 0;
+    }
+
+    for(int y=font.tex_width-1;
+        y<size;
+        y+=font.tex_width) {
+        image[y][0] = font.tex_data[y];
+        image[y][1] = 0;
+        image[y][2] = 0;
+        image[y][3] = 0;
+    }
+
+    for(int x=1; x<font.tex_width-1; x++) {
+        image[x][0] = font.tex_data[x];
+        image[x][1] = 0;
+        image[x][2] = 0;
+        image[x][3] = 0;
+    }
+
+    for(int x=(font.tex_height-1)*font.tex_width+1; x<size-1; x++) {
+        image[x][0] = font.tex_data[x];
+        image[x][1] = 0;
+        image[x][2] = 0;
+        image[x][3] = 0;
+    }
+
+    window->texture = create_texture(font.tex_width, font.tex_height, image, GL_RGBA, GL_CLAMP_TO_EDGE);
     glBindTexture(GL_TEXTURE_2D, window->texture);
+
+    free(image);
 
     GLuint program = window->program[TEXT_PROGRAM_INDEX];
     glUseProgram(program);
@@ -672,7 +751,7 @@ void order_delete(order_t* order) {
  %%%%%%%%%%%%%%%%%%%%%%%%%*/
 static GLsizei fill_text_data(GLfloat* data, const unsigned char* string, GLsizei len)
 {
-    GLfloat pen_x = 0;
+    GLfloat pen_x = 0; // position in pixel
     GLfloat pen_y = 0;
     GLfloat x,y,w,h;
     // GLfloat direction = 1.0;
@@ -707,28 +786,28 @@ static GLsizei fill_text_data(GLfloat* data, const unsigned char* string, GLsize
 
                 data[24*num+0] = x;
                 data[24*num+1] = y;
-                data[24*num+2] = glyph->s0;
-                data[24*num+3] = glyph->t0;
+                data[24*num+2] = (round(glyph->s0*font.tex_width)+0.5)/font.tex_width;
+                data[24*num+3] = (round(glyph->t0*font.tex_height)+0.5)/font.tex_height;
                 data[24*num+4] = x;
                 data[24*num+5] = y-h;
-                data[24*num+6] = glyph->s0;
-                data[24*num+7] = glyph->t1;
+                data[24*num+6] = (round(glyph->s0*font.tex_width)+0.5)/font.tex_width;
+                data[24*num+7] = (round(glyph->t1*font.tex_height)-0.5)/font.tex_height;
                 data[24*num+8] = x+w;
                 data[24*num+9] = y-h;
-                data[24*num+10] = glyph->s1;
-                data[24*num+11] = glyph->t1;
+                data[24*num+10] = (round(glyph->s1*font.tex_width)-0.5)/font.tex_width;
+                data[24*num+11] = (round(glyph->t1*font.tex_height)-0.5)/font.tex_height;
                 data[24*num+12] = x;
                 data[24*num+13] = y;
-                data[24*num+14] = glyph->s0;
-                data[24*num+15] = glyph->t0;
+                data[24*num+14] = (round(glyph->s0*font.tex_width)+0.5)/font.tex_width;
+                data[24*num+15] = (round(glyph->t0*font.tex_height)+0.5)/font.tex_height;
                 data[24*num+16] = x+w;
                 data[24*num+17] = y-h;
-                data[24*num+18] = glyph->s1;
-                data[24*num+19] = glyph->t1;
+                data[24*num+18] = (round(glyph->s1*font.tex_width)-0.5)/font.tex_width;
+                data[24*num+19] = (round(glyph->t1*font.tex_height)-0.5)/font.tex_height;
                 data[24*num+20] = x + w;
                 data[24*num+21] = y;
-                data[24*num+22] = glyph->s1;
-                data[24*num+23] = glyph->t0;
+                data[24*num+22] = (round(glyph->s1*font.tex_width)-0.5)/font.tex_width;
+                data[24*num+23] = (round(glyph->t0*font.tex_height)+0.5)/font.tex_height;
 
                 num++;
                 break;
@@ -755,7 +834,7 @@ text_t* text_new(unsigned char* string, GLenum usage){
                     0.0f,                     // width
                     -1.0f,                    // outlineWidth
                     // 0.0f,                      // rotation
-                    NORMAL_SPACE};
+                    USUAL_SPACE};
 
     // Create Vertex Array Object
     glGenVertexArrays(1, &text->vao);
@@ -874,7 +953,7 @@ points_t* points_new(GLfloat* coords, GLsizei n, GLenum usage) {
                     0.025f,              // width
                     -1.0f,               // outlineWidth
                     // 0.0f,                // rotation
-                    NORMAL_SPACE};
+                    USUAL_SPACE};
 
     // Create Vertex Array Object
     glGenVertexArrays(1, &points->vao);
