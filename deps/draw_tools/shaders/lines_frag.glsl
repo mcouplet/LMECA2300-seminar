@@ -19,7 +19,7 @@ flat in float pixelSize;
 
 out vec4 outColor;
 
-#define antialiasing (4.0*pixelSize) // number of pixel for the antialiasing
+#define antialiasing (2.0*pixelSize) // number of pixel for the antialiasing
 
 void main( void ) {
     vec2 v = vec2(pRect.x - clamp(pRect.x, 0.0, lba), pRect.y);
