@@ -286,7 +286,10 @@ static inline void text_set_param(text_t* text, text_param_t parameters);
 static inline void points_set_pos(points_t* points, GLfloat pos[2]);
 
 /* you can give a local scaling factor to your set of points in both x and y
- * directions.*/
+ * directions. The translation given by points_set_pos() is applied AFTER the
+ * local scaling, so it is not impacted by the scaling. The local scaling
+ * factors is only applied to point coordinates, not to the width and outline
+ * width*/
 static inline void points_scale(points_t* points, GLfloat scale[2]);
 
 // not implemented yet
@@ -390,8 +393,8 @@ static inline void points_set_param(points_t* points, points_param_t parameters)
 
 typedef struct {
     GLfloat res[2];
-    GLfloat scale[2];
     GLfloat translate[2];
+    GLfloat zoom;
     // GLfloat rotation;
 } world_param_t;
 
@@ -464,8 +467,7 @@ static inline void window_translate(window_t* window, GLfloat pos[2]) {
 }
 
 static inline void window_scale(window_t* window, GLfloat scale) {
-    window->param.scale[0] *= scale;
-    window->param.scale[1] *= scale;
+    window->param.zoom *= scale;
 }
 
 

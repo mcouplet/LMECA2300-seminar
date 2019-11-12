@@ -302,12 +302,10 @@ static void scroll_callback(GLFWwindow* self, double x, double y) {
     window_t* window = (window_t*) glfwGetWindowUserPointer(self);
 
     if(y>0.0) {
-        window->param.scale[0] *= (GLfloat) (1.0 + 0.1*y);
-        window->param.scale[1] *= (GLfloat)(1.0 + 0.1 * y);
+        window->param.zoom *= (GLfloat)(1.0 + 0.1 * y);
     }
     else if(y<0.0) {
-        window->param.scale[0] /= (GLfloat)(1.0 - 0.1 * y);
-        window->param.scale[1] /= (GLfloat)(1.0 - 0.1 * y);
+        window->param.zoom /= (GLfloat)(1.0 - 0.1 * y);
     }
 }
 
@@ -319,9 +317,18 @@ static void cursor_pos_callback(GLFWwindow* self, double x, double y)
 {
     window_t* window = (window_t*) glfwGetWindowUserPointer(self);
 
+    GLfloat scale[2];
+    if(window->param.res[0] > window->param.res[1]){
+        scale[0] = window->param.res[1]/window->param.res[0];
+        scale[1] = 1.0f;
+    }
+    else {
+        scale[0] = 1.0f;
+        scale[1] = window->param.res[0]/window->param.res[1];
+    }
     // TODO: modify this to use the scale
-    double newX = (2.0f*x/window->size[0]-1.0f)/window->param.scale[0];
-    double newY = (2.0f*(1.0f - y/window->size[1])-1.0f)/window->param.scale[1];
+    double newX = (2.0f*x/window->size[0]-1.0f)/(scale[0]*window->param.zoom);
+    double newY = (2.0f*(1.0f - y/window->size[1])-1.0f)/(scale[1]*window->param.zoom);
 
     if(window->clickTime[0]>0.0 || window->clickTime[1]>0.0) {
         window->param.translate[0] += (GLfloat) (newX - window->cursorPos[0]);
@@ -382,13 +389,6 @@ static void framebuffer_size_callback(GLFWwindow* self, int width, int height)
     window->param.res[0] = (GLfloat) width;
     window->param.res[1] = (GLfloat) height;
     glViewport(0, 0, width, height);
-
-    if(width>height) {
-        window->param.scale[0] = window->param.scale[1]*height/width;
-    }
-    else {
-        window->param.scale[1] = window->param.scale[0]*width/height;
-    }
 }
 
 /*%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -445,13 +445,13 @@ static void window_OpenGL_init(window_t* window) {
         if((fontVS = LoadShader(1,
                                (const GLchar* []) {text_vert},
                                (GLint[]){ sizeof(text_vert)-1 },
-                               "font_vert.glsl",
+                               "text_vert.glsl",
                                GL_VERTEX_SHADER))==0)
             goto shader_error;
         if((fontFS = LoadShader(1,
                                (const GLchar* []) {text_frag},
                                (GLint[]){ sizeof(text_frag)-1 },
-                               "font_frag.glsl",
+                               "text_frag.glsl",
                                GL_FRAGMENT_SHADER))==0)
             goto shader_error;
 
@@ -476,30 +476,30 @@ static void window_OpenGL_init(window_t* window) {
                                   "points_vert.glsl",
                                   GL_VERTEX_SHADER))==0)
             goto shader_error;
-        if((pointsGS = LoadShader(1,
-                                  (const GLchar* []) {points_geom},
-                                  (const GLint[]) {sizeof(points_geom)-1},
-                                  "points_geo.glsl",
-                                  GL_GEOMETRY_SHADER))==0)
-            goto shader_error;
+        // if((pointsGS = LoadShader(1,
+        //                           (const GLchar* []) {points_geom},
+        //                           (const GLint[]) {sizeof(points_geom)-1},
+        //                           "points_geo.glsl",
+        //                           GL_GEOMETRY_SHADER))==0)
+            // goto shader_error;
         if((linesGS = LoadShader(1,
                                   (const GLchar* []) {lines_geom},
                                   (const GLint[]) {sizeof(lines_geom)-1},
                                   "lines_geo.glsl",
                                   GL_GEOMETRY_SHADER))==0)
             goto shader_error;
-        if((curveGS = LoadShader(1,
-                                  (const GLchar* []) {curve_geom},
-                                  (const GLint[]) {sizeof(curve_geom)-1},
-                                  "curve_geo.glsl",
-                                  GL_GEOMETRY_SHADER))==0)
-            goto shader_error;
-        if((pointsFS = LoadShader(1,
-                                  (const GLchar* []) {points_frag},
-                                  (const GLint[]) {sizeof(points_frag)-1},
-                                  "points_frag.glsl",
-                                  GL_FRAGMENT_SHADER))==0)
-            goto shader_error;
+        // if((curveGS = LoadShader(1,
+        //                           (const GLchar* []) {curve_geom},
+        //                           (const GLint[]) {sizeof(curve_geom)-1},
+        //                           "curve_geo.glsl",
+        //                           GL_GEOMETRY_SHADER))==0)
+            // goto shader_error;
+        // if((pointsFS = LoadShader(1,
+        //                           (const GLchar* []) {points_frag},
+        //                           (const GLint[]) {sizeof(points_frag)-1},
+        //                           "points_frag.glsl",
+        //                           GL_FRAGMENT_SHADER))==0)
+            // goto shader_error;
         if((linesFS = LoadShader(1,
                                   (const GLchar* []) {lines_frag},
                                   (const GLint[]) {sizeof(lines_frag)-1},
@@ -509,39 +509,39 @@ static void window_OpenGL_init(window_t* window) {
 
         window->program[POINTS_PROGRAM_INDEX] = glCreateProgram();
         window->program[LINES_PROGRAM_INDEX] = glCreateProgram();
-        window->program[CURVE_PROGRAM_INDEX] = glCreateProgram();
+        // window->program[CURVE_PROGRAM_INDEX] = glCreateProgram();
 
         // Specify the layout of the vertex data
-        glBindAttribLocation(window->program[POINTS_PROGRAM_INDEX], POS_LOCATION, "pos");
+        // glBindAttribLocation(window->program[POINTS_PROGRAM_INDEX], POS_LOCATION, "pos");
         glBindAttribLocation(window->program[LINES_PROGRAM_INDEX], POS_LOCATION, "pos");
-        glBindAttribLocation(window->program[CURVE_PROGRAM_INDEX], POS_LOCATION, "pos");
+        // glBindAttribLocation(window->program[CURVE_PROGRAM_INDEX], POS_LOCATION, "pos");
 
-        if(program_init(window, POINTS_PROGRAM_INDEX,
-                        3, pointsVS, pointsGS, pointsFS))
-            goto shader_error;
+        // if(program_init(window, POINTS_PROGRAM_INDEX,
+        //                 3, pointsVS, pointsGS, pointsFS))
+        //     goto shader_error;
         if(program_init(window, LINES_PROGRAM_INDEX,
                         3, pointsVS, linesGS, linesFS))
             goto shader_error;
-        if(program_init(window, CURVE_PROGRAM_INDEX,
-                        3, pointsVS, curveGS, linesFS))
-            goto shader_error;
+        // if(program_init(window, CURVE_PROGRAM_INDEX,
+        //                 3, pointsVS, curveGS, linesFS))
+        //     goto shader_error;
 
-        glDetachShader(window->program[POINTS_PROGRAM_INDEX],pointsVS);
-        glDetachShader(window->program[POINTS_PROGRAM_INDEX],pointsGS);
-        glDetachShader(window->program[POINTS_PROGRAM_INDEX],pointsFS);
+        // glDetachShader(window->program[POINTS_PROGRAM_INDEX],pointsVS);
+        // glDetachShader(window->program[POINTS_PROGRAM_INDEX],pointsGS);
+        // glDetachShader(window->program[POINTS_PROGRAM_INDEX],pointsFS);
         glDetachShader(window->program[LINES_PROGRAM_INDEX],pointsVS);
         glDetachShader(window->program[LINES_PROGRAM_INDEX],linesGS);
         glDetachShader(window->program[LINES_PROGRAM_INDEX],linesFS);
-        glDetachShader(window->program[CURVE_PROGRAM_INDEX],pointsVS);
-        glDetachShader(window->program[CURVE_PROGRAM_INDEX],curveGS);
-        glDetachShader(window->program[CURVE_PROGRAM_INDEX],linesFS);
+        // glDetachShader(window->program[CURVE_PROGRAM_INDEX],pointsVS);
+        // glDetachShader(window->program[CURVE_PROGRAM_INDEX],curveGS);
+        // glDetachShader(window->program[CURVE_PROGRAM_INDEX],linesFS);
     }
 
     // Create all rasterizers
     text_rasterizer_init(window);
-    points_rasterizer_init(window->program[POINTS_PROGRAM_INDEX]);
+    // points_rasterizer_init(window->program[POINTS_PROGRAM_INDEX]);
     points_rasterizer_init(window->program[LINES_PROGRAM_INDEX]);
-    points_rasterizer_init(window->program[CURVE_PROGRAM_INDEX]);
+    // points_rasterizer_init(window->program[CURVE_PROGRAM_INDEX]);
 
     glUseProgram(window->program[LINES_PROGRAM_INDEX]);
     window->last_program = LINES_PROGRAM_INDEX;
@@ -606,7 +606,7 @@ window_t* window_new(int width, int height, const char* win_name)
 
     glfwGetFramebufferSize(window->self, &width, &height);
 
-    window->param.scale[0] = window->param.scale[1] = 1.0;
+    window->param.zoom = 1.0;
     framebuffer_size_callback(window->self, width, height);
     window->param.translate[0] = window->param.translate[1] = 0.0;
     // window->param.rotation = 0.0;

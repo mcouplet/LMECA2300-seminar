@@ -16,8 +16,8 @@ layout (std140) uniform objectBlock
 layout (std140) uniform worldBlock
 {
     vec2 resolution;
-    vec2 scale;
     vec2 translate;
+    float zoom;
     // float rotation;
 };
 
@@ -35,15 +35,17 @@ void main()
 {
     texCoord = tex;
 
+    vec2 resRatio = min(resolution.x, resolution.y)/resolution;
+
     // note: conditional based on uniform should not slow the shader down
     vec2 height = pos * textheight;
     if(space_type==0) {
         // classical case
-        gl_Position = vec4(scale*(localPos + translate + height), 0.0, 1.0);
+        gl_Position = vec4(resRatio*zoom*(localPos + translate + height), 0.0, 1.0);
     }
     else if(space_type==1) {
         // no scaling of the height is applied
-        gl_Position = vec4(scale*(localPos + translate) + normalize(scale)*height, 0.0, 1.0);
+        gl_Position = vec4(resRatio*(zoom*(localPos + translate) + height), 0.0, 1.0);
     }
     else {
         // everything is given in pixel, from the bottom left corner :-)
@@ -51,7 +53,8 @@ void main()
         // as the rasterization is done with centers, we will have
         // beautifully aligned pixels if the user choose a font size
         // that is a multiple of the font size :-)
-        vec2 pixelPos = floor(localPos + height)+0.5;
-        gl_Position = vec4(pixelPos/resolution - 1.0, 0.0, 1.0);
+        // vec2 pixelPos = floor(localPos + height)+0.5;
+        vec2 pixelPos = localPos + height;
+        gl_Position = vec4(2.0*pixelPos/resolution - 1.0, 0.0, 1.0);
     }
 }

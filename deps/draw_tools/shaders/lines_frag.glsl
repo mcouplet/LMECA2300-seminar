@@ -13,43 +13,20 @@ layout (std140) uniform objectBlock
     int space_type; // 0: normal sizes, 1: unzoomable, 2: unmodifable pixel size
 };
 
-layout (std140) uniform worldBlock
-{
-    vec2 resolution;
-    vec2 scale;
-    vec2 translate;
-    // float rotation;
-};
-
-flat in vec2 p1_screen;
-flat in vec2 p2_screen;
+in vec2 pRect;
+flat in float lba;
+flat in float pixelSize;
 
 out vec4 outColor;
 
-#define antialiasing 4.0 // number of pixel for the antialiasing
-
-// return shortest vector from point p to segment ab, given ba and pa
-vec2 dist2Segment(vec2 ba, vec2 pa) {
-    float h = clamp( dot(pa,ba)/dot(ba,ba), 0.0, 1.0 );
-    return pa - ba*h;
-}
+#define antialiasing (4.0*pixelSize) // number of pixel for the antialiasing
 
 void main( void ) {
-    vec2 pixel = 2.0*gl_FragCoord.xy/resolution - 1.0;
+    vec2 v = vec2(pRect.x - clamp(pRect.x, 0.0, lba), pRect.y);
+    float vl = length(v);
 
-    vec2 center_scaling = localScale*(space_type==2 ? 2.0/resolution : scale);// 2/resolution: the size of one screen pixel
-    vec2 width_scaling = localScale*(space_type!=0 ? 2.0/resolution : scale);
-
-    vec2 d = dist2Segment((p2_screen-p1_screen)/center_scaling, (pixel - p1_screen)/width_scaling);
-    float len = length(d);
-
-    // compute the length of the smoothstep in pixel
-    float smoothLength = len==0.0 ? 0.0 : antialiasing*len/length(width_scaling*d*resolution);
-
-    // float a=abs(line_dist);
-    float opacity = smoothstep(width,width-smoothLength,len);
-
-    float mu = smoothstep(width-outlineWidth, width-outlineWidth-smoothLength, len);
+    float opacity = smoothstep(width, width-antialiasing,vl);
+    float mu = smoothstep(width-outlineWidth, width-outlineWidth-antialiasing, vl);
     outColor = mix(outlineColor, fillColor, mu); // at 0: completely outlineColor, at1: completely fillColor
     outColor.a *= opacity;
 }

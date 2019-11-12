@@ -16,41 +16,90 @@ layout (std140) uniform objectBlock
 layout (std140) uniform worldBlock
 {
     vec2 resolution;
-    vec2 scale;
     vec2 translate;
+    float zoom;
     // float rotation;
 };
 
 layout(lines) in;
 layout(triangle_strip, max_vertices = 4) out;
 
-flat out vec2 p1_screen;
-flat out vec2 p2_screen;
+out vec2 pRect;
+flat out float pixelSize;
+flat out float lba;
 
-vec2 perpendicular(vec2 v) {
-    return vec2(-v.y, v.x);
+// gets a position in world space,
+// return the same position in sceen space 
+vec2 getScreenPos(vec2 pos) {
+    vec2 resRatio = min(resolution.x, resolution.y)/resolution;
+    if(space_type==0) {
+        // classical case
+        return resRatio*zoom*(localScale*pos + localPos + translate);
+    }
+    else if(space_type==1) {
+        // no scaling of the height is applied
+        return resRatio*(zoom*(localPos+translate)+localScale*pos);
+    }
+    else {
+        // everything is given in pixel, from the bottom left corner :-)
+        return 2.0*(localScale*pos + localPos)/resolution - 1.0;
+    }
+
+    // getScreenScaledVec(worldPos) + getScreenTranslation();
 }
 
 void main() {
-    vec2 p1 = gl_in[0].gl_Position.xy;
-    vec2 p2 = gl_in[1].gl_Position.xy;
+    vec2 a = gl_in[0].gl_Position.xy;
+    vec2 b = gl_in[1].gl_Position.xy;
 
-    vec2 center_scaling = localScale*(space_type==2 ? 2.0/resolution : scale);// 2/resolution: the size of one screen pixel
-    vec2 width_scaling = localScale*(space_type!=0 ? 2.0/resolution : scale);
-    vec2 center_translate = space_type==2 ? localPos : scale*(localPos + translate);
+    vec2 ba = b - a;
+    lba = length(ba);
+    vec2 v = (ba)/lba; // direction of this segment
+    vec2 n = vec2(-v.y, v.x);
 
-    vec2 v1=normalize(p2 - p1); // direction of this segment
-    vec2 n1 = perpendicular(v1);
+    float minRes = min(resolution.x, resolution.y);
+    vec2 resRatio = minRes/resolution;
 
-    p1_screen = p1*center_scaling+center_translate;
-    p2_screen = p2*center_scaling+center_translate;
-    gl_Position = vec4(p1_screen - width_scaling*width*(v1-n1), 0.0, 1.0);
+    // screenPos = scaling*worldPos + translation
+
+    // localScale should not affect the width and outlineWidth
+    // therefore widthScaling!=scaling
+
+    // pixelSize is simply 2.0/resolution / widthScaling
+    vec2 scaling;
+    vec2 widthScaling;
+    vec2 translation;
+    if(space_type==0) {
+        // classical case
+        widthScaling = resRatio*zoom;
+        scaling = resRatio*zoom*localScale;
+        translation = resRatio*zoom*(localPos + translate);
+        pixelSize = 2.0/(minRes*zoom);
+    }
+    else if(space_type==1) {
+        widthScaling = resRatio; // same as 0 but no zoom
+        scaling = resRatio*localScale; // same as 0 but no zoom
+        translation = resRatio*zoom*(localPos + translate); // same as 0
+        pixelSize = 2.0/minRes;
+    }
+    else {
+        widthScaling = 2.0/resolution;
+        scaling = localScale*widthScaling;
+        translation = localPos*widthScaling - 1.0;
+        pixelSize = 1.0;
+    }
+
+    pRect = vec2(-width);
+    gl_Position = vec4(scaling*a - widthScaling*width*(v+n) + translation, 0.0, 1.0);
     EmitVertex();
-    gl_Position = vec4(p1_screen - width_scaling*width*(v1+n1), 0.0, 1.0);
+    pRect = vec2(lba + width, -width);
+    gl_Position = vec4(scaling*b + widthScaling*width*(v-n) + translation, 0.0, 1.0);
     EmitVertex();
-    gl_Position = vec4(p2_screen + width_scaling*width*(v1+n1), 0.0, 1.0);
+    pRect = vec2(-width, width);
+    gl_Position = vec4(scaling*a + widthScaling*width*(n-v) + translation, 0.0, 1.0);
     EmitVertex();
-    gl_Position = vec4(p2_screen + width_scaling*width*(v1-n1), 0.0, 1.0);
+    pRect = vec2(lba + width, width);
+    gl_Position = vec4(scaling*b + widthScaling*width*(v+n) + translation, 0.0, 1.0);
     EmitVertex();
     EndPrimitive();
 }
