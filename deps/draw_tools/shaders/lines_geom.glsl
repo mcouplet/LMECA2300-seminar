@@ -61,7 +61,7 @@ void main() {
     }
     else /*if(space_type==2)*/{
         scaling = 2.0/resolution;
-        translation = localPos*widthScaling - 1.0;
+        translation = localPos*scaling - 1.0;
         pixelSize = 1.0;
     }
 
