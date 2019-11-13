@@ -24,9 +24,10 @@ foreach(fileGLSL ${shadersGLSL})
     add_custom_command(OUTPUT ${fileH}
                        COMMAND cmake -DIN=${fileGLSL} -DVAR=${basename} -DOUT=${fileH} -P ${CMAKE_CURRENT_SOURCE_DIR}/shaders/shaderToString.cmake
                        DEPENDS ${fileGLSL}
-                       COMMENT "generating include file ${printFileH} from shader ${printFileGLSL}")
+                       COMMENT "generating ${printFileH} from shader ${printFileGLSL}")
 endforeach(fileGLSL)
-add_custom_target(shaderIncludes DEPENDS ${shadersH})
+add_custom_target(shaderIncludes DEPENDS ${shadersH}
+                                 SOURCES ${shadersH})
 add_dependencies(draw_tools shaderIncludes)
 
 # add dependencies: glfw, glad, -lm

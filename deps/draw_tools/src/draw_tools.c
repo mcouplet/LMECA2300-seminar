@@ -176,65 +176,60 @@ static void text_rasterizer_init(window_t* window) {
                                        font.tex_width * font.tex_height);
     CHECK_MALLOC(image);
 
-    // int smoothing[2] = {1., 2./*, 1.*/}; // smoothing in Sobel kernel
-    // int smoothing[2] = {3., 10./*, 3.*/};   // in Scharr kernel
-    int smoothing[2] = {47., 162./*, 47.*/};// wikipedia optimal Scharr
+    // int smoothing[2] = {1, 2/*, 1*/}; // smoothing in Sobel kernel
+    // int smoothing[2] = {3, 10/*, 3*/};   // in Scharr kernel
+    int smoothing[2] = {47, 162/*, 47*/};// wikipedia optimal Scharr
 
     // compute derivatives with a sort of Sobel kernel, which is
     // a combination of finite difference and smoothing
     for(int y=1; y<font.tex_height-1; y++) {
-        int down = (y-1) * font.tex_width;
-        int this = y * font.tex_width;
-        int up = (y+1) * font.tex_width;
-
         for(int x=1; x<font.tex_width-1; x++) {
-            int index = this + x;
+            int index = y * font.tex_width + x;
+            double gx =  font.tex_data[y-1][x-1] * (+smoothing[0]) + 
+                         font.tex_data[y-1][x+1] * (-smoothing[0]) +
+                         font.tex_data[y][x-1]   * (+smoothing[1]) + 
+                         font.tex_data[y][x+1]   * (-smoothing[1]) +
+                         font.tex_data[y+1][x-1] * (+smoothing[0]) + 
+                         font.tex_data[y+1][x+1] * (-smoothing[0]);
 
-            double gx =  font.tex_data[down + x-1] * (+smoothing[0]) + 
-                         font.tex_data[down + x+1] * (-smoothing[0]) +
-                         font.tex_data[index-1]    * (+smoothing[1]) + 
-                         font.tex_data[index+1]    * (-smoothing[1]) +
-                         font.tex_data[up + x-1]   * (+smoothing[0]) + 
-                         font.tex_data[up + x+1]   * (-smoothing[0]);
-
-            double gy =  font.tex_data[down + x-1] * (+smoothing[0]) + 
-                         font.tex_data[down + x+0] * (+smoothing[1]) + 
-                         font.tex_data[down + x+1] * (+smoothing[0]) +
-                         font.tex_data[up + x-1]   * (-smoothing[0]) + 
-                         font.tex_data[up + x+0]   * (-smoothing[1]) + 
-                         font.tex_data[up + x+1]   * (-smoothing[0]);
+            double gy =  font.tex_data[y-1][x-1] * (+smoothing[0]) + 
+                         font.tex_data[y-1][x+0] * (+smoothing[1]) + 
+                         font.tex_data[y-1][x+1] * (+smoothing[0]) +
+                         font.tex_data[y+1][x-1] * (-smoothing[0]) + 
+                         font.tex_data[y+1][x+0] * (-smoothing[1]) + 
+                         font.tex_data[y+1][x+1] * (-smoothing[0]);
 
 
-            image[index][0] = font.tex_data[index];
+            image[index][0] = font.tex_data[y][x];
             double ampl = sqrt(gx * gx + gy * gy);
             image[index][1] = fmin(255.9, fmax(0.0, gx/ampl*128. + 128.));
             image[index][2] = fmin(255.9, fmax(0.0, gy/ampl*128. + 128.));
         }
     }
 
-    const int size = font.tex_height*font.tex_width;
-    for(int y=0; y<size; y+=font.tex_width) {
-        image[y][0] = font.tex_data[y];
-        image[y][1] = 0;
-        image[y][2] = 0;
+    for(int y=0; y<font.tex_height; y++) {
+        int index = y * font.tex_width;
+        image[index][0] = font.tex_data[y][0];
+        image[index][1] = 0;
+        image[index][2] = 0;
     }
 
-    for(int y=font.tex_width-1;
-        y<size;
-        y+=font.tex_width) {
-        image[y][0] = font.tex_data[y];
-        image[y][1] = 0;
-        image[y][2] = 0;
+    for(int y=0; y<font.tex_height; y++) {
+        int index = y * font.tex_width + font.tex_width-1;
+        image[index][0] = font.tex_data[y][font.tex_width-1];
+        image[index][1] = 0;
+        image[index][2] = 0;
     }
 
     for(int x=1; x<font.tex_width-1; x++) {
-        image[x][0] = font.tex_data[x];
+        image[x][0] = font.tex_data[0][x];
         image[x][1] = 0;
         image[x][2] = 0;
     }
 
-    for(int x=(font.tex_height-1)*font.tex_width+1; x<size-1; x++) {
-        image[x][0] = font.tex_data[x];
+    for(int x=1; x<font.tex_width-1; x++) {
+        int index = (font.tex_height-1) * font.tex_width + x;
+        image[x][0] = font.tex_data[font.tex_height-1][x];
         image[x][1] = 0;
         image[x][2] = 0;
     }
@@ -317,18 +312,18 @@ static void cursor_pos_callback(GLFWwindow* self, double x, double y)
 {
     window_t* window = (window_t*) glfwGetWindowUserPointer(self);
 
-    GLfloat scale[2];
+    double scale[2];
     if(window->param.res[0] > window->param.res[1]){
         scale[0] = window->param.res[1]/window->param.res[0];
-        scale[1] = 1.0f;
+        scale[1] = 1.0;
     }
     else {
-        scale[0] = 1.0f;
+        scale[0] = 1.0;
         scale[1] = window->param.res[0]/window->param.res[1];
     }
     // TODO: modify this to use the scale
-    double newX = (2.0f*x/window->size[0]-1.0f)/(scale[0]*window->param.zoom);
-    double newY = (2.0f*(1.0f - y/window->size[1])-1.0f)/(scale[1]*window->param.zoom);
+    double newX = (2.0*x/window->size[0]-1.0)/(scale[0]*window->param.zoom);
+    double newY = (2.0*(1.0 - y/window->size[1])-1.0)/(scale[1]*window->param.zoom);
 
     if(window->clickTime[0]>0.0 || window->clickTime[1]>0.0) {
         window->param.translate[0] += (GLfloat) (newX - window->cursorPos[0]);
@@ -413,13 +408,13 @@ static void window_OpenGL_init(window_t* window) {
         text_param_t t;
         points_param_t p;
         if(sizeof(points_param_t)!=sizeof(text_param_t) ||
-           ((void*) &t.fillColor - (void*) &t) != ((void*) &p.fillColor - (void*) &p) ||
-           ((void*) &t.outlineColor - (void*) &t) != ((void*) &p.outlineColor - (void*) &p) ||
-           ((void*) &t.pos - (void*) &t) != ((void*) &p.pos - (void*) &p) ||
-           ((void*) &t.shift - (void*) &t) != ((void*) &p.scale - (void*) &p) ||
-           ((void*) &t.height - (void*) &t) != ((void*) &p.width - (void*) &p) ||
-           ((void*) &t.boldness - (void*) &t) != ((void*) &p.marker - (void*) &p) ||
-           ((void*) &t.outlineWidth - (void*) &t) != ((void*) &p.outlineWidth - (void*) &p)
+           ((char*) &t.fillColor - (char*) &t) != ((char*) &p.fillColor - (char*) &p) ||
+           ((char*) &t.outlineColor - (char*) &t) != ((char*) &p.outlineColor - (char*) &p) ||
+           ((char*) &t.pos - (char*) &t) != ((char*) &p.pos - (char*) &p) ||
+           ((char*) &t.shift - (char*) &t) != ((char*) &p.scale - (char*) &p) ||
+           ((char*) &t.height - (char*) &t) != ((char*) &p.width - (char*) &p) ||
+           ((char*) &t.boldness - (char*) &t) != ((char*) &p.marker - (char*) &p) ||
+           ((char*) &t.outlineWidth - (char*) &t) != ((char*) &p.outlineWidth - (char*) &p)
           ){
             ERROR_LOG(SHADER_ERROR, "points_param_t and text_param_t must "
                                     "have identical fields");
@@ -801,28 +796,28 @@ static GLsizei fill_text_data(GLfloat* data, const unsigned char* string, GLsize
 
                 data[24*num+0] = x;
                 data[24*num+1] = y;
-                data[24*num+2] = (round(glyph->s0*font.tex_width)+0.5)/font.tex_width;
-                data[24*num+3] = (round(glyph->t0*font.tex_height)+0.5)/font.tex_height;
+                data[24*num+2] = (GLfloat)((round(glyph->s0*(double)font.tex_width)+0.5)/font.tex_width);
+                data[24*num+3] = (GLfloat)((round(glyph->t0*(double)font.tex_height)+0.5)/font.tex_height);
                 data[24*num+4] = x;
                 data[24*num+5] = y-h;
-                data[24*num+6] = (round(glyph->s0*font.tex_width)+0.5)/font.tex_width;
-                data[24*num+7] = (round(glyph->t1*font.tex_height)-0.5)/font.tex_height;
+                data[24*num+6] = (GLfloat)((round(glyph->s0*(double)font.tex_width)+0.5)/font.tex_width);
+                data[24*num+7] = (GLfloat)((round(glyph->t1*(double)font.tex_height)-0.5)/font.tex_height);
                 data[24*num+8] = x+w;
                 data[24*num+9] = y-h;
-                data[24*num+10] = (round(glyph->s1*font.tex_width)-0.5)/font.tex_width;
-                data[24*num+11] = (round(glyph->t1*font.tex_height)-0.5)/font.tex_height;
+                data[24*num+10] = (GLfloat)((round(glyph->s1*(double)font.tex_width)-0.5)/font.tex_width);
+                data[24*num+11] = (GLfloat)((round(glyph->t1*(double)font.tex_height)-0.5)/font.tex_height);
                 data[24*num+12] = x;
                 data[24*num+13] = y;
-                data[24*num+14] = (round(glyph->s0*font.tex_width)+0.5)/font.tex_width;
-                data[24*num+15] = (round(glyph->t0*font.tex_height)+0.5)/font.tex_height;
+                data[24*num+14] = (GLfloat)((round(glyph->s0*(double)font.tex_width)+0.5)/font.tex_width);
+                data[24*num+15] = (GLfloat)((round(glyph->t0*(double)font.tex_height)+0.5)/font.tex_height);
                 data[24*num+16] = x+w;
                 data[24*num+17] = y-h;
-                data[24*num+18] = (round(glyph->s1*font.tex_width)-0.5)/font.tex_width;
-                data[24*num+19] = (round(glyph->t1*font.tex_height)-0.5)/font.tex_height;
+                data[24*num+18] = (GLfloat)((round(glyph->s1*(double)font.tex_width)-0.5)/font.tex_width);
+                data[24*num+19] = (GLfloat)((round(glyph->t1*(double)font.tex_height)-0.5)/font.tex_height);
                 data[24*num+20] = x + w;
                 data[24*num+21] = y;
-                data[24*num+22] = (round(glyph->s1*font.tex_width)-0.5)/font.tex_width;
-                data[24*num+23] = (round(glyph->t0*font.tex_height)+0.5)/font.tex_height;
+                data[24*num+22] = (GLfloat)((round(glyph->s1*(double)font.tex_width)-0.5)/font.tex_width);
+                data[24*num+23] = (GLfloat)((round(glyph->t0*(double)font.tex_height)+0.5)/font.tex_height);
 
                 num++;
                 break;
