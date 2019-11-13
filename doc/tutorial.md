@@ -1,9 +1,9 @@
 Doing animations in C with `draw_tools`
 =======================================
 
-This page teaches you how to use the draw_tools library in order
-(contained in `deps/draw_tools/` to make a beautiful animation for
-your upcoming project.
+This page teaches you how to use the draw_tools library (contained in
+[deps/draw_tools/](deps/draw_tools/)) in order to make a beautiful
+animation for your upcoming project.
 
  * [FAQ](#faq)
  * [Tutorial](#tutorial)
@@ -39,20 +39,21 @@ as any C++ or Rust, and much faster than any interpreted language.
 It is a small, simple OpenGL library created by your assistants to
 help you draw lines, text, and other simple shapes. All functions are
 defined and briefly explained in
-`deps/draw_tools/include/draw_tools.h`. The most useful ones are
-described in the tutorial below. We figured it would be easier than
-using something like CSFML or BGFX, and lighter than requiring the
-SDL.
+[deps/draw_tools/include/draw_tools.h](deps/draw_tools/include/draw_tools.h).
+The most useful ones are described in the tutorial below. We figured
+it would be easier than using something like CSFML or BGFX, and
+lighter than requiring the SDL.
 
 
 
 ## Tutorial
 
-First, open `deps/draw_tools/include/draw_tools.h`. This file contain
-the prototypes of every function that the draw_tools library defines.
-If you want to draw a shape, give a color to it, a position, a size,
-you will need to check those prototypes and the handy little comments
-that accompany them.
+First, open
+[deps/draw_tools/include/draw_tools.h](deps/draw_tools/include/draw_tools.h).
+This file contain the prototypes of every function that the draw_tools
+library defines. If you want to draw a shape, give a color to it, a
+position, a size, you will need to check those prototypes and the
+handy little comments that accompany them.
 
 You can now open `src/main.c` and start coding.
 
@@ -222,7 +223,9 @@ text_t* text_new(unsigned char* string, GLenum usage);
 Additionally, there are multiple parameters associated to a text
 object that you can change: its position on the screen, its color, its
 width, its outline color, its outline width, its scaling in x and y...
-see `draw_tools.h` for more info.
+see
+[deps/draw_tools/include/draw_tools.h](deps/draw_tools/include/draw_tools.h)
+for more info.
 
 
 To render our text object into the framebuffer, we have to call
