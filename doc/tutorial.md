@@ -35,12 +35,13 @@ as any C++ or Rust.
 
 **What is draw_tools ?**
 
-It is a small and simple OpenGL library created by your assistants to
-help you draw lines, text, and simple markers (little shapes to 'mark'
-the position of a point). All functions are defined and briefly
-explained in `draw_tools.h`. The most useful ones are described in the$
-tutorial below. We figured it would be easier than using something
-like CSFML or BGFX, and lighter than requiring the SDL.
+It is a small, simple OpenGL library created by your assistants to
+help you draw lines, text, and other simple shapes. All functions are
+defined and briefly explained in
+`deps/draw_tools/include/draw_tools.h`. The most useful ones are
+described in the tutorial below. We figured it would be easier than
+using something like CSFML or BGFX, and lighter than requiring the
+SDL.
 
 
 
