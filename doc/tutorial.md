@@ -55,7 +55,7 @@ library defines. If you want to draw a shape, give a color to it, a
 position, a size, you will need to check those prototypes and the
 handy little comments that accompany them.
 
-You can now open `src/main.c` and start coding.
+You can now open [src/main.c](src/main.c) and start coding.
 
 
 ### Creating a window
