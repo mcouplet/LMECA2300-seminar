@@ -37,15 +37,15 @@ If you have any issue with the procedure explained below, just remove everything
         cd build      # Go into the build directory
         cmake ..      # Call CMake with the top-level directory as argument (`..` is the parent directory)
 
- 	Instead of using `cmake ..` to generate a Makefile, you can also build project for Visual Studio, XCode, Sublime-Text, CodeBlocks, Eclipse... using `cmake -G GENERATOR_NAME ..`  .
- 	[Available generators](https://cmake.org/cmake/help/v3.13/manual/cmake-generators.7.html#cmake-generators-7) are listed with `cmake --help`
+	Instead of using `cmake ..` to generate a Makefile, you can also build project for Visual Studio, XCode, Sublime-Text, CodeBlocks, Eclipse... using `cmake -G GENERATOR_NAME ..`  .
+	[Available generators](https://cmake.org/cmake/help/v3.13/manual/cmake-generators.7.html#cmake-generators-7) are listed with `cmake --help`
 
  2. Compile the program into an executable (do this every time you changed a file)* : 
 
          make
 
- 	*If you created a project file for an IDE instead of a makefile (if you used `cmake -G GENERATOR_NAME ..`), this step will not work.
- 	Normally, in an IDE, running the project will automatically compiles the code.
+	*If you created a project file for an IDE instead of a makefile, (if you used `cmake -G GENERATOR_NAME ..`), you should skip this step.
+	Indeed, in any IDE, running the project will automatically compiles the code.
 
 
 #### Running:
@@ -70,7 +70,7 @@ If you have any issue with the procedure explained below, just remove everything
  1. Install XCode
  2. Install CMake
     * Install: https://cmake.org/files/v3.13/cmake-3.13.0-rc1-Darwin-x86_64.dmg
-    * Enable to use `cmake` as a command line :
+    * Enable to use `cmake` as a terminal command :
 
             sudo "/Applications/CMake.app/Contents/bin/cmake-gui" --install
 
@@ -93,8 +93,8 @@ If you have any issue with the procedure explained below, just remove everything
 
         make
 
-	*If you created a project file for an IDE instead of a makefile (if you used `cmake -G GENERATOR_NAME ..`), this step will not work.
-	Normally, in an IDE, running the project will automatically compiles the code.
+	*If you created a project file for an IDE instead of a makefile, (if you used `cmake -G GENERATOR_NAME ..`), you should skip this step.
+	Indeed, in any IDE, running the project will automatically compiles the code.
 
 
 #### Running:
@@ -125,7 +125,7 @@ If you have any issue with the procedure explained below, just remove everything
 
  If you are familiar with CMake this should be straightforward
 
- 1. Create a directory named "build" in the top-level directory (the one containing **src**, **deps**, **doc** and **build**)
+ 1. Create a directory named "build" in the top-level directory (the one containing **src**, **deps** and **doc**)
  2. Launch CMake GUI (type: Win+S, "cmake-gui", Enter)
  3. For the source code location, select the top-level directory
  4. For the binaries location, select the **build** directory
