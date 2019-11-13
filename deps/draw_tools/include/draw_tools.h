@@ -439,6 +439,18 @@ struct points_struct{
     points_param_t param;
 };
 
+typedef enum {
+    POINTS_PROGRAM,
+    LINES_PROGRAM,
+    LINE_LOOP_PROGRAM,
+    LINE_STRIP_PROGRAM,
+    CURVE_PROGRAM,
+    TRIANGLES_PROGRAM,
+    TRIANGLE_STRIP_PROGRAM,
+    TRIANGLE_FAN_PROGRAM,
+    QUADS_PROGRAM
+} points_drawing_mode_t;
+
 
 static inline double window_get_time(window_t* window){
     return window->wtime;
@@ -586,71 +598,79 @@ static inline void points_set_param(points_t* points, points_param_t parameters)
 }
 
 
-void points_draw_aux(window_t* window, points_t* pts, GLenum mode);
-void points_draw_with_order_aux(window_t* window, points_t* pts, order_t* order, GLenum mode);
+void points_draw_aux(window_t* window, points_t* pts, order_t* order, points_drawing_mode_t mode);
+
 
 static inline void points_draw(window_t* window, points_t* pts) {
-    points_draw_aux(window, pts, GL_POINTS);
+    points_draw_aux(window, pts, NULL, POINTS_PROGRAM);
 }
 
 static inline void points_draw_with_order(window_t* window, points_t* pts, order_t* order) {
-    points_draw_with_order_aux(window, pts, order, GL_POINTS);
+    points_draw_aux(window, pts, order, POINTS_PROGRAM);
 }
 
 static inline void curve_draw(window_t* window, points_t* pts) {
-    points_draw_aux(window, pts, GL_LINE_STRIP_ADJACENCY);
+    points_draw_aux(window, pts, NULL, CURVE_PROGRAM);
 }
 
 static inline void curve_draw_with_order(window_t* window, points_t* pts, order_t* order) {
-    points_draw_with_order_aux(window, pts, order, GL_LINE_STRIP_ADJACENCY);
+    points_draw_aux(window, pts, order, CURVE_PROGRAM);
 }
 
 static inline void lines_draw(window_t* window, points_t* pts) {
-    points_draw_aux(window, pts, GL_LINES);
+    points_draw_aux(window, pts, NULL, LINES_PROGRAM);
 }
 
 static inline void lines_draw_with_order(window_t* window, points_t* pts, order_t* order) {
-    points_draw_with_order_aux(window, pts, order, GL_LINES);
+    points_draw_aux(window, pts, order, LINES_PROGRAM);
 }
 
 static inline void line_strip_draw(window_t* window, points_t* pts) {
-    points_draw_aux(window, pts, GL_LINE_STRIP);
+    points_draw_aux(window, pts, NULL, LINE_STRIP_PROGRAM);
 }
 
 static inline void line_strip_draw_with_order(window_t* window, points_t* pts, order_t* order) {
-    points_draw_with_order_aux(window, pts, order, GL_LINE_STRIP);
+    points_draw_aux(window, pts, order, LINE_STRIP_PROGRAM);
 }
 
 static inline void line_loop_draw(window_t* window, points_t* pts) {
-    points_draw_aux(window, pts, GL_LINE_LOOP);
+    points_draw_aux(window, pts, NULL, LINE_LOOP_PROGRAM);
 }
 
 static inline void line_loop_draw_with_order(window_t* window, points_t* pts, order_t* order) {
-    points_draw_with_order_aux(window, pts, order, GL_LINE_LOOP);
+    points_draw_aux(window, pts, order, LINE_LOOP_PROGRAM);
 }
 
 static inline void triangles_draw(window_t* window, points_t* pts) {
-    points_draw_aux(window, pts, GL_TRIANGLES);
+    points_draw_aux(window, pts, NULL, TRIANGLES_PROGRAM);
 }
 
 static inline void triangles_draw_with_order(window_t* window, points_t* pts, order_t* order) {
-    points_draw_with_order_aux(window, pts, order, GL_TRIANGLES);
+    points_draw_aux(window, pts, order, TRIANGLES_PROGRAM);
 }
 
 static inline void triangle_strip_draw(window_t* window, points_t* pts) {
-    points_draw_aux(window, pts, GL_TRIANGLE_STRIP);
+    points_draw_aux(window, pts, NULL, TRIANGLE_STRIP_PROGRAM);
 }
 
 static inline void triangle_strip_draw_with_order(window_t* window, points_t* pts, order_t* order) {
-    points_draw_with_order_aux(window, pts, order, GL_TRIANGLE_STRIP);
+    points_draw_aux(window, pts, order, TRIANGLE_STRIP_PROGRAM);
+}
+
+static inline void triangle_fan_draw(window_t* window, points_t* pts) {
+    points_draw_aux(window, pts, NULL, TRIANGLE_FAN_PROGRAM);
+}
+
+static inline void triangle_fan_draw_with_order(window_t* window, points_t* pts, order_t* order) {
+    points_draw_aux(window, pts, order, TRIANGLE_FAN_PROGRAM);
 }
 
 static inline void quad_draw(window_t* window, points_t* pts) {
-    points_draw_aux(window, pts, GL_LINES_ADJACENCY);
+    points_draw_aux(window, pts, NULL, QUADS_PROGRAM);
 }
 
 static inline void quad_draw_with_order(window_t* window, points_t* pts, order_t* order) {
-    points_draw_with_order_aux(window, pts, order, GL_LINES_ADJACENCY);
+    points_draw_aux(window, pts, order, QUADS_PROGRAM);
 }
 
 #ifdef __GNUC__

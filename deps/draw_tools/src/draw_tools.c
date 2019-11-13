@@ -27,7 +27,7 @@
 #define POINTS_PROGRAM_INDEX   1
 #define LINES_PROGRAM_INDEX    2
 #define CURVE_PROGRAM_INDEX    3
-#define TRIANGLE_PROGRAM_INDEX 4
+#define TRIANGLES_PROGRAM_INDEX 4
 #define QUAD_PROGRAM_INDEX     5
 
 
@@ -1035,37 +1035,56 @@ void points_delete(points_t* points){
 }
 
 
-static inline void switch_rasterizer_with_mode(window_t* window, points_t* points, GLenum mode)
+static inline GLenum switch_rasterizer_with_mode(window_t* window, points_t* points, points_drawing_mode_t mode)
 {
-    int index;
+    int program_index;
+    GLenum primitive = 0;
 
     switch(mode) {
-        case GL_POINTS:
-            index = POINTS_PROGRAM_INDEX;
+        case POINTS_PROGRAM:
+            program_index = POINTS_PROGRAM_INDEX;
+            primitive = GL_POINTS;
             break;
-        case GL_LINES :
-        case GL_LINE_STRIP :
-        case GL_LINE_LOOP :
-            index = LINES_PROGRAM_INDEX;
+        case LINES_PROGRAM:
+            program_index = LINES_PROGRAM_INDEX;
+            primitive = GL_LINES;
             break;
-        case GL_LINE_STRIP_ADJACENCY :
-            index = CURVE_PROGRAM_INDEX;
+        case LINE_LOOP_PROGRAM:
+            program_index = LINES_PROGRAM_INDEX;
+            primitive = GL_LINE_LOOP;
             break;
-        case GL_LINES_ADJACENCY:
-            index = QUAD_PROGRAM_INDEX;
+        case LINE_STRIP_PROGRAM:
+            program_index = LINES_PROGRAM_INDEX;
+            primitive = GL_LINE_STRIP;
             break;
-        case GL_TRIANGLES:
-        case GL_TRIANGLE_STRIP:
-            index = TRIANGLE_PROGRAM_INDEX;
+        case CURVE_PROGRAM:
+            program_index = CURVE_PROGRAM_INDEX;
+            primitive = GL_LINE_STRIP_ADJACENCY;
+            break;
+        case TRIANGLES_PROGRAM:
+            program_index = TRIANGLES_PROGRAM_INDEX;
+            primitive = GL_TRIANGLES;
+            break;
+        case TRIANGLE_STRIP_PROGRAM:
+            program_index = TRIANGLES_PROGRAM_INDEX;
+            primitive = GL_TRIANGLE_STRIP;
+            break;
+        case TRIANGLE_FAN_PROGRAM:
+            program_index = TRIANGLES_PROGRAM_INDEX;
+            primitive = GL_TRIANGLE_FAN;
+            break;
+        case QUADS_PROGRAM:
+            program_index = QUAD_PROGRAM_INDEX;
+            primitive = GL_LINES_ADJACENCY;
             break;
         default:
             ERROR_LOG(PARAMETER_ERROR, "this function is private but was given erroneous arguments anyway");
             exit(EXIT_FAILURE);
     }
 
-    if(window->last_program!=index) {
-        glUseProgram(window->program[index]);
-        window->last_program = index;
+    if(window->last_program!=program_index) {
+        glUseProgram(window->program[program_index]);
+        window->last_program = program_index;
     }
 
     // update the object ubo
@@ -1074,25 +1093,23 @@ static inline void switch_rasterizer_with_mode(window_t* window, points_t* point
     // glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
     glBindVertexArray(points->vao);
+
+    return primitive;
 }
 
-void points_draw_aux(window_t* window, points_t* points, GLenum mode) {
-    if(points->vboLen==0)
+void points_draw_aux(window_t* window, points_t* points, order_t* order, points_drawing_mode_t mode) {
+    if(points->vboLen==0 || (order!=NULL && order->eboLen==0))
         return;
 
-    switch_rasterizer_with_mode(window, points, mode);
-    glDrawArrays(mode, 0, points->vboLen);
-    // glBindVertexArray(0);
-}
+    GLenum primitive = switch_rasterizer_with_mode(window, points, mode);
 
-void points_draw_with_order_aux(window_t* window, points_t* points, order_t* order, GLenum mode) {
-    if(points->vboLen==0 || order->eboLen==0)
-        return;
-
-    switch_rasterizer_with_mode(window, points, mode);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, order->ebo);
-    glDrawElements(mode, order->eboLen, GL_UNSIGNED_INT, 0);
-    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    if(order==NULL) {
+        glDrawArrays(mode, 0, points->vboLen);
+    }
+    else {
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, order->ebo);
+        glDrawElements(primitive, order->eboLen, GL_UNSIGNED_INT, 0);
+    }
     // glBindVertexArray(0);
 }
 
