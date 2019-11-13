@@ -182,22 +182,22 @@ static void text_rasterizer_init(window_t* window) {
 
     // compute derivatives with a sort of Sobel kernel, which is
     // a combination of finite difference and smoothing
-    for(int y=1; y<font.tex_height-1; y++) {
-        for(int x=1; x<font.tex_width-1; x++) {
-            int index = y * font.tex_width + x;
-            double gx =  font.tex_data[y-1][x-1] * (+smoothing[0]) + 
-                         font.tex_data[y-1][x+1] * (-smoothing[0]) +
-                         font.tex_data[y][x-1]   * (+smoothing[1]) + 
-                         font.tex_data[y][x+1]   * (-smoothing[1]) +
-                         font.tex_data[y+1][x-1] * (+smoothing[0]) + 
-                         font.tex_data[y+1][x+1] * (-smoothing[0]);
+    for(unsigned y=1; y<font.tex_height-1; y++) {
+        for(unsigned x=1; x<font.tex_width-1; x++) {
+            unsigned index = y * font.tex_width + x;
+            int gx =  font.tex_data[y-1][x-1] * (+smoothing[0]) + 
+                      font.tex_data[y-1][x+1] * (-smoothing[0]) +
+                      font.tex_data[y][x-1]   * (+smoothing[1]) + 
+                      font.tex_data[y][x+1]   * (-smoothing[1]) +
+                      font.tex_data[y+1][x-1] * (+smoothing[0]) + 
+                      font.tex_data[y+1][x+1] * (-smoothing[0]);
 
-            double gy =  font.tex_data[y-1][x-1] * (+smoothing[0]) + 
-                         font.tex_data[y-1][x+0] * (+smoothing[1]) + 
-                         font.tex_data[y-1][x+1] * (+smoothing[0]) +
-                         font.tex_data[y+1][x-1] * (-smoothing[0]) + 
-                         font.tex_data[y+1][x+0] * (-smoothing[1]) + 
-                         font.tex_data[y+1][x+1] * (-smoothing[0]);
+            int gy =  font.tex_data[y-1][x-1] * (+smoothing[0]) + 
+                      font.tex_data[y-1][x+0] * (+smoothing[1]) + 
+                      font.tex_data[y-1][x+1] * (+smoothing[0]) +
+                      font.tex_data[y+1][x-1] * (-smoothing[0]) + 
+                      font.tex_data[y+1][x+0] * (-smoothing[1]) + 
+                      font.tex_data[y+1][x+1] * (-smoothing[0]);
 
 
             image[index][0] = font.tex_data[y][x];
@@ -207,28 +207,28 @@ static void text_rasterizer_init(window_t* window) {
         }
     }
 
-    for(int y=0; y<font.tex_height; y++) {
-        int index = y * font.tex_width;
+    for(unsigned y=0; y<font.tex_height; y++) {
+        unsigned index = y * font.tex_width;
         image[index][0] = font.tex_data[y][0];
         image[index][1] = 0;
         image[index][2] = 0;
     }
 
-    for(int y=0; y<font.tex_height; y++) {
-        int index = y * font.tex_width + font.tex_width-1;
+    for(unsigned y=0; y<font.tex_height; y++) {
+        unsigned index = y * font.tex_width + font.tex_width-1;
         image[index][0] = font.tex_data[y][font.tex_width-1];
         image[index][1] = 0;
         image[index][2] = 0;
     }
 
-    for(int x=1; x<font.tex_width-1; x++) {
+    for(unsigned x=1; x<font.tex_width-1; x++) {
         image[x][0] = font.tex_data[0][x];
         image[x][1] = 0;
         image[x][2] = 0;
     }
 
-    for(int x=1; x<font.tex_width-1; x++) {
-        int index = (font.tex_height-1) * font.tex_width + x;
+    for(unsigned x=1; x<font.tex_width-1; x++) {
+        unsigned index = (font.tex_height-1) * font.tex_width + x;
         image[x][0] = font.tex_data[font.tex_height-1][x];
         image[x][1] = 0;
         image[x][2] = 0;
