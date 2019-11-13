@@ -1,8 +1,9 @@
 Doing animations in C with `draw_tools`
 =======================================
 
-This page teaches you how to use the `draw_tools.h` functions in order
-to make a beautiful animation for your upcoming project.
+This page teaches you how to use the draw_tools library in order
+(contained in `deps/draw_tools/` to make a beautiful animation for
+your upcoming project.
 
  * [FAQ](#faq)
  * [Tutorial](#tutorial)
@@ -46,6 +47,14 @@ SDL.
 
 
 ## Tutorial
+
+First, open `deps/draw_tools/include/draw_tools.h`. This file contain
+the prototypes of every function that the draw_tools library defines.
+If you want to draw a shape, give a color to it, a position, a size,
+you will need to check those prototypes and the handy little comments
+that accompany them.
+
+You can now open `src/main.c` and start coding.
 
 
 ### Creating a window
