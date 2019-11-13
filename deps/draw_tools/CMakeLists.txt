@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.6)
 project(Draw_tools C)
 
+option(DRAW_TOOLS_BUILD_EXAMPLES "Build the Draw_tools example programs" ON)
+
 add_library(draw_tools src/draw_tools.c)
 
 set_target_properties(draw_tools PROPERTIES C_STANDARD 99)
@@ -32,3 +34,16 @@ add_dependencies(draw_tools shaderIncludes)
 
 # add dependencies: glfw, glad, -lm
 target_link_libraries(draw_tools PUBLIC glad glfw)
+
+
+
+if(DRAW_TOOLS_BUILD_EXAMPLES)
+    add_executable(animation ${CMAKE_CURRENT_SOURCE_DIR}/examples/animation.c)
+    target_link_libraries(animation draw_tools)
+    add_executable(character_table ${CMAKE_CURRENT_SOURCE_DIR}/examples/character_table.c)
+    target_link_libraries(character_table draw_tools)
+    add_executable(points_and_lines ${CMAKE_CURRENT_SOURCE_DIR}/examples/points_and_lines.c)
+    target_link_libraries(points_and_lines draw_tools)
+    add_executable(text_style ${CMAKE_CURRENT_SOURCE_DIR}/examples/text_style.c)
+    target_link_libraries(text_style draw_tools)
+endif(DRAW_TOOLS_BUILD_EXAMPLES)

@@ -6,6 +6,7 @@ add_executable(exec src/main.c)
 set_target_properties(exec PROPERTIES C_STANDARD 99)
 
 # add dependency to draw_tools and the libm (math library)
+# set(DRAW_TOOLS_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE) #do not build examples
 add_subdirectory(deps/draw_tools)
 target_link_libraries(exec draw_tools)
 
