@@ -47,13 +47,13 @@ int main(int argc, char *argv[])
 	while(!window_should_close(window)){
 		double wtime = window_get_time(window);
 
-		text_set_outline_width(outline, 0.7*sin(wtime)+0.5);
+		text_set_outline_width(outline, 0.6*sin(wtime)+0.6);
 		text_draw(window, outline);
 
 		text_set_boldness(width, 0.5*sin(wtime)-0.1);
 		text_draw(window, width);
 
-		text_set_outline_shift(shift, (GLfloat[2]){1.0*sin(3*wtime), 1.0*cos(3*wtime)});
+		text_set_outline_shift(shift, (GLfloat[2]){sin(3*wtime), cos(3*wtime)});
 		text_draw(window, shift);
 
 		text_draw(window, pixel);
