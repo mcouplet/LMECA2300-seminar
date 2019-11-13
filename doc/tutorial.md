@@ -32,7 +32,7 @@ you are going to end up with *2\*(n-2)* triangles. You can allocate
 all the space needed right from the beginning. That transparency and
 simplicity give C a clear advantage over languages with fancy (but
 costly) features. Finally, a well-realized C program will be as fast
-as any C++ or Rust.
+as any C++ or Rust, and much faster than any interpreted language.
 
 **What is draw_tools ?**
 
