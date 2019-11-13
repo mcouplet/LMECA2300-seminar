@@ -1,0 +1,8 @@
+
+ - compress big_font and font with designated initalizers, because indices continue, we can gain a lot of space (all zeros can be avoided)
+
+ - points marker from IQ 2D sdf
+ - triangles
+ - quads
+ - circles
+ - example and doc folder

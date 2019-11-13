@@ -16,24 +16,51 @@ layout (std140) uniform objectBlock
 layout (std140) uniform worldBlock
 {
     vec2 resolution;
-    vec2 scale;
     vec2 translate;
+    float zoom;
     // float rotation;
 };
 
 layout(points) in;
 layout(triangle_strip, max_vertices = 4) out;
 
-flat out vec2 center;
+out vec2 pSquare;
+flat out float pixelSize;
 
 void main() {
-    vec2 center_scaling = localScale*(space_type==2 ? 2.0/resolution : scale); // 2/resolution: the size of one screen pixel
-    vec2 width_scaling = localScale*(space_type!=0 ? 2.0/resolution : scale);
-    vec2 center_translate = space_type==2 ? localPos : scale*(localPos + translate);
+    vec2 p = gl_in[0].gl_Position.xy*localScale;
 
-    center = gl_in[0].gl_Position.xy*center_scaling + center_translate;
-    vec2 upRight = center + width*width_scaling;
-    vec2 downLeft = center - width*width_scaling;
+    float minRes = min(resolution.x, resolution.y);
+    vec2 resRatio = minRes/resolution;
+
+    // screenPos = scaling*worldPos + translation
+
+    // localScale should not affect the width and outlineWidth
+    // therefore widthScaling!=scaling
+
+    // pixelSize is simply 2.0/resolution / scaling
+    vec2 scaling;
+    vec2 translation;
+    if(space_type==0) {
+        // classical case
+        scaling = resRatio*zoom;
+        translation = resRatio*zoom*(localPos + translate);
+        pixelSize = 2.0/(minRes*zoom);
+    }
+    else if(space_type==1) {
+        scaling = resRatio;      // same as 0 but no zoom
+        translation = resRatio*(localPos + zoom*translate); // same as 0
+        pixelSize = 2.0/minRes;
+    }
+    else /*if(space_type==2)*/{
+        scaling = 2.0/resolution;
+        translation = localPos*scaling - 1.0;
+        pixelSize = 1.0;
+    }
+
+    vec2 center = p*scaling + translation;
+    vec2 upRight = center + width*scaling;
+    vec2 downLeft = center - width*scaling;
     vec2 upLeft = vec2(downLeft.x, upRight.y);
     vec2 downRight = vec2(upRight.x, downLeft.y);
 

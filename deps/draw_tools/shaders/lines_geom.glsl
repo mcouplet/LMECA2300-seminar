@@ -45,7 +45,7 @@ void main() {
     // localScale should not affect the width and outlineWidth
     // therefore widthScaling!=scaling
 
-    // pixelSize is simply 2.0/resolution / widthScaling
+    // pixelSize is simply 2.0/resolution / scaling
     vec2 scaling;
     vec2 translation;
     if(space_type==0) {
@@ -65,21 +65,22 @@ void main() {
         pixelSize = 1.0;
     }
 
+    float w = width + pixelSize;
     vec2 aScreen = scaling*a + translation;
     vec2 bScreen = scaling*b + translation;
-    vec2 wScreen = scaling*width*v;
-    vec2 hScreen = scaling*width*n;
+    vec2 wScreen = scaling*w*v;
+    vec2 hScreen = scaling*w*n;
 
-    pRect = vec2(-width);
+    pRect = vec2(-w);
     gl_Position = vec4(aScreen - wScreen - hScreen, 0.0, 1.0);
     EmitVertex();
-    pRect = vec2(lba + width, -width);
+    pRect = vec2(lba + w, -w);
     gl_Position = vec4(bScreen + wScreen - hScreen, 0.0, 1.0);
     EmitVertex();
-    pRect = vec2(-width, width);
+    pRect = vec2(-w, w);
     gl_Position = vec4(aScreen - wScreen + hScreen, 0.0, 1.0);
     EmitVertex();
-    pRect = vec2(lba + width, width);
+    pRect = vec2(lba + w, w);
     gl_Position = vec4(bScreen + wScreen + hScreen, 0.0, 1.0);
     EmitVertex();
     EndPrimitive();

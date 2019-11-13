@@ -13,20 +13,12 @@ layout (std140) uniform objectBlock
     int space_type; // 0: normal sizes, 1: unzoomable, 2: unmodifable pixel size
 };
 
-layout (std140) uniform worldBlock
-{
-    vec2 resolution;
-    vec2 scale;
-    vec2 translate;
-    // float rotation;
-};
+in vec2 pSquare;
+flat in float pixelSize;
 
-flat in vec2 center;
+out vec4 outColor;
 
-out vec4 outColor;\n
-
-#define antialiasing 4.0\n// number of pixel for the antialiasing
-#define INV_SQRT_2 0.70710678118\n
+#define INV_SQRT_2 0.70710678118
 
 void main( void ) {
     vec2 pixel = 2.0*gl_FragCoord.xy/resolution - 1.0;
