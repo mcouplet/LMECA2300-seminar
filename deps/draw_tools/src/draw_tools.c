@@ -229,9 +229,9 @@ static void text_rasterizer_init(window_t* window) {
 
     for(unsigned x=1; x<font.tex_width-1; x++) {
         unsigned index = (font.tex_height-1) * font.tex_width + x;
-        image[x][0] = font.tex_data[font.tex_height-1][x];
-        image[x][1] = 0;
-        image[x][2] = 0;
+        image[index][0] = font.tex_data[font.tex_height-1][x];
+        image[index][1] = 0;
+        image[index][2] = 0;
     }
 
     window->texture = create_texture(font.tex_width, font.tex_height, image, GL_RGB, GL_CLAMP_TO_EDGE);
@@ -572,16 +572,19 @@ window_t* window_new(int width, int height, const char* win_name)
         window->self = glfwCreateWindow(mode->width, mode->height, win_name, glfwGetPrimaryMonitor(), NULL); // fullscreen
     }
     else{
-        if(width<0) {
-            glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
-            width = -width;
-        }
-        window->size[0] = width;
-
         if(height<0) {
             glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
             height = -height;
         }
+
+        if(width<0) {
+            glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
+            width = 100;
+            height = 100;
+        }
+        window->size[0] = width;
+
+
         window->size[1] = height;
         
         window->self = glfwCreateWindow(width, height, win_name, NULL, NULL);
@@ -599,14 +602,12 @@ window_t* window_new(int width, int height, const char* win_name)
     if(!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress))
         ERROR_LOG(GLAD_ERROR, "Failed to initialize OpenGL context");
 
-    glfwGetFramebufferSize(window->self, &width, &height);
-
     window->param.zoom = 1.0;
+    glfwGetFramebufferSize(window->self, &width, &height);
     framebuffer_size_callback(window->self, width, height);
     window->param.translate[0] = window->param.translate[1] = 0.0;
     // window->param.rotation = 0.0;
     window->wtime = 0.0;
-
 
     // glfwSetWindowCloseCallback(window->self,close_callback);
     glfwSetKeyCallback(window->self, key_callback);
@@ -617,7 +618,6 @@ window_t* window_new(int width, int height, const char* win_name)
     glfwSetScrollCallback(window->self, scroll_callback);
 
     //glfwSetInputMode(window->self,GLFW_CURSOR,GLFW_CURSOR_HIDDEN);
-
 
 
     glfwSwapInterval(1);            // vsync
@@ -724,28 +724,43 @@ order_t* order_update(order_t* order, GLuint* elements, GLsizei n, GLenum usage)
     return order;
 }
 
-order_t* order_partial_update(order_t* order, GLuint* elements, GLsizei start, GLsizei end, GLsizei newN) {
+order_t* order_partial_update(order_t* order, GLuint* elements, GLint start, GLsizei count, GLsizei newN) {
     if(elements==NULL) {
         ERROR_LOG(PARAMETER_ERROR, "Cannot do a partial update whith a NULL pointer for array of elements");
         return NULL;
     }
 
-    if(end > newN)
-        newN = end;
+    if(newN==0)
+        newN = order->eboLen;
+
+    if(start+count > newN)
+        newN = start+count;
+    if(start + count < count) // detect overflow
+        newN = DRAW_ALL_PTS;
 
     if(newN > order->eboCapacity) {
         ERROR_LOG(PARAMETER_ERROR, "Cannot do a partial update when the new size is bigger than the capacity of the buffer");
         return NULL;
     }
 
+    // if it is restored to a previous capacity, fill buffer with zeros
+    // if(newN > order->eboLen) {
+    //     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, order->ebo);
+    //     GLint offset = (GLint) order->eboLen;
+    //     GLsizei len = newN - order->eboLen;
+    //     GLuint* zeros = calloc(len, sizeof(GLuint));
+    //     CHECK_MALLOC(zeros);
+    //     glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset, sizeof(GLuint) * len, zeros);
+    //     free(zeros);
+    // }
+
     order->eboLen = newN;
 
-    if(start>end)
+    if(count==0)
         return order;
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, order->ebo);
-    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, start, sizeof(GLuint) * (end - start), elements);
-
+    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, start, sizeof(GLuint) * count, elements);
     return order;
 }
 
@@ -1002,14 +1017,19 @@ points_t* points_update(points_t* points, GLfloat* coords, GLsizei n) {
     return points;
 }
 
-points_t* points_partial_update(points_t* points, GLfloat* coords, GLsizei start, GLsizei end, GLsizei newN) {
+points_t* points_partial_update(points_t* points, GLfloat* coords, GLint start, GLsizei count, GLsizei newN) {
     if(coords==NULL) {
         ERROR_LOG(PARAMETER_ERROR, "Cannot do a partial update whith a NULL pointer for array of coordinates");
         return NULL;
     }
 
-    if(end > newN)
-        newN = end;
+    if(newN==0)
+        newN = points->vboLen;
+
+    if(start + count > newN)
+        newN = start + count;
+    if(start + count < count) // detect overflow
+        newN = DRAW_ALL_PTS;
 
     if(newN > points->vboCapacity) {
         ERROR_LOG(PARAMETER_ERROR, "Cannot do a partial update when the new size is bigger than the capacity of the buffer");
@@ -1018,11 +1038,11 @@ points_t* points_partial_update(points_t* points, GLfloat* coords, GLsizei start
 
     points->vboLen = newN;
 
-    if(start>end)
+    if(count==0)
         return points;
 
     glBindBuffer(GL_ARRAY_BUFFER, points->vbo);
-    glBufferSubData(GL_ARRAY_BUFFER, start, sizeof(GLfloat) * 2 * (end - start), coords);
+    glBufferSubData(GL_ARRAY_BUFFER, start, sizeof(GLfloat) * 2 * count, coords);
     // glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     return points;
@@ -1035,7 +1055,7 @@ void points_delete(points_t* points){
 }
 
 
-static inline GLenum switch_rasterizer_with_mode(window_t* window, points_t* points, points_drawing_mode_t mode)
+static GLenum switch_rasterizer_with_mode(window_t* window, points_t* points, points_drawing_mode_t mode)
 {
     int program_index;
     GLenum primitive = 0;
@@ -1097,19 +1117,38 @@ static inline GLenum switch_rasterizer_with_mode(window_t* window, points_t* poi
     return primitive;
 }
 
-void points_draw_aux(window_t* window, points_t* points, order_t* order, points_drawing_mode_t mode) {
+void points_draw_aux(window_t* window,
+                     points_t* points,
+                     points_drawing_mode_t mode,
+                     GLint start,
+                     GLsizei count) {
+    if(start>=points->vboLen)
+        return;
+
+    if(count+start>points->vboLen || start + count < count) { //< don't forget to detect overflow
+        count = points->vboLen - start;
+    }
+
+    GLenum primitive = switch_rasterizer_with_mode(window, points, mode);
+    glDrawArrays(mode, start, count);
+    // glBindVertexArray(0);
+}
+
+
+void points_draw_with_order_aux(window_t* window,
+                                points_t* points,
+                                order_t* order,
+                                points_drawing_mode_t mode) {
+    if(order==NULL)
+        points_draw_aux(window, points, mode, 0, points->vboLen);
+
     if(points->vboLen==0 || (order!=NULL && order->eboLen==0))
         return;
 
     GLenum primitive = switch_rasterizer_with_mode(window, points, mode);
 
-    if(order==NULL) {
-        glDrawArrays(mode, 0, points->vboLen);
-    }
-    else {
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, order->ebo);
-        glDrawElements(primitive, order->eboLen, GL_UNSIGNED_INT, 0);
-    }
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, order->ebo);
+    glDrawElements(primitive, order->eboLen, GL_UNSIGNED_INT, 0);
     // glBindVertexArray(0);
 }
 

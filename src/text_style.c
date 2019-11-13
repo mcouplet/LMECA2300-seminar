@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
 	                         GL_STATIC_DRAW);
 	text_set_space_type(pixel, PIXEL_SPACE);
 
-	text_t* unzoomable = text_new((unsigned char[]) {".you can't zoom on this points"},
+	text_t* unzoomable = text_new((unsigned char[]) {".you can't zoom on this point"},
 	                              GL_STATIC_DRAW);
 	GLfloat pixel64 = 2.0/window_get_yres(window)*64.0; // 64 pixels in screen coordinates
 	text_set_pos(unzoomable, (GLfloat[2]){-1.0, 1-1.1*pixel64});

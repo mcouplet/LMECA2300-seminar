@@ -45,14 +45,17 @@ typedef enum {
  %  Window
  %%%%%%%%%%%%%%%%%%%%%%%%%*/
 /* creating a window is probably the first thing a program must do.
- * width is either:
+ *
+ * `width` is either:
  *     - the width of the window in pixel
  *     - 0 for full screen
  *     - a negative number for a maximized window
- * height is either:
+ *
+ * `height` is either:
  *     - the height of the window in pixel
  *     - 0 for full screen
  *     - negative height for a fixed size window
+ *
  * win_name is the title of the window
  * return a window object
  */
@@ -76,9 +79,9 @@ void window_delete(window_t* window);
  %  Text
  %%%%%%%%%%%%%%%%%%%%%%%%%*/
 
-/* 
- * Create a text object from a string. string a null-terminated C string usage
- * is either:
+/* Create a text object from a string. string a null-terminated C string
+ *
+ * `usage` is either:
  *    - GL_STATIC_DRAW if you don't intend to change the content of the text
  *      object (the string of characters)
  *    - GL_DYNAMIC_DRAW if you intend to change it with the text_update function
@@ -99,13 +102,17 @@ void text_delete(text_t* text);
 /*%%%%%%%%%%%%%%%%%%%%%%%%%
  %  Points
  %%%%%%%%%%%%%%%%%%%%%%%%%*/
+#define DRAW_ALL_PTS (0x7FFFFFFFUL)
 
 /* Create a points object
- * coord is either:
+ *
+ * `coord` is either:
  *    - an array of coordinates, interleaved : x1, y1, x2, y2, ... xn, yn
  *         => n is the number of points and the maximum capacity
  *    - NULL, in which case a points object is created with a maximum capacity
- *      of n points usage is either:
+ *      of n points
+ *
+ * `usage` is either:
  *    - GL_STATIC_DRAW if you don't intend to update the coordinates of the
  *      points regularly
  *    - GL_DYNAMIC_DRAW if you intend to change coordinates regularly with the
@@ -116,47 +123,78 @@ points_t* points_new(GLfloat* coords, GLsizei n, GLenum usage);
 /* change the content of the points object (the maximum capacity can be increased)*/
 points_t* points_update(points_t* points, GLfloat* coords, GLsizei n);
 
-/* change the content of the points object, but only from start to end (the
- * maximum capacity cannot be increased)*/
-points_t* points_partial_update(points_t* points, GLfloat* coords, GLsizei start, GLsizei end, GLsizei newN);
+/* change the content of the points object, but only from start to
+ * start+count excluded.
+ *
+ * `newN` is the new number of points contained in the points object, or 0 to keep
+ * the same size.
+ * `newN` can only be lower than the maximum number of points that has been
+ * contained in the given points object (the capacity cannot be increased)
+ */
+points_t* points_partial_update(points_t* points, GLfloat* coords,
+                                GLint start, GLsizei count, GLsizei newN);
 
-/* draw points markers to the window */
-static inline void points_draw(window_t* window, points_t* pts);
-static inline void points_draw_with_order(window_t* window, points_t* pts, order_t* order);
+/* draw points markers to the window
+ *
+ * `start` is the index of the first point to draw
+ * `count` is the number of points to draw
+ * if `count` is greater than the number of points, all the points are drawn.
+ * the value DRAW_ALL_PTS is guaranteed to be greater than the number of points.
+ */
+static inline void points_draw(window_t* window, points_t* pts,
+                               GLint start, GLsizei count);
+static inline void points_draw_with_order(window_t* window, points_t* pts,
+                                          order_t* order);
 
-/* draw lines between pairs of points, (p1->p2) (p3->p4) (p5->p6)... */
-static inline void lines_draw(window_t* window, points_t* pts);
-static inline void lines_draw_with_order(window_t* window, points_t* pts, order_t* order);
+/* same argument as above, but draw lines between pairs of points,
+ * (p1->p2) (p3->p4) (p5->p6)...
+ *
+ * line are only drawn when both points are withing [start, start+count[,
+ * so only the even part of count is taken into account
+ */
+static inline void lines_draw(window_t* window, points_t* pts,
+                              GLint start, GLsizei count);
+static inline void lines_draw_with_order(window_t* window, points_t* pts,
+                                         order_t* order);
 
 /* draw lines that connect each points p1->p2->p3->p4->p5->p6...->pn */
-static inline void line_strip_draw(window_t* window, points_t* pts);
-static inline void line_strip_draw_with_order(window_t* window, points_t* pts, order_t* order);
+static inline void line_strip_draw(window_t* window, points_t* pts,
+                                   GLint start, GLsizei count);
+static inline void line_strip_draw_with_order(window_t* window, points_t* pts,
+                                              order_t* order);
 
 /* draw lines that connect each points and end with the first
  * p1->p2->p3->p4->p5->p6...->pn->p1*/
-static inline void line_loop_draw(window_t* window, points_t* pts);
-static inline void line_loop_draw_with_order(window_t* window, points_t* pts, order_t* order);
+static inline void line_loop_draw(window_t* window, points_t* pts,
+                                  GLint start, GLsizei count);
+static inline void line_loop_draw_with_order(window_t* window, points_t* pts,
+                                             order_t* order);
 
 /* draw a single line that connect each points p1->p2->p3->p4->p5->p6...->pn
  * The difference with line_strip_draw can really be seen with an outline or
  * transparency */
-static inline void curve_draw(window_t* window, points_t* pts);
-static inline void curve_draw_with_order(window_t* window, points_t* pts, order_t* order) ;
+static inline void curve_draw(window_t* window, points_t* pts,
+                              GLint start, GLsizei count);
+static inline void curve_draw_with_order(window_t* window, points_t* pts,
+                                         order_t* order);
 
-/* delete a point object */
+/* delete a points object */
 void points_delete(points_t* points);
 
 
 /*%%%%%%%%%%%%%%%%%%%%%%%%%
  %  Order
  %%%%%%%%%%%%%%%%%%%%%%%%%*/
-/* 
- * Create an order object, that enables to draw only certain points, or to draw
- * lines that connect different points elements is either:
+/* Create an order object, that enables to draw only certain points, or to draw
+ * lines that connect different points.
+ *
+ * `elements` is either:
  *     - an array of indices (the indices of the point that we will draw) => n
  *       is the number of indices
  *     - NULL, in which case an order object is created with a maximum capacity
- *       of n indices usage is either:
+ *       of n indices
+ *
+ * `usage` is either:
  *    - GL_STATIC_DRAW if you don't intend to update the content of the order
  *      object regularly
  *    - GL_DYNAMIC_DRAW if you intend to change it regularly with the
@@ -164,13 +202,19 @@ void points_delete(points_t* points);
  */
 order_t* order_new(GLuint* elements, GLsizei n, GLenum usage);
 
-/* change the content of the order object (the maximum capacity can be
- * increased) */
+/* Change the content of the order object. */
 order_t* order_update(order_t* order, GLuint* elements, GLsizei n, GLenum usage);
 
-/* change the content of the points object, but only from start to end (the
- * maximum capacity cannot be increased) */
-order_t* order_partial_update(order_t* order, GLuint* elements, GLsizei start, GLsizei end, GLsizei newN);
+/* change the content of the points object, but only from start to
+ * start+count excluded.
+ *
+ * `newN` is the new number of indices contained in the order object, or 0 to keep
+ * the same size.
+ * `newN` can only be lower than the maximum number of indices that has been
+ * contained in the given order object (the capacity cannot be increased)
+ */
+order_t* order_partial_update(order_t* order, GLuint* elements,
+                              GLint start, GLsizei count, GLsizei newN);
 
 /* delete an order object */
 void order_delete(order_t* order);
@@ -598,79 +642,106 @@ static inline void points_set_param(points_t* points, points_param_t parameters)
 }
 
 
-void points_draw_aux(window_t* window, points_t* pts, order_t* order, points_drawing_mode_t mode);
+void points_draw_aux(window_t* window,
+                     points_t* points,
+                     points_drawing_mode_t mode,
+                     GLint start,
+                     GLsizei count);
+
+void points_draw_with_order_aux(window_t* window,
+                                points_t* points,
+                                order_t* order,
+                                points_drawing_mode_t mode);
 
 
-static inline void points_draw(window_t* window, points_t* pts) {
-    points_draw_aux(window, pts, NULL, POINTS_PROGRAM);
+static inline void points_draw(window_t* window, points_t* pts,
+                               GLint start, GLsizei count) {
+    points_draw_aux(window, pts, POINTS_PROGRAM, start, count);
 }
 
-static inline void points_draw_with_order(window_t* window, points_t* pts, order_t* order) {
-    points_draw_aux(window, pts, order, POINTS_PROGRAM);
+static inline void points_draw_with_order(window_t* window, points_t* pts,
+                                          order_t* order) {
+    points_draw_with_order_aux(window, pts, order, POINTS_PROGRAM);
 }
 
-static inline void curve_draw(window_t* window, points_t* pts) {
-    points_draw_aux(window, pts, NULL, CURVE_PROGRAM);
+static inline void curve_draw(window_t* window, points_t* pts,
+                              GLint start, GLsizei count) {
+    points_draw_aux(window, pts, CURVE_PROGRAM, start, count);
 }
 
-static inline void curve_draw_with_order(window_t* window, points_t* pts, order_t* order) {
-    points_draw_aux(window, pts, order, CURVE_PROGRAM);
+static inline void curve_draw_with_order(window_t* window, points_t* pts,
+                                         order_t* order) {
+    points_draw_with_order_aux(window, pts, order, CURVE_PROGRAM);
 }
 
-static inline void lines_draw(window_t* window, points_t* pts) {
-    points_draw_aux(window, pts, NULL, LINES_PROGRAM);
+static inline void lines_draw(window_t* window, points_t* pts,
+                              GLint start, GLsizei count) {
+    points_draw_aux(window, pts, LINES_PROGRAM, start, count);
 }
 
-static inline void lines_draw_with_order(window_t* window, points_t* pts, order_t* order) {
-    points_draw_aux(window, pts, order, LINES_PROGRAM);
+static inline void lines_draw_with_order(window_t* window, points_t* pts,
+                                         order_t* order) {
+    points_draw_with_order_aux(window, pts, order, LINES_PROGRAM);
 }
 
-static inline void line_strip_draw(window_t* window, points_t* pts) {
-    points_draw_aux(window, pts, NULL, LINE_STRIP_PROGRAM);
+static inline void line_strip_draw(window_t* window, points_t* pts,
+                                   GLint start, GLsizei count) {
+    points_draw_aux(window, pts, LINE_STRIP_PROGRAM, start, count);
 }
 
-static inline void line_strip_draw_with_order(window_t* window, points_t* pts, order_t* order) {
-    points_draw_aux(window, pts, order, LINE_STRIP_PROGRAM);
+static inline void line_strip_draw_with_order(window_t* window, points_t* pts,
+                                              order_t* order) {
+    points_draw_with_order_aux(window, pts, order, LINE_STRIP_PROGRAM);
 }
 
-static inline void line_loop_draw(window_t* window, points_t* pts) {
-    points_draw_aux(window, pts, NULL, LINE_LOOP_PROGRAM);
+static inline void line_loop_draw(window_t* window, points_t* pts,
+                                  GLint start, GLsizei count) {
+    points_draw_aux(window, pts, LINE_LOOP_PROGRAM, start, count);
 }
 
-static inline void line_loop_draw_with_order(window_t* window, points_t* pts, order_t* order) {
-    points_draw_aux(window, pts, order, LINE_LOOP_PROGRAM);
+static inline void line_loop_draw_with_order(window_t* window, points_t* pts,
+                                             order_t* order) {
+    points_draw_with_order_aux(window, pts, order, LINE_LOOP_PROGRAM);
 }
 
-static inline void triangles_draw(window_t* window, points_t* pts) {
-    points_draw_aux(window, pts, NULL, TRIANGLES_PROGRAM);
+static inline void triangles_draw(window_t* window, points_t* pts,
+                                  GLint start, GLsizei count) {
+    points_draw_aux(window, pts, TRIANGLES_PROGRAM, start, count);
 }
 
-static inline void triangles_draw_with_order(window_t* window, points_t* pts, order_t* order) {
-    points_draw_aux(window, pts, order, TRIANGLES_PROGRAM);
+static inline void triangles_draw_with_order(window_t* window, points_t* pts,
+                                             order_t* order) {
+    points_draw_with_order_aux(window, pts, order, TRIANGLES_PROGRAM);
 }
 
-static inline void triangle_strip_draw(window_t* window, points_t* pts) {
-    points_draw_aux(window, pts, NULL, TRIANGLE_STRIP_PROGRAM);
+static inline void triangle_strip_draw(window_t* window, points_t* pts,
+                                       GLint start, GLsizei count) {
+    points_draw_aux(window, pts, TRIANGLE_STRIP_PROGRAM, start, count);
 }
 
-static inline void triangle_strip_draw_with_order(window_t* window, points_t* pts, order_t* order) {
-    points_draw_aux(window, pts, order, TRIANGLE_STRIP_PROGRAM);
+static inline void triangle_strip_draw_with_order(window_t* window, points_t* pts,
+                                                  order_t* order) {
+    points_draw_with_order_aux(window, pts, order, TRIANGLE_STRIP_PROGRAM);
 }
 
-static inline void triangle_fan_draw(window_t* window, points_t* pts) {
-    points_draw_aux(window, pts, NULL, TRIANGLE_FAN_PROGRAM);
+static inline void triangle_fan_draw(window_t* window, points_t* pts,
+                                     GLint start, GLsizei count) {
+    points_draw_aux(window, pts, TRIANGLE_FAN_PROGRAM, start, count);
 }
 
-static inline void triangle_fan_draw_with_order(window_t* window, points_t* pts, order_t* order) {
-    points_draw_aux(window, pts, order, TRIANGLE_FAN_PROGRAM);
+static inline void triangle_fan_draw_with_order(window_t* window, points_t* pts,
+                                                order_t* order) {
+    points_draw_with_order_aux(window, pts, order, TRIANGLE_FAN_PROGRAM);
 }
 
-static inline void quad_draw(window_t* window, points_t* pts) {
-    points_draw_aux(window, pts, NULL, QUADS_PROGRAM);
+static inline void quad_draw(window_t* window, points_t* pts,
+                             GLint start, GLsizei count) {
+    points_draw_aux(window, pts, QUADS_PROGRAM, start, count);
 }
 
-static inline void quad_draw_with_order(window_t* window, points_t* pts, order_t* order) {
-    points_draw_aux(window, pts, order, QUADS_PROGRAM);
+static inline void quad_draw_with_order(window_t* window, points_t* pts,
+                                        order_t* order) {
+    points_draw_with_order_aux(window, pts, order, QUADS_PROGRAM);
 }
 
 #ifdef __GNUC__
