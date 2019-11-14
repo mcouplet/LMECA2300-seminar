@@ -89,8 +89,15 @@ void main() {
     vec2 center = p*scaling + translation;
     vec2 upRight = center + width*scaling;
     vec2 downLeft = center - width*scaling;
+
+    // a bit of culling
+    if(any(lessThanEqual(upRight, -vec2(1.0))) ||
+       any(greaterThanEqual(downLeft, vec2(1.0))))
+        return;
+
     vec2 upLeft = vec2(downLeft.x, upRight.y);
     vec2 downRight = vec2(upRight.x, downLeft.y);
+
 
     pSquare = vec2(-width, width);
     gl_Position = vec4(upLeft, 0.0, 1.0);

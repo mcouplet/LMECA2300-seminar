@@ -28,21 +28,23 @@
 #include "draw_tools.h"
 #include <math.h>
 
+#define NUMMARKERS 25
+
 
 int main(int argc, char *argv[])
 {
 	window_t* window = window_new(0,0, argv[0]);
 
 	points_t* single_point = points_new((float[2]){0,0}, 1, GL_STATIC_DRAW);
-	
 
 	points_set_outline_color(single_point, (float[4]){0.3, 0.3, 0.3, 1});
 	window_set_color(window, (float[4]){1.0, 0.8, 0.5, 1});
 
 	text_t* marker_text = text_new(NULL, GL_DYNAMIC_DRAW);
-	text_set_height(marker_text, 0.025);
-	points_set_outline_width(single_point, 0.01);
-	points_set_width(single_point, 0.04);
+	const float pointWidth = 1.0/NUMMARKERS;
+	points_set_outline_width(single_point, pointWidth*0.2);
+	points_set_width(single_point, pointWidth);
+	text_set_height(marker_text, pointWidth*0.5);
 
 	while(!window_should_close(window)){
 		double wtime = window_get_time(window);
@@ -51,30 +53,30 @@ int main(int argc, char *argv[])
 		points_set_color(single_point, (float[4]) { sin(0.11*wtime)*0.5+0.5, sin(0.7*wtime)*0.5+0.5, sin(0.67*wtime)*0.5+0.5 , 1});
 
 
-		for(int i=0; i<23; i++) {
+		for(int i=0; i<NUMMARKERS; i++) {
 
-			GLfloat pos[2] = {-0.9+0.0825*i, 0.95};
+			GLfloat pos[2] = {pointWidth-1.0+2.0*pointWidth*i, 1.0-pointWidth};
 
 			char string[64];
 			for(int j=0; j<9; j++) {
-				pos[0] -= 0.05;
+				pos[0] -= pointWidth;
 				
 				snprintf(string, 64, "%6.3f", i+j*0.12493);
 				text_update(marker_text, (unsigned char*) string);
 				text_set_pos(marker_text, pos);
 				text_draw(window, marker_text);
 
-				pos[0] += 0.05;
-				pos[1] -= 0.05;
+				pos[0] += pointWidth;
+				pos[1] -= 2*pointWidth;
 
 				points_set_pos(single_point, pos);
 				points_set_marker(single_point, i+j*0.12493);
 				points_draw(window, single_point, 0, 1);
 				
-				pos[1] -= 0.15;
+				pos[1] -= 3*pointWidth;
 			}
 
-			pos[1] -= 0.05;
+			pos[1] -= 2*pointWidth;
 
 			points_set_pos(single_point, pos);
 			double fract = 0.2*wtime - floor(0.2*wtime);

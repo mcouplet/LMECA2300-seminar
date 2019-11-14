@@ -46,7 +46,16 @@ flat in float pixelSize;
 
 out vec4 outColor;
 
-#define PI 3.1415926535897932384626433832795
+// see https://www.iquilezles.org/www/articles/distfunctions2d/distfunctions2d.htm
+
+float ndot(vec2 a, vec2 b ) { return a.x*b.x - a.y*b.y; }
+float sdRhombus( in vec2 p, in vec2 b ) 
+{
+    vec2 q = abs(p);
+    float h = clamp((-2.0*ndot(q,b)+ndot(b,b))/dot(b,b),-1.0,1.0);
+    float d = length( q - 0.5*b*vec2(1.0-h,1.0+h) );
+    return d * sign( q.x*b.y + q.y*b.x - b.x*b.y );
+}
 
 // p is the coordinate, s is the size
 float sdCross(vec2 p, vec2 s)
@@ -68,8 +77,8 @@ float sdBox(vec2 p, vec2 b)
 float sdStar(vec2 p, float r, int n, float m) // m=[2,n]
 {
     // these 4 lines can be precomputed for a given shape
-    float an = PI/float(n);
-    float en = PI/m;
+    float an = 3.141593/float(n);
+    float en = 3.141593/m;
     vec2  acs = vec2(cos(an),sin(an));
     vec2  ecs = vec2(cos(en),sin(en)); // ecs=vec2(0,1) and simplify, for regular polygon,
 
@@ -84,7 +93,7 @@ float sdStar(vec2 p, float r, int n, float m) // m=[2,n]
 }
 
 void main( void ) {
-    float m = mod(marker, 23.);      // marker%23
+    float m = mod(marker, 25.);      // marker%23
     float f = fract(m);
     float fw = f*width;          // fictive width
     float delta = fw - width;    // the difference in distance
@@ -101,17 +110,28 @@ void main( void ) {
     else if(shape==3)
         sdf = sdBox(pSquare, vec2(fw)) + delta;
     else if(shape==4)
+        sdf = sdRhombus(pSquare, vec2(width*f, width));
+    else if(shape==5)
+        sdf = sdRhombus(pSquare, vec2(width, width*f));
+    else if(shape==6)
         sdf = sdCross(pSquare, vec2(fw, 0.25*fw)) + delta;
-    else if(shape<11){
-        // make the angle vary
-        float ad = 2.0 + f*f*(float(shape-2)-2.0);   // angle divisor, between 2 and n
-        sdf = sdStar(pSquare, width, shape-2, ad);
-    }
-    else if(shape<17){
-        sdf = sdStar(pSquare, fw, shape-8, 2.0) + delta;
-    }
     else {
-        sdf = sdStar(pSquare, fw, shape-14, float(shape-14)) + delta;
+        float ad = 2.0;   // angle divisor, between 2 and n
+        int shift;
+        if(shape<13){
+            ad += f*f*(float(shape)-6.0);
+            fw = width;
+            delta = 0.0;
+            shift = 4;
+        }
+        else if(shape<19){
+            shift = 10;
+        }
+        else {
+            shift = 16;
+            ad = float(shape-shift);
+        }
+        sdf = sdStar(pSquare, fw, shape-shift, ad) + delta;
     }
 
     vec2 alpha = smoothstep(pixelSize, -pixelSize, sdf + vec2(0.0, outlineWidth));
