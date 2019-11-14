@@ -70,7 +70,7 @@ void main() {
     bool last = p2==p3;
 
     vec2 ba = p2 - p1;
-    float lba = length(ba);
+    lba = length(ba);
     vec2 v1 = ba/lba;                      // direction of this segment
     vec2 v0 = first?v1:normalize(p1 - p0); // direction of the prev segment
     vec2 v2 = last?v1:normalize(p3 - p2);  // direction of next segment

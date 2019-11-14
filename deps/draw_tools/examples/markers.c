@@ -33,6 +33,18 @@
 
 int main(int argc, char *argv[])
 {
+	/* Actually, this is not an example at all, you shouldn't make
+	 * that many draw call, have that many text element etc.
+	 *
+	 * This is more of a tool. When you launch this program, you will
+	 * be able to see which marker value correspond to which shape
+	 * and choose the shape that fits your need accordingly.
+	 *
+	 * REMINDER: DO NOT MAKE THAT MANY DRAW CALL IN YOUR CODE !!!!
+	 *
+	 * yes, there are 250 draw call per frame here :p
+	 */
+
 	window_t* window = window_new(0,0, argv[0]);
 
 	points_t* single_point = points_new((float[2]){0,0}, 1, GL_STATIC_DRAW);
