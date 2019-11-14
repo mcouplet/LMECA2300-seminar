@@ -46,93 +46,103 @@ flat in float pixelSize;
 
 out vec4 outColor;
 
-#define INV_SQRT_2 0.70710678118
+// p is the coordinate, s is the size
+float sdCross(vec2 p, vec2 s, float z)
+{
+    vec2 zs = z*s;
+    p = abs(p); p = (p.y>p.x) ? p.yx : p.xy;
+    vec2  q = p - zs;
+    float k = max(q.y,q.x);
+    vec2  w = (k>0.0) ? q : vec2(zs.y-p.x,-k);
+    return sign(k)*length(max(w,0.0)) - s.x*(1.0-z);
+}
+
+float sdCircle(vec2 p, float r) {
+    return length(p) - r;
+}
+
+
+float sdPentagon(vec2 p, float r, float z)
+{
+    const vec3 k = vec3(0.809016994,0.587785252,0.726542528);
+    float zr = k.x*z*r;
+    p.x = abs(p.x);
+    p -= 2.0*min(dot(vec2(-k.x,k.y),p),0.0)*vec2(-k.x,k.y);
+    p -= 2.0*min(dot(vec2( k.x,k.y),p),0.0)*vec2( k.x,k.y);
+    p -= vec2(clamp(p.x,-zr*k.z, zr*k.z), zr);
+    return length(p)*sign(p.y) - r*(1.0-z);
+}
+
+float sdBox(vec2 p, float l, float z)
+{
+
+    vec2 d = abs(p);
+    d -= vec2(l, l*min(z, 1./z));
+    return length(max(d,vec2(0))) + min(max(d.x,d.y),0.0);
+}
+
+float sdRhombus(vec2 p, vec2 b) 
+{
+    vec2 q = abs(p);
+
+    float h = clamp( (-2.0*ndot(q,b) + ndot(b,b) )/dot(b,b), -1.0, 1.0 );
+    float d = length( q - 0.5*b*vec2(1.0-h,1.0+h) );
+    d *= sign( q.x*b.y + q.y*b.x - b.x*b.y );
+    
+    return d;
+}
+
+
+// signed distance to a centered line
+float sdCenteredLine(vec2 p, vec2 b, float l2)
+{
+    float h = clamp( dot(p,b)/l2, 0.0, 1.0 );
+    return length( p - b*h );
+}
+
+
+float sdTripod(vec2 p, float r) {
+    p.x = abs(p.x);
+    float r2 = r*r;
+    float d0 = sdCenteredLine( p, r*vec2( 0.5*sqrt(3.), -0.5), r2 );
+    float d1 = sdCenteredLine( p, vec2( 0.0,  r), r2 );
+    return min(d0, d1);
+}
+
+float sdQuadPod(vec2 p, float r) {
+    // p = abs(vec2(p.x+p.y, p.x-p.y));// gives a vertical cross
+    p = abs(p); // diagonal cross
+    return sdCenteredLine( p, r*vec2( 1., 1.), r*r*2.0 );
+}
+
+
+// much more interesting: allows to draw stars and hexagon and circle !
+float sdHexagram(vec2 p, float r)
+{
+    const vec4 k = vec4(-0.5,0.86602540378,0.57735026919,1.73205080757);
+    
+    p = abs(p);
+    p -= 2.0*min(dot(k.xy,p),0.0)*k.xy;
+    p -= 2.0*min(dot(k.yx,p),0.0)*k.yx;
+    p -= vec2(clamp(p.x,r*k.z,r*k.w),r);
+    return length(p)*sign(p.y);
+}
+
+
 
 void main( void ) {
-    vec2 pixel = 2.0*gl_FragCoord.xy/resolution - 1.0;
+    // float z = 1.5*fract(marker*0.1);
+    // vec2 sdf = sdCross(pSquare, vec2(width, 0.25*width), z) + vec2(0.0, outlineWidth);
 
-    vec2 width_scaling = localScale*(space_type!=0 ? 2.0/resolution : scale);
+    // float z = 1.0-1.0/(1.0+marker);
+    // vec2 sdf = sdPentagon(pSquare, width, z) + vec2(0.0, outlineWidth);
 
-    vec2 circle = (center - pixel)/width_scaling;
-    float amplitude_circle = length(circle);
-    vec2 direction_circle = normalize(circle);
+    float z = 2.0*fract(marker*0.5);
+    if(z>1.0)
+        z = 1.0/(2.0-z);
+    vec2 sdf = sdBox(pSquare, width, z) + vec2(0.0, outlineWidth);
 
-    float xS = sign(circle.x);
-    float yS = sign(circle.y);
-    float xL = xS*circle.x; // or abs(circle.x)
-    float yL = yS*circle.y; // or abs(circle.y)
-
-    float amplitude_square = max(xL,yL);
-    vec2 direction_square = xL>yL ? vec2(xS, 0.0) : vec2(0.0, yS);
-
-    float amplitude_rhombus = (INV_SQRT_2*(xL+yL)+(1.-INV_SQRT_2)*width);
-    vec2 direction_rhombus = vec2(xS, yS)*INV_SQRT_2;
-
-    float amplitude_emptyCross = min(xL,yL)+width;
-    vec2 direction_emptyCross = xL<yL ? vec2(xS, 0.0) : vec2(0.0, yS);
-
-    float amplitude_invCircle = 2.0*width - length(circle - width*vec2(xS, yS));
-    vec2 direction_invCircle = normalize(circle - width*vec2(xS, yS));
-
-    // rhombus - (circle-rhombus)
-    // float amplitude_weird1 = 2.0*amplitude_rhombus - amplitude_circle;
-    // vec2 direction_weird1 = normalize(2.0*direction_rhombus - direction_circle);
-
-    // // circle - (square - circle)
-    // float amplitude_weird2 = 2.0*amplitude_circle - amplitude_square;
-    // vec2 direction_weird2 = normalize(2.0*direction_circle - direction_square);
-
-    vec2 direction;
-    float amplitude;
-
-    /* possibilities:
-       rhombus - square
-       rhombus - circle
-       rhombus - emptyCross
-       rhombus - invCircle
-       square-circle
-       
-          0        1           2           3          4        5       6=>0
-       square - rhombus - emptyCross - invCircle - rhombus - circle - square
-    */
-
-    float markerMod6 = mod(marker, 6);
-
-    if(markerMod6 < 1.0) {
-        direction = normalize(mix(direction_square, direction_rhombus, markerMod6 - 0.0));
-        amplitude = mix(amplitude_square, amplitude_rhombus, markerMod6 - 0.0);
-    }
-    else if(markerMod6 < 2.0) {
-        direction = normalize(mix(direction_rhombus, direction_emptyCross, markerMod6 - 1.0));
-        amplitude = mix(amplitude_rhombus, amplitude_emptyCross, markerMod6 - 1.0);
-    }
-    else if(markerMod6 < 3.0) {
-        direction = normalize(mix(direction_emptyCross, direction_invCircle, markerMod6 - 2.0));
-        amplitude = mix(amplitude_emptyCross, amplitude_invCircle, markerMod6 - 2.0);
-    }
-    else if(markerMod6 < 4.0) {
-        direction = normalize(mix(direction_invCircle, direction_rhombus, markerMod6 - 3.0));
-        amplitude = mix(amplitude_invCircle, amplitude_rhombus, markerMod6 - 3.0);
-    }
-    else if(markerMod6 < 5.0) {
-        direction = normalize(mix(direction_rhombus, direction_circle, markerMod6 - 4.0));
-        amplitude = mix(amplitude_rhombus, amplitude_circle, markerMod6 - 4.0);
-    }
-    else {
-        direction = normalize(mix(direction_circle, direction_square, markerMod6 - 5.0));
-        amplitude = mix(amplitude_circle, amplitude_square, markerMod6 - 5.0);
-    }
-
-    // compute the length of the smoothstep in pixel
-    float smoothLength = amplitude==0.0 ? 0.0 : antialiasing/length(width_scaling*direction*resolution);
-
-    // float a=abs(line_dist);
-    float opacity = smoothstep(width, width-smoothLength,amplitude);
-
-    float mu = smoothstep(width-outlineWidth, width-outlineWidth-smoothLength, amplitude);
-    outColor = mix(outlineColor, fillColor, mu); // at 0: completely outlineColor, at1: completely fillColor
-    // outColor = mix(vec4(0.0,0.0,0.0,1.0), outColor, opacity);
-    outColor.a *= opacity;
-
-    // outColor = vec4(amplitude/width);
+    vec2 alpha = smoothstep(pixelSize, -pixelSize, sdf);
+    outColor = mix(outlineColor, fillColor, alpha.y); // at 0: completely outlineColor, at1: completely fillColor
+    outColor.a *= alpha.x;
 }

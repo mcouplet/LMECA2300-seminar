@@ -92,12 +92,16 @@ void main() {
     vec2 upLeft = vec2(downLeft.x, upRight.y);
     vec2 downRight = vec2(upRight.x, downLeft.y);
 
+    pSquare = vec2(-width, width);
     gl_Position = vec4(upLeft, 0.0, 1.0);
     EmitVertex();
+    pSquare = vec2(-width);
     gl_Position = vec4(downLeft, 0.0, 1.0);
     EmitVertex();
+    pSquare = vec2(width);
     gl_Position = vec4(upRight, 0.0, 1.0);
     EmitVertex();
+    pSquare = vec2(width, -width);
     gl_Position = vec4(downRight, 0.0, 1.0);
     EmitVertex();
     EndPrimitive();

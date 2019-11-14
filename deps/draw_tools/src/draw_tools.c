@@ -397,6 +397,11 @@ static void key_callback(GLFWwindow* self, int key, int scancode, int action, in
                 snprintf(screenshot_name + 10, 54, "%u.ppm", screenshot_nbr++);
                 window_screenshot(window, screenshot_name);
                 break;
+            case GLFW_KEY_R:
+                window->param.zoom = 1.0f;
+                window->param.translate[0] = 0.0f;
+                window->param.translate[1] = 0.0f;
+                break;
         }
     }
     if (key==GLFW_KEY_ESCAPE)
@@ -499,12 +504,12 @@ static void window_OpenGL_init(window_t* window) {
                                   "points_vert.glsl",
                                   GL_VERTEX_SHADER))==0)
             goto shader_error;
-        // if((pointsGS = LoadShader(1,
-        //                           (const GLchar* []) {points_geom},
-        //                           (const GLint[]) {sizeof(points_geom)-1},
-        //                           "points_geom.glsl",
-        //                           GL_GEOMETRY_SHADER))==0)
-            // goto shader_error;
+        if((pointsGS = LoadShader(1,
+                                  (const GLchar* []) {points_geom},
+                                  (const GLint[]) {sizeof(points_geom)-1},
+                                  "points_geom.glsl",
+                                  GL_GEOMETRY_SHADER))==0)
+            goto shader_error;
         if((linesGS = LoadShader(1,
                                   (const GLchar* []) {lines_geom},
                                   (const GLint[]) {sizeof(lines_geom)-1},
@@ -517,12 +522,12 @@ static void window_OpenGL_init(window_t* window) {
                                   "curve_geom.glsl",
                                   GL_GEOMETRY_SHADER))==0)
             goto shader_error;
-        // if((pointsFS = LoadShader(1,
-        //                           (const GLchar* []) {points_frag},
-        //                           (const GLint[]) {sizeof(points_frag)-1},
-        //                           "points_frag.glsl",
-        //                           GL_FRAGMENT_SHADER))==0)
-            // goto shader_error;
+        if((pointsFS = LoadShader(1,
+                                  (const GLchar* []) {points_frag},
+                                  (const GLint[]) {sizeof(points_frag)-1},
+                                  "points_frag.glsl",
+                                  GL_FRAGMENT_SHADER))==0)
+            goto shader_error;
         if((linesFS = LoadShader(1,
                                   (const GLchar* []) {lines_frag},
                                   (const GLint[]) {sizeof(lines_frag)-1},
@@ -535,13 +540,13 @@ static void window_OpenGL_init(window_t* window) {
         window->program[CURVE_PROGRAM_INDEX] = glCreateProgram();
 
         // Specify the layout of the vertex data
-        // glBindAttribLocation(window->program[POINTS_PROGRAM_INDEX], POS_LOCATION, "pos");
+        glBindAttribLocation(window->program[POINTS_PROGRAM_INDEX], POS_LOCATION, "pos");
         glBindAttribLocation(window->program[LINES_PROGRAM_INDEX], POS_LOCATION, "pos");
         glBindAttribLocation(window->program[CURVE_PROGRAM_INDEX], POS_LOCATION, "pos");
 
-        // if(program_init(window, POINTS_PROGRAM_INDEX,
-        //                 3, pointsVS, pointsGS, pointsFS))
-        //     goto shader_error;
+        if(program_init(window, POINTS_PROGRAM_INDEX,
+                        3, pointsVS, pointsGS, pointsFS))
+            goto shader_error;
         if(program_init(window, LINES_PROGRAM_INDEX,
                         3, pointsVS, linesGS, linesFS))
             goto shader_error;
@@ -549,9 +554,9 @@ static void window_OpenGL_init(window_t* window) {
                         3, pointsVS, curveGS, linesFS))
             goto shader_error;
 
-        // glDetachShader(window->program[POINTS_PROGRAM_INDEX],pointsVS);
-        // glDetachShader(window->program[POINTS_PROGRAM_INDEX],pointsGS);
-        // glDetachShader(window->program[POINTS_PROGRAM_INDEX],pointsFS);
+        glDetachShader(window->program[POINTS_PROGRAM_INDEX],pointsVS);
+        glDetachShader(window->program[POINTS_PROGRAM_INDEX],pointsGS);
+        glDetachShader(window->program[POINTS_PROGRAM_INDEX],pointsFS);
         glDetachShader(window->program[LINES_PROGRAM_INDEX],pointsVS);
         glDetachShader(window->program[LINES_PROGRAM_INDEX],linesGS);
         glDetachShader(window->program[LINES_PROGRAM_INDEX],linesFS);
@@ -562,9 +567,9 @@ static void window_OpenGL_init(window_t* window) {
 
     // Create all rasterizers
     text_rasterizer_init(window);
-    // points_rasterizer_init(window->program[POINTS_PROGRAM_INDEX]);
+    points_rasterizer_init(window->program[POINTS_PROGRAM_INDEX]);
     points_rasterizer_init(window->program[LINES_PROGRAM_INDEX]);
-    // points_rasterizer_init(window->program[CURVE_PROGRAM_INDEX]);
+    points_rasterizer_init(window->program[CURVE_PROGRAM_INDEX]);
 
     glUseProgram(window->program[LINES_PROGRAM_INDEX]);
     window->last_program = LINES_PROGRAM_INDEX;
