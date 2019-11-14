@@ -393,6 +393,15 @@ static void key_callback(GLFWwindow* self, int key, int scancode, int action, in
                     window->running = 0;
                 }
                 break;
+            case GLFW_KEY_H:
+            case GLFW_KEY_K:
+                if(window->help_needed==0) {
+                    window->help_needed = 1;
+                }
+                else {
+                    window->help_needed = 0;
+                }
+                break;
             case GLFW_KEY_P:
                 snprintf(screenshot_name + 10, 54, "%u.ppm", screenshot_nbr++);
                 window_screenshot(window, screenshot_name);
@@ -673,15 +682,46 @@ window_t* window_new(int width, int height, const char* win_name)
     }
 
     window->running = 1;
+    window->help_needed = 0;
+    window->indication_needed = 0;
     window->leftClickCursor = glfwCreateStandardCursor(GLFW_HRESIZE_CURSOR);
 
     window_OpenGL_init(window);
+
+    window->help = text_new((unsigned char[]) {
+        " Keyboard shortcuts:\n"
+        " -------------------\n\n"
+        "   [esc]   exit\n"
+        "  [space]  play/pause\n"
+        "     p     save .ppm screenshot\n"
+        "     r     reset zoom and translation\n"
+        "    h k    display/hide keyboard shortcuts\n"
+    }, GL_STATIC_DRAW);
+    text_set_space_type(window->help, PIXEL_SPACE);
+    text_set_height(window->help, 32); // 32 pixel height
+    text_set_pos(window->help, (GLfloat[2]){16.0, 7*32+64});
+    text_set_boldness(window->help, 0.1);
+    text_set_outline_width(window->help, 0.5);
+
+    window->indication = text_new((unsigned char[]) {
+        "press 'k' for keyboard shortcuts\n"
+    }, GL_STATIC_DRAW);
+    text_set_space_type(window->indication, PIXEL_SPACE);
+    text_set_height(window->indication, 32); // 32 pixel height
+    text_set_pos(window->indication, (GLfloat[2]){16.0, 16.0});
+    text_set_boldness(window->indication, 0.1);
+    text_set_outline_width(window->indication, 0.5);
 
     return window;
 }
 
 
 void window_update(window_t* window) {
+    if(window->help_needed)
+        text_draw(window, window->help);
+    else if(window->indication_needed)
+        text_draw(window, window->indication);
+
     // Swap front and back buffers
     glfwSwapBuffers(window->self);
 
@@ -713,6 +753,8 @@ void window_update_and_wait_events(window_t* window) {
 
 void window_delete(window_t* window)
 {
+    text_delete(window->help);
+    text_delete(window->indication);
     glDeleteTextures(1, &window->texture);
     glDeleteProgram(window->program[TEXT_PROGRAM_INDEX]);
     glDeleteProgram(window->program[POINTS_PROGRAM_INDEX]);
@@ -803,16 +845,27 @@ void order_delete(order_t* order) {
     free(order);
 }
 
+// given n pixels between 0 and 1, and 2 points a and b in between,
+// round a and b so that they are in the middle of a pixel
+// and return the scaling between the old b-a distance and the new one
+static double_t getMiddlePixelTex(GLfloat* a, GLfloat* b, double n) {
+    double aNew = (round((*a)*n)+0.5)/n;
+    double bNew = (round((*b)*n)-0.5)/n;
+    double ratio = (bNew - aNew)/(*b - *a);
+    *a = aNew;
+    *b = bNew;
+    return ratio;
+}
+
 
 /*%%%%%%%%%%%%%%%%%%%%%%%%%
  %  Text Object
  %%%%%%%%%%%%%%%%%%%%%%%%%*/
 static GLsizei fill_text_data(GLfloat* data, const unsigned char* string, GLsizei len)
 {
-    GLfloat pen_x = 0; // position in pixel
-    GLfloat pen_y = 0;
-    GLfloat x,y,w,h;
-    // GLfloat direction = 1.0;
+    double pen_x = 0.5; // position in pixel
+    double pen_y = 0.5;
+    double x,y,w,h;
 
     GLsizei num = 0;
     for (GLsizei i=0; i<len; i++) {
@@ -839,33 +892,39 @@ static GLsizei fill_text_data(GLfloat* data, const unsigned char* string, GLsize
                 x = (pen_x + glyph->offset_x)/font.size;
                 y = (pen_y + glyph->offset_y)/font.size;
 
-                w = glyph->width/font.size;
-                h = glyph->height/font.size;
+                GLfloat s0 = glyph->s0, s1 = glyph->s1;
+                GLfloat t0 = glyph->t0, t1 = glyph->t1;
 
-                data[24*num+0] = x;
-                data[24*num+1] = y;
-                data[24*num+2] = (GLfloat)((round(glyph->s0*(double)font.tex_width)+0.5)/font.tex_width);
-                data[24*num+3] = (GLfloat)((round(glyph->t0*(double)font.tex_height)+0.5)/font.tex_height);
-                data[24*num+4] = x;
-                data[24*num+5] = y-h;
-                data[24*num+6] = (GLfloat)((round(glyph->s0*(double)font.tex_width)+0.5)/font.tex_width);
-                data[24*num+7] = (GLfloat)((round(glyph->t1*(double)font.tex_height)-0.5)/font.tex_height);
-                data[24*num+8] = x+w;
-                data[24*num+9] = y-h;
-                data[24*num+10] = (GLfloat)((round(glyph->s1*(double)font.tex_width)-0.5)/font.tex_width);
-                data[24*num+11] = (GLfloat)((round(glyph->t1*(double)font.tex_height)-0.5)/font.tex_height);
-                data[24*num+12] = x;
-                data[24*num+13] = y;
-                data[24*num+14] = (GLfloat)((round(glyph->s0*(double)font.tex_width)+0.5)/font.tex_width);
-                data[24*num+15] = (GLfloat)((round(glyph->t0*(double)font.tex_height)+0.5)/font.tex_height);
-                data[24*num+16] = x+w;
-                data[24*num+17] = y-h;
-                data[24*num+18] = (GLfloat)((round(glyph->s1*(double)font.tex_width)-0.5)/font.tex_width);
-                data[24*num+19] = (GLfloat)((round(glyph->t1*(double)font.tex_height)-0.5)/font.tex_height);
-                data[24*num+20] = x + w;
-                data[24*num+21] = y;
-                data[24*num+22] = (GLfloat)((round(glyph->s1*(double)font.tex_width)-0.5)/font.tex_width);
-                data[24*num+23] = (GLfloat)((round(glyph->t0*(double)font.tex_height)+0.5)/font.tex_height);
+                double rx = getMiddlePixelTex(&s0, &s1, font.tex_width);
+                double ry = getMiddlePixelTex(&t0, &t1, font.tex_height);
+
+                w = glyph->width*rx/font.size;
+                h = glyph->height*ry/font.size;
+
+                data[24*num+0] = (GLfloat) x;
+                data[24*num+1] = (GLfloat) y;
+                data[24*num+2] = s0;
+                data[24*num+3] = t0;
+                data[24*num+4] = (GLfloat) x;
+                data[24*num+5] = (GLfloat) y-h;
+                data[24*num+6] = s0;
+                data[24*num+7] = t1;
+                data[24*num+8] = (GLfloat) x+w;
+                data[24*num+9] = (GLfloat) y-h;
+                data[24*num+10] = s1;
+                data[24*num+11] = t1;
+                data[24*num+12] = (GLfloat) x;
+                data[24*num+13] = (GLfloat) y;
+                data[24*num+14] = s0;
+                data[24*num+15] = t0;
+                data[24*num+16] = (GLfloat) x+w;
+                data[24*num+17] = (GLfloat) y-h;
+                data[24*num+18] = s1;
+                data[24*num+19] = t1;
+                data[24*num+20] = (GLfloat) x + w;
+                data[24*num+21] = (GLfloat) y;
+                data[24*num+22] = s1;
+                data[24*num+23] = t0;
 
                 num++;
                 break;
@@ -885,7 +944,7 @@ text_t* text_new(unsigned char* string, GLenum usage){
 
     text->param = (text_param_t){
         .fillColor={0.0f, 0.0f, 0.0f, 1.0f},
-        .outlineColor={1.0f ,1.0f, 1.0f, 1.0f},
+        .outlineColor={1.0f ,1.0f, 1.0f, 2.0f},
         .pos={0.0f ,0.0f},
         .shift={0.0f, 0.0f},
         .height=0.05f,

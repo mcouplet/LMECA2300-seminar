@@ -81,6 +81,8 @@ float sdBox(vec2 p, float l, float z)
     return length(max(d,vec2(0))) + min(max(d.x,d.y),0.0);
 }
 
+float ndot(vec2 a, vec2 b ) { return a.x*b.x - a.y*b.y; }
+
 float sdRhombus(vec2 p, vec2 b) 
 {
     vec2 q = abs(p);

@@ -77,11 +77,6 @@ void main()
     }
     else {
         // everything is given in pixel, from the bottom left corner :-)
-        // we round the position to the bottom left of pixel
-        // as the rasterization is done with centers, we will have
-        // beautifully aligned pixels if the user choose a font size
-        // that is a multiple of the font size :-)
-        // vec2 pixelPos = floor(localPos + height)+0.5;
         vec2 pixelPos = localPos + height;
         gl_Position = vec4(2.0*pixelPos/resolution - 1.0, 0.0, 1.0);
     }

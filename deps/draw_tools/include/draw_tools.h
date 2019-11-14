@@ -274,6 +274,10 @@ static inline void window_translate(window_t* window, GLfloat pos[2]);
 /* scale the content of the window (similar to zooming) */
 static inline void window_scale(window_t* window, GLfloat scale);
 
+/* enable/disable a little help message for keyboard shortcuts */
+static inline void window_enable_help(window_t* window);
+static inline void window_disable_help(window_t* window);
+
 /* take a screenshot and save it as a PPM with the name 'filename' */
 void window_screenshot(window_t* window, char* filename);
 
@@ -490,6 +494,11 @@ struct window_struct
     int texture_sloc;
 
     int running;
+
+    text_t* help;
+    int help_needed;
+    text_t* indication;
+    int indication_needed;
 };
 
 struct text_struct {
@@ -552,6 +561,14 @@ static inline void window_translate(window_t* window, GLfloat pos[2]) {
 
 static inline void window_scale(window_t* window, GLfloat scale) {
     window->param.zoom *= scale;
+}
+
+static inline void window_enable_help(window_t* window) {
+  window->indication_needed = 1;
+}
+
+static inline void window_disable_help(window_t* window) {
+  window->indication_needed = 0;
 }
 
 

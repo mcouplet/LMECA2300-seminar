@@ -43,6 +43,7 @@ void transition(points_t* diag, float a[2], float b[2], float x)
 int main(int argc, char *argv[])
 {
 	window_t* window = window_new(0,0, argv[0]);
+	window_enable_help(window);
 	
 	// a grey background
 	window_set_color(window, (GLfloat[4]){0.3, 0.3, 0.3, 1});
@@ -70,7 +71,7 @@ int main(int argc, char *argv[])
 
 	for (int i=0; i<10; i++) {
 		double tbegin = window_get_time(window);
-		double tnow = tbegin;	
+		double tnow = tbegin;
 
 		while(tnow - tbegin < transition_time) {
 			if(window_should_close(window))

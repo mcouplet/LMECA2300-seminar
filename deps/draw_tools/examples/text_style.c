@@ -38,8 +38,10 @@ int main(int argc, char *argv[])
 	text_t* outline = text_new((unsigned char[]) {
 	                           "varying outline width"},
 		                        GL_STATIC_DRAW);
-	text_param_t parameters = {.outlineColor={1,0,0,1},
-	                           .pos={-1.0, 0.33},
+
+	// putting more than 1 on the alpha component for radiation effect
+	text_param_t parameters = {.outlineColor={1,0,0,2.0},
+	                           .pos={-1.0, 0.66},
 	                           .fillColor={0},// completely transparent
 	                           .height=0.25,
 	                           .boldness=0.25,
@@ -54,14 +56,21 @@ int main(int argc, char *argv[])
 	text_set_param(width, parameters);
 	text_set_outline_width(width, -1.0);
 	text_set_color(width, (GLfloat[4]){0.2, 0.2, 0.2, 1});
-	text_set_pos(width, (GLfloat[2]){-1.0, 0.0});
+	text_set_pos(width, (GLfloat[2]){-1.0, 0.33});
 
 
 	text_t* shift = text_new((unsigned char[]) {
-	                         "varying outline shift\n(fake 3D)"},
+	                         "varying outline shift"},
 	                         GL_STATIC_DRAW);
 	text_set_param(shift, parameters);
-	text_set_pos(shift, (GLfloat[2]){-1.0, -0.33});
+	text_set_pos(shift, (GLfloat[2]){-1.0, 0.0});
+
+	text_t* height = text_new((unsigned char[]) {
+	                          "varying height"},
+	                          GL_STATIC_DRAW);
+	text_set_param(height, parameters);
+	text_set_pos(height, (GLfloat[2]){-1.0, -0.33});
+
 
 
 	text_t* pixel = text_new((unsigned char[]) {
@@ -95,6 +104,9 @@ int main(int argc, char *argv[])
 		                                  sin(3*wtime),
 		                                  cos(3*wtime)});
 		text_draw(window, shift);
+
+		text_set_height(height, 0.1*sin(wtime)+0.1);
+		text_draw(window, height);
 
 		text_draw(window, pixel);
 		text_draw(window, unzoomable);
