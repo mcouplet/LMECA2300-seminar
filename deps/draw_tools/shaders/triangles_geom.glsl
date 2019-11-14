@@ -1,4 +1,4 @@
- /*************************************************************************
+/*************************************************************************
   * Draw_tools 0.1
   * A wrapper around OpenGL and GLFW (www.glfw.org) to draw simple 2D
   * graphics.
@@ -41,18 +41,21 @@ layout (std140) uniform objectBlock
     int space_type; // 0: normal sizes, 1: unzoomable, 2: unmodifable pixel size
 };
 
-in vec2 pRect;
-flat in float lba;
-flat in float pixelSize;
+layout (std140) uniform worldBlock
+{
+    vec2 resolution;
+    vec2 translate;
+    float zoom;
+    // float rotation;
+};
 
-out vec4 outColor;
+layout(triangles) in;
+layout(triangle_strip, max_vertices = 3) out;
 
-void main( void ) {
-    float shape = mod(marker, 3.0f);
-    vec2 v = vec2(pRect.x - clamp(pRect.x, 0.0, lba), pRect.y);
-    vec2 sdf = length(v) - vec2(width, width-outlineWidth+step(outlineWidth, 0.0)); // circles
 
-    vec2 alpha = smoothstep(0, -2*pixelSize, sdf);
-    outColor = mix(outlineColor, fillColor, alpha.y); // at 0: completely outlineColor, at1: completely fillColor
-    outColor.a *= alpha.x;
+out vec3 bary;
+flat out float pixelSize;
+
+void main() {
+  ;
 }

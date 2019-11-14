@@ -93,22 +93,21 @@ void main() {
         pixelSize = 1.0;
     }
 
-    float w = width + pixelSize;
     vec2 aScreen = scaling*a + translation;
     vec2 bScreen = scaling*b + translation;
-    vec2 wScreen = scaling*w*v;
-    vec2 hScreen = scaling*w*n;
+    vec2 wScreen = scaling*width*v;
+    vec2 hScreen = scaling*width*n;
 
-    pRect = vec2(-w);
+    pRect = vec2(-width);
     gl_Position = vec4(aScreen - wScreen - hScreen, 0.0, 1.0);
     EmitVertex();
-    pRect = vec2(lba + w, -w);
+    pRect = vec2(lba + width, -width);
     gl_Position = vec4(bScreen + wScreen - hScreen, 0.0, 1.0);
     EmitVertex();
-    pRect = vec2(-w, w);
+    pRect = vec2(-width, width);
     gl_Position = vec4(aScreen - wScreen + hScreen, 0.0, 1.0);
     EmitVertex();
-    pRect = vec2(lba + w, w);
+    pRect = vec2(lba + width, width);
     gl_Position = vec4(bScreen + wScreen + hScreen, 0.0, 1.0);
     EmitVertex();
     EndPrimitive();
