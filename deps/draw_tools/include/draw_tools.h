@@ -231,7 +231,7 @@ void points_delete(points_t* points);
 order_t* order_new(GLuint* elements, GLsizei n, GLenum usage);
 
 /* Change the content of the order object. */
-order_t* order_update(order_t* order, GLuint* elements, GLsizei n, GLenum usage);
+order_t* order_update(order_t* order, GLuint* elements, GLsizei n);
 
 /* change the content of the points object, but only from start to
  * start+count excluded.

@@ -46,105 +46,75 @@ flat in float pixelSize;
 
 out vec4 outColor;
 
+#define PI 3.1415926535897932384626433832795
+
 // p is the coordinate, s is the size
-float sdCross(vec2 p, vec2 s, float z)
+float sdCross(vec2 p, vec2 s)
 {
-    vec2 zs = z*s;
     p = abs(p); p = (p.y>p.x) ? p.yx : p.xy;
-    vec2  q = p - zs;
+    vec2  q = p - s;
     float k = max(q.y,q.x);
-    vec2  w = (k>0.0) ? q : vec2(zs.y-p.x,-k);
-    return sign(k)*length(max(w,0.0)) - s.x*(1.0-z);
+    vec2  w = (k>0.0) ? q : vec2(s.y-p.x,-k);
+    return sign(k)*length(max(w,0.0));
 }
 
-float sdCircle(vec2 p, float r) {
-    return length(p) - r;
-}
-
-
-float sdPentagon(vec2 p, float r, float z)
+float sdBox(vec2 p, vec2 b)
 {
-    const vec3 k = vec3(0.809016994,0.587785252,0.726542528);
-    float zr = k.x*z*r;
-    p.x = abs(p.x);
-    p -= 2.0*min(dot(vec2(-k.x,k.y),p),0.0)*vec2(-k.x,k.y);
-    p -= 2.0*min(dot(vec2( k.x,k.y),p),0.0)*vec2( k.x,k.y);
-    p -= vec2(clamp(p.x,-zr*k.z, zr*k.z), zr);
-    return length(p)*sign(p.y) - r*(1.0-z);
-}
-
-float sdBox(vec2 p, float l, float z)
-{
-
-    vec2 d = abs(p);
-    d -= vec2(l, l*min(z, 1./z));
+    vec2 d = abs(p)-b;
     return length(max(d,vec2(0))) + min(max(d.x,d.y),0.0);
 }
 
-float ndot(vec2 a, vec2 b ) { return a.x*b.x - a.y*b.y; }
-
-float sdRhombus(vec2 p, vec2 b) 
+// signed distance to a n-star polygon with external angle en
+float sdStar(vec2 p, float r, int n, float m) // m=[2,n]
 {
-    vec2 q = abs(p);
+    // these 4 lines can be precomputed for a given shape
+    float an = PI/float(n);
+    float en = PI/m;
+    vec2  acs = vec2(cos(an),sin(an));
+    vec2  ecs = vec2(cos(en),sin(en)); // ecs=vec2(0,1) and simplify, for regular polygon,
 
-    float h = clamp( (-2.0*ndot(q,b) + ndot(b,b) )/dot(b,b), -1.0, 1.0 );
-    float d = length( q - 0.5*b*vec2(1.0-h,1.0+h) );
-    d *= sign( q.x*b.y + q.y*b.x - b.x*b.y );
-    
-    return d;
+    // reduce to first sector
+    float bn = mod(atan(p.x,p.y),2.0*an) - an;
+    p = length(p)*vec2(cos(bn),abs(sin(bn)));
+
+    // line sdf
+    p -= r*acs;
+    p += ecs*clamp( -dot(p,ecs), 0.0, r*acs.y/ecs.y);
+    return length(p)*sign(p.x);
 }
-
-
-// signed distance to a centered line
-float sdCenteredLine(vec2 p, vec2 b, float l2)
-{
-    float h = clamp( dot(p,b)/l2, 0.0, 1.0 );
-    return length( p - b*h );
-}
-
-
-float sdTripod(vec2 p, float r) {
-    p.x = abs(p.x);
-    float r2 = r*r;
-    float d0 = sdCenteredLine( p, r*vec2( 0.5*sqrt(3.), -0.5), r2 );
-    float d1 = sdCenteredLine( p, vec2( 0.0,  r), r2 );
-    return min(d0, d1);
-}
-
-float sdQuadPod(vec2 p, float r) {
-    // p = abs(vec2(p.x+p.y, p.x-p.y));// gives a vertical cross
-    p = abs(p); // diagonal cross
-    return sdCenteredLine( p, r*vec2( 1., 1.), r*r*2.0 );
-}
-
-
-// much more interesting: allows to draw stars and hexagon and circle !
-float sdHexagram(vec2 p, float r)
-{
-    const vec4 k = vec4(-0.5,0.86602540378,0.57735026919,1.73205080757);
-    
-    p = abs(p);
-    p -= 2.0*min(dot(k.xy,p),0.0)*k.xy;
-    p -= 2.0*min(dot(k.yx,p),0.0)*k.yx;
-    p -= vec2(clamp(p.x,r*k.z,r*k.w),r);
-    return length(p)*sign(p.y);
-}
-
-
 
 void main( void ) {
-    // float z = 1.5*fract(marker*0.1);
-    // vec2 sdf = sdCross(pSquare, vec2(width, 0.25*width), z) + vec2(0.0, outlineWidth);
+    float m = mod(marker, 23.);      // marker%23
+    float f = fract(m);
+    float fw = f*width;          // fictive width
+    float delta = fw - width;    // the difference in distance
 
-    // float z = 1.0-1.0/(1.0+marker);
-    // vec2 sdf = sdPentagon(pSquare, width, z) + vec2(0.0, outlineWidth);
+    int shape = int(m);
 
-    float z = 2.0*fract(marker*0.5);
-    if(z>1.0)
-        z = 1.0/(2.0-z);
-    vec2 sdf = sdBox(pSquare, width, z) + vec2(0.0, outlineWidth);
+    float sdf;
+    if(shape==0)
+        sdf = length(pSquare) - width;
+    else if(shape==1)
+        sdf = sdBox(pSquare, vec2(width*f, width));
+    else if(shape==2)
+        sdf = sdBox(pSquare, vec2(width, width*f));
+    else if(shape==3)
+        sdf = sdBox(pSquare, vec2(fw)) + delta;
+    else if(shape==4)
+        sdf = sdCross(pSquare, vec2(fw, 0.25*fw)) + delta;
+    else if(shape<11){
+        // make the angle vary
+        float ad = 2.0 + f*f*(float(shape-2)-2.0);   // angle divisor, between 2 and n
+        sdf = sdStar(pSquare, width, shape-2, ad);
+    }
+    else if(shape<17){
+        sdf = sdStar(pSquare, fw, shape-8, 2.0) + delta;
+    }
+    else {
+        sdf = sdStar(pSquare, fw, shape-14, float(shape-14)) + delta;
+    }
 
-    vec2 alpha = smoothstep(pixelSize, -pixelSize, sdf);
+    vec2 alpha = smoothstep(pixelSize, -pixelSize, sdf + vec2(0.0, outlineWidth));
     outColor = mix(outlineColor, fillColor, alpha.y); // at 0: completely outlineColor, at1: completely fillColor
     outColor.a *= alpha.x;
 }

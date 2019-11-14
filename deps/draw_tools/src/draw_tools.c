@@ -784,12 +784,12 @@ order_t* order_new(GLuint* elements, GLsizei n, GLenum usage) {
 }
 
 
-order_t* order_update(order_t* order, GLuint* elements, GLsizei n, GLenum usage) {
+order_t* order_update(order_t* order, GLuint* elements, GLsizei n) {
     order->eboLen = elements==NULL ? 0 : n;
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, order->ebo);
     if(order->eboLen > order->eboCapacity){
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, n*sizeof(GLuint), elements, usage);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, n*sizeof(GLuint), elements, GL_DYNAMIC_DRAW);
         order->eboCapacity = order->eboLen;
     }
     else if(elements!=NULL){
@@ -987,6 +987,8 @@ text_t* text_new(unsigned char* string, GLenum usage){
     else {
         text->vboLen = 0;
         text->vboCapacity = 0;
+        text->data = NULL;
+        text->dataCapacity = 0;
     }
 
     // glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -1222,7 +1224,7 @@ void points_draw_aux(window_t* window,
     }
 
     GLenum primitive = switch_rasterizer_with_mode(window, points, mode);
-    glDrawArrays(mode, start, count);
+    glDrawArrays(primitive, start, count);
     // glBindVertexArray(0);
 }
 
