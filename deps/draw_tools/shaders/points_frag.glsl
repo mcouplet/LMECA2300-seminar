@@ -70,14 +70,14 @@ float sdCross(in vec2 p, in vec2 s)
 float sdBox(in vec2 p, in vec2 b)
 {
     vec2 d = abs(p)-b;
-    return length(max(d,vec2(0))) + min(max(d.x,d.y),0.0f);
+    return length(max(d,vec2(0.0f))) + min(max(d.x,d.y),0.0f);
 }
 
 // signed distance to a n-star polygon with external angle en
 float sdStar(in vec2 p, in float r, in float n, in float m) // m=[2,n]
 {
     // these 4 lines can be precomputed for a given shape
-    float an = 3.141593f/float(n);
+    float an = 3.141593f/n;
     float en = 3.141593f/m;
     vec2  acs = vec2(cos(an),sin(an));
     vec2  ecs = vec2(cos(en),sin(en)); // ecs=vec2(0,1) and simplify, for regular polygon,
@@ -92,43 +92,41 @@ float sdStar(in vec2 p, in float r, in float n, in float m) // m=[2,n]
     return length(p)*sign(p.x);
 }
 
-void main( void ) {
-    float m = mod(marker, 25.0f);      // marker%25
-    float f = fract(m);
-    float fw = f*width;          // fictive width
-    float delta = fw - width;    // the difference in distance
+void main() {
+    float mwrap = mod(marker, 25.0f);      // marker%25
+    float mfrac = fract(mwrap);
+    float fw = mfrac*width;
 
     float sdf;
-    if(m<1.0f)
+    if(mwrap<1.0f)
         sdf = length(pSquare) - width;
-    else if(m<2.0f)
+    else if(mwrap<2.0f)
         sdf = sdBox(pSquare, vec2(fw, width));
-    else if(m<3.0f)
+    else if(mwrap<3.0f)
         sdf = sdBox(pSquare, vec2(width, fw));
-    else if(m<4.0f)
-        sdf = sdBox(pSquare, vec2(fw)) + delta;
-    else if(m<5.0f)
+    else if(mwrap<4.0f)
+        sdf = sdBox(pSquare, vec2(fw)) + fw - width;
+    else if(mwrap<5.0f)
         sdf = sdRhombus(pSquare, vec2(fw, width));
-    else if(m<6.0f)
+    else if(mwrap<6.0f)
         sdf = sdRhombus(pSquare, vec2(width, fw));
-    else if(m<7.0f)
-        sdf = sdCross(pSquare, vec2(fw, 0.25f*fw)) + delta;
+    else if(mwrap<7.0f)
+        sdf = sdCross(pSquare, vec2(fw, 0.25f*fw)) + fw - width;
     else {
         float ad = 2.0f;   // angle divisor, between 2 and n
-        float nbranch = floor(m)-4.0;
-        if(m<13.0f){
-            ad += f*f*(nbranch - 2.0f);
+        float nbranch = floor(mwrap)-4.0;
+        if(mwrap<13.0f){
+            ad += mfrac*mfrac*(nbranch - 2.0f);
             fw = width;
-            delta = 0.0f;
         }
-        else if(m<19.0f){
+        else if(mwrap<19.0f){
             nbranch -= 6.0f;
         }
         else {
             nbranch -= 12.0f;
             ad = nbranch;
         }
-        sdf = sdStar(pSquare, fw, nbranch, ad) + delta;
+        sdf = sdStar(pSquare, fw, nbranch, ad) + fw - width;
     }
 
     vec2 alpha = smoothstep(pixelSize, -pixelSize, sdf + vec2(0.0f, outlineWidth));
