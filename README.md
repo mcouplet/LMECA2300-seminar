@@ -12,9 +12,6 @@ It should contain:
 See [doc/COMPILING.md](doc/COMPILING.md) for a step by step tutorial
 on how to build the program.
 
-See [src/main.c](src/main.c) for a small example that display "Hello
-world" using the draw_tools library.
-
 See [doc/tutorial.md](doc/tutorial.md) for a step by step tutorial on
 how to use the draw_tools library.
 
