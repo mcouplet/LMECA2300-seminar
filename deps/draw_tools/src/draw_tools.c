@@ -446,7 +446,7 @@ static void window_size_callback(GLFWwindow* self, int width, int height)
  %  Window object
  %%%%%%%%%%%%%%%%%%%%%%%%%*/
 static void window_OpenGL_init(window_t* window) {
-// #ifndef NDEBUG
+#ifndef NDEBUG
     {
         text_param_t t;
         points_param_t p;
@@ -478,7 +478,7 @@ static void window_OpenGL_init(window_t* window) {
             exit(EXIT_FAILURE);
         }
     }
-// #endif
+#endif
 
     // Create draw and object UBO
     glGenBuffers(2, window->ubo);

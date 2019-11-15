@@ -52,8 +52,8 @@ float ndot(in vec2 a, in vec2 b ) { return a.x*b.x - a.y*b.y; }
 float sdRhombus( in vec2 p, in vec2 b ) 
 {
     vec2 q = abs(p);
-    float h = clamp((-2.0*ndot(q,b)+ndot(b,b))/dot(b,b),-1.0,1.0);
-    float d = length( q - 0.5*b*vec2(1.0-h,1.0+h) );
+    float h = clamp((-2.0f*ndot(q,b)+ndot(b,b))/dot(b,b),-1.0f, 1.0f);
+    float d = length( q - 0.5f*b*vec2(1.0f-h,1.0f+h) );
     return d * sign( q.x*b.y + q.y*b.x - b.x*b.y );
 }
 
@@ -63,78 +63,75 @@ float sdCross(in vec2 p, in vec2 s)
     p = abs(p); p = (p.y>p.x) ? p.yx : p.xy;
     vec2  q = p - s;
     float k = max(q.y,q.x);
-    vec2  w = (k>0.0) ? q : vec2(s.y-p.x,-k);
-    return sign(k)*length(max(w,0.0));
+    vec2  w = (k>0.0f) ? q : vec2(s.y-p.x,-k);
+    return sign(k)*length(max(w,0.0f));
 }
 
 float sdBox(in vec2 p, in vec2 b)
 {
     vec2 d = abs(p)-b;
-    return length(max(d,vec2(0))) + min(max(d.x,d.y),0.0);
+    return length(max(d,vec2(0))) + min(max(d.x,d.y),0.0f);
 }
 
 // signed distance to a n-star polygon with external angle en
-float sdStar(in vec2 p, in float r, in int n, in float m) // m=[2,n]
+float sdStar(in vec2 p, in float r, in float n, in float m) // m=[2,n]
 {
     // these 4 lines can be precomputed for a given shape
-    float an = 3.141593/float(n);
-    float en = 3.141593/m;
+    float an = 3.141593f/float(n);
+    float en = 3.141593f/m;
     vec2  acs = vec2(cos(an),sin(an));
     vec2  ecs = vec2(cos(en),sin(en)); // ecs=vec2(0,1) and simplify, for regular polygon,
 
     // reduce to first sector
-    float bn = mod(atan(p.x,p.y),2.0*an) - an;
+    float bn = mod(atan(p.x,p.y),2.0f*an) - an;
     p = length(p)*vec2(cos(bn),abs(sin(bn)));
 
     // line sdf
     p -= r*acs;
-    p += ecs*clamp( -dot(p,ecs), 0.0, r*acs.y/ecs.y);
+    p += ecs*clamp( -dot(p,ecs), 0.0f, r*acs.y/ecs.y);
     return length(p)*sign(p.x);
 }
 
 void main( void ) {
-    float m = mod(marker, 25.);      // marker%25
+    float m = mod(marker, 25.0f);      // marker%25
     float f = fract(m);
     float fw = f*width;          // fictive width
     float delta = fw - width;    // the difference in distance
 
-    int shape = int(m);
-
     float sdf;
-    if(shape==0)
+    if(m<1.0f)
         sdf = length(pSquare) - width;
-    else if(shape==1)
-        sdf = sdBox(pSquare, vec2(width*f, width));
-    else if(shape==2)
-        sdf = sdBox(pSquare, vec2(width, width*f));
-    else if(shape==3)
+    else if(m<2.0f)
+        sdf = sdBox(pSquare, vec2(fw, width));
+    else if(m<3.0f)
+        sdf = sdBox(pSquare, vec2(width, fw));
+    else if(m<4.0f)
         sdf = sdBox(pSquare, vec2(fw)) + delta;
-    else if(shape==4)
-        sdf = sdRhombus(pSquare, vec2(width*f, width));
-    else if(shape==5)
-        sdf = sdRhombus(pSquare, vec2(width, width*f));
-    else if(shape==6)
-        sdf = sdCross(pSquare, vec2(fw, 0.25*fw)) + delta;
+    else if(m<5.0f)
+        sdf = sdRhombus(pSquare, vec2(fw, width));
+    else if(m<6.0f)
+        sdf = sdRhombus(pSquare, vec2(width, fw));
+    else if(m<7.0f)
+        sdf = sdCross(pSquare, vec2(fw, 0.25f*fw)) + delta;
     else {
-        float ad = 2.0;   // angle divisor, between 2 and n
-        int shift;
-        if(shape<13){
-            ad += f*f*(float(shape)-6.0);
+        float ad = 2.0f;   // angle divisor, between 2 and n
+        float nbranch = floor(m)-4.0;
+        if(m<13.0f){
+            ad += f*f*(nbranch - 2.0f);
             fw = width;
-            delta = 0.0;
-            shift = 4;
+            delta = 0.0f;
         }
-        else if(shape<19){
-            shift = 10;
+        else if(m<19.0f){
+            nbranch -= 6.0f;
         }
         else {
-            shift = 16;
-            ad = float(shape-shift);
+            nbranch -= 12.0f;
+            ad = nbranch;
         }
-        sdf = sdStar(pSquare, fw, shape-shift, ad) + delta;
+        sdf = sdStar(pSquare, fw, nbranch, ad) + delta;
     }
 
-    vec2 alpha = smoothstep(pixelSize, -pixelSize, sdf + vec2(0.0, outlineWidth));
-    outColor = mix(outlineColor, fillColor, alpha.y); // at 0: completely outlineColor, at1: completely fillColor
+    vec2 alpha = smoothstep(pixelSize, -pixelSize, sdf + vec2(0.0f, outlineWidth));
+    outColor = mix(outlineColor, fillColor, alpha.y);
     outColor.a *= alpha.x;
 }
