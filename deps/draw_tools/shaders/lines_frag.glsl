@@ -37,7 +37,6 @@ layout (std140) uniform objectBlock
     float width;
     float marker;
     float outlineWidth;
-    // float rotation;
     int space_type; // 0: normal sizes, 1: unzoomable, 2: unmodifable pixel size
 };
 
@@ -48,7 +47,6 @@ flat in float pixelSize;
 out vec4 outColor;
 
 void main( void ) {
-    float shape = mod(marker, 3.0f);
     vec2 v = vec2(pRect.x - clamp(pRect.x, 0.0, lba), pRect.y);
     vec2 sdf = length(v) - vec2(width, width-outlineWidth+step(outlineWidth, 0.0)); // circles
 
