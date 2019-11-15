@@ -454,7 +454,7 @@ static void window_OpenGL_init(window_t* window) {
            ((char*) &t.outlineColor - (char*) &t) != ((char*) &p.outlineColor - (char*) &p) ||
            ((char*) &t.pos - (char*) &t) != ((char*) &p.pos - (char*) &p) ||
            ((char*) &t.shift - (char*) &t) != ((char*) &p.scale - (char*) &p) ||
-           ((char*) &t.height - (char*) &t) != ((char*) &p.width - (char*) &p) ||
+           ((char*) &t.fontSize - (char*) &t) != ((char*) &p.width - (char*) &p) ||
            ((char*) &t.boldness - (char*) &t) != ((char*) &p.marker - (char*) &p) ||
            ((char*) &t.outlineWidth - (char*) &t) != ((char*) &p.outlineWidth - (char*) &p)
           ){
@@ -698,7 +698,7 @@ window_t* window_new(int width, int height, const char* win_name)
         "    h k    display/hide keyboard shortcuts\n"
     }, GL_STATIC_DRAW);
     text_set_space_type(window->help, PIXEL_SPACE);
-    text_set_height(window->help, 32); // 32 pixel height
+    text_set_fontsize(window->help, 32); // 32 pixel height
     text_set_pos(window->help, (GLfloat[2]){16.0, 7*32+64});
     text_set_boldness(window->help, 0.1);
     text_set_outline_width(window->help, 0.5);
@@ -707,7 +707,7 @@ window_t* window_new(int width, int height, const char* win_name)
         "press 'k' for keyboard shortcuts\n"
     }, GL_STATIC_DRAW);
     text_set_space_type(window->indication, PIXEL_SPACE);
-    text_set_height(window->indication, 32); // 32 pixel height
+    text_set_fontsize(window->indication, 32); // 32 pixel height
     text_set_pos(window->indication, (GLfloat[2]){16.0, 16.0});
     text_set_boldness(window->indication, 0.1);
     text_set_outline_width(window->indication, 0.5);
@@ -947,7 +947,7 @@ text_t* text_new(unsigned char* string, GLenum usage){
         .outlineColor={1.0f ,1.0f, 1.0f, 2.0f},
         .pos={0.0f ,0.0f},
         .shift={0.0f, 0.0f},
-        .height=0.05f,
+        .fontSize=0.05f,
         .boldness=0.0f,
         .outlineWidth=-1.0f,
         // .rotation=0.0f,

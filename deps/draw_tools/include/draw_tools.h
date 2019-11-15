@@ -289,10 +289,13 @@ void window_screenshot(window_t* window, char* filename);
  * PIXEL_SPACE*/
 static inline void text_set_pos(text_t* text, GLfloat pos[2]);
 
-/* set the height of the text object on the screen.
- * Note that this height must be given in pixels if
+/* set the font size of the text object on the screen.
+ * The font size is equal to the baselineskip, which is
+ * the height of a line of characters.
+ * The width of each character == baselineskip/2.
+ * Note that the baselineskip must be given in pixels if
  * the space type is set to PIXEL_SPACE */
-static inline void text_set_height(text_t* text, GLfloat height);
+static inline void text_set_fontsize(text_t* text, GLfloat baselineskip);
 
 // not implemented yet
 // static inline void text_set_rotation(text_t* text, GLfloat rotation);
@@ -327,11 +330,11 @@ static inline void text_set_outline_shift(text_t* text, GLfloat shift[2]);
 
 /* for more detail on what this function does, see:
  * - the structure `space_type_t`
- * - the function `text_set_pos()` and `text_set_height()`
+ * - the function `text_set_pos()` and `text_set_fontsize()`
  *
  * Changing the spaceType of a text object to PIXEL_SPACE also sets its
  * position and scaling to meaningfull values (negative positions are set to
- * zero, height less than 32 are set to 32) */
+ * zero, fontSize less than 32 are set to 32) */
 static inline void text_set_space_type(text_t* text, space_type_t spaceType);
 
 /* a structure to hold all the parameters of a text object */
@@ -340,7 +343,7 @@ typedef struct {
     GLfloat outlineColor[4];
     GLfloat pos[2];
     GLfloat shift[2];
-    GLfloat height;
+    GLfloat fontSize;
     GLfloat boldness;
     GLfloat outlineWidth;
     space_type_t spaceType;
@@ -391,7 +394,7 @@ static inline void points_set_marker(points_t* points, GLfloat marker);
  *
  * Changing the spaceType of a text object to PIXEL_SPACE also sets its
  * position and scaling to meaningfull values (negative positions are set to
- * zero, height less than 32 are set to 32) */
+ * zero, width less than 32 are set to 32) */
 static inline void points_set_space_type(points_t* points, space_type_t spaceType);
 
 /* a structure to hold all the parameters of a points object */
@@ -577,8 +580,8 @@ static inline void text_set_pos(text_t* text, GLfloat pos[2]) {
     text->param.pos[1] = pos[1];
 }
 
-static inline void text_set_height(text_t* text, GLfloat height) {
-    text->param.height = height;
+static inline void text_set_fontsize(text_t* text, GLfloat baselineskip) {
+    text->param.fontSize = baselineskip;
 }
 
 // static inline void text_set_rotation(text_t* text, GLfloat rotation) {
@@ -614,8 +617,8 @@ static inline void text_set_space_type(text_t* text, space_type_t spaceType) {
             text->param.pos[0] = 5.0f;
         if(text->param.pos[1] < 5.0f)
             text->param.pos[1] = 5.0f;
-        if(text->param.height < 32.0f)
-            text->param.height = 32.0f;
+        if(text->param.fontSize < 32.0f)
+            text->param.fontSize = 32.0f;
     }
 
     text->param.spaceType = spaceType;

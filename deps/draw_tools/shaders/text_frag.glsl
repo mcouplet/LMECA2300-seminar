@@ -34,10 +34,9 @@ layout (std140) uniform objectBlock
     vec4 outlineColor;
     vec2 localPos;
     vec2 outlineShift;
-    float textheight;
+    float fontSize;
     float boldness;
     float outlineWidth;
-    // float rotation;
     int space_type; // 0: normal sizes, 1: size in pixels, 2: size in pixels without translation
 };
 

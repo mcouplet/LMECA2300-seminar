@@ -21,7 +21,7 @@ int main()
                               GL_STATIC_DRAW);
 
     float hw_color[4] = {1.0, 1.0, 1.0, 1.0};
-    text_set_height(hw_obj, 0.2);
+    text_set_fontsize(hw_obj, 0.2);
 
     // a character here is 0.1 wide (it is 0.05 with no scaling)
     // centering "Hello World !": 13/2=6.5 characters => 0.65

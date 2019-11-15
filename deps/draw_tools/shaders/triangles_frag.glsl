@@ -60,10 +60,12 @@ out vec4 outColor;
 
 
 void main() {
-    vec2 sdf = min(bary.x, min(bary.y, bary.z)) -
-               vec2(width, width - outlineWidth + step(outlineWidth, 0.0));
+    outColor = fillColor;
+    return;
+    // vec2 sdf = vec2(0.0, 0.0 - outlineWidth + step(outlineWidth, 0.0))
+    //           - min(bary.x, min(bary.y, bary.z));
 
-    vec2 alpha = smoothstep(0, -2*pixelSize, sdf);
-    outColor = mix(outlineColor, fillColor, alpha.y); // at 0: completely outlineColor, at1: completely fillColor
-    outColor.a *= alpha.x;
+    // vec2 alpha = smoothstep(0, -2*pixelSize, sdf);
+    // outColor = mix(outlineColor, fillColor, alpha.y); // at 0: completely outlineColor, at1: completely fillColor
+    // outColor.a *= alpha.x;
 }

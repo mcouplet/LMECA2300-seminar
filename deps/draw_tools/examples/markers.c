@@ -28,78 +28,96 @@
 #include "draw_tools.h"
 #include <math.h>
 
+// Maybe there will be more marker types available in the future.
+// At the moment, markers value wraps around at 25
+// We cannot have more than 100 markers without chaning the way the
+// string is created (putting %7.3f and lengthen the string)
 #define NUMMARKERS 25
 
 
 int main(int argc, char *argv[])
 {
-	/* Actually, this is not an example at all, you shouldn't make
-	 * that many draw call, have that many text element etc.
+	/* Actually, this is not an example at all, you shouldn't draw the
+	 * same f**king point 250 time, each time with a different draw
+	 * call.
 	 *
 	 * This is more of a tool. When you launch this program, you will
 	 * be able to see which marker value correspond to which shape
 	 * and choose the shape that fits your need accordingly.
 	 *
 	 * REMINDER: DO NOT MAKE THAT MANY DRAW CALL IN YOUR CODE !!!!
-	 *
-	 * yes, there are 250 draw call per frame here :p
 	 */
 
 	window_t* window = window_new(0,0, argv[0]);
-
-	points_t* single_point = points_new((float[2]){0,0}, 1, GL_STATIC_DRAW);
-
-	points_set_outline_color(single_point, (float[4]){0.3, 0.3, 0.3, 1});
 	window_set_color(window, (float[4]){1.0, 0.8, 0.5, 1});
 
-	text_t* marker_text = text_new(NULL, GL_DYNAMIC_DRAW);
 	const float pointWidth = 1.0/NUMMARKERS;
+
+	points_t* single_point = points_new((float[2]){0,0}, 1, GL_STATIC_DRAW);
+	points_set_outline_color(single_point, (float[4]){0.3, 0.3, 0.3, 1});
 	points_set_outline_width(single_point, pointWidth*0.2);
 	points_set_width(single_point, pointWidth);
-	text_set_height(marker_text, pointWidth*0.5);
+
+	text_t* marker_text;
+	{
+		/* first, we will generate all the text values */
+		// we will have 6 charater per number (2digit, one dot, 3 digit)
+		// then 2 space, for each marker.
+		// then we have 10 \n at the end of each line
+		char string[9*(NUMMARKERS*8 + 9)+1];
+		int cur = 0;
+
+		for(int j=0; j<9; j++) {
+			for(int i=0; i<NUMMARKERS; i++) {
+				sprintf(string+cur, " %6.3f ", i+j*0.12493);
+				cur += 8;
+			}
+
+			// replace the 2 trailing space with 4 '\n'
+			sprintf(string+cur-1, "\n\n\n\n\n\n\n\n\n\n");
+			cur+= 9;
+		}
+
+
+		marker_text = text_new((unsigned char *) string,
+			                           GL_STATIC_DRAW);
+		text_set_fontsize(marker_text, pointWidth*0.5);
+		text_set_pos(marker_text, (GLfloat[2]){-1, 1-pointWidth});
+	}
+	
 
 	while(!window_should_close(window)){
 		double wtime = window_get_time(window);
+		double fract02 = modf(0.2*wtime, &wtime);
+		wtime = fabs(2*fract02-1.0);
 
 		// we change the color over time
 		points_set_color(single_point, (float[4]) { sin(0.11*wtime)*0.5+0.5, sin(0.7*wtime)*0.5+0.5, sin(0.67*wtime)*0.5+0.5 , 1});
 
-
 		for(int i=0; i<NUMMARKERS; i++) {
 
-			GLfloat pos[2] = {pointWidth-1.0+2.0*pointWidth*i, 1.0-pointWidth};
+			GLfloat pos[2] = {pointWidth-1.0+2.0*pointWidth*i,
+			                 1.0-2.5*pointWidth};
 
-			char string[64];
 			for(int j=0; j<9; j++) {
-				pos[0] -= pointWidth;
-				
-				snprintf(string, 64, "%6.3f", i+j*0.12493);
-				text_update(marker_text, (unsigned char*) string);
-				text_set_pos(marker_text, pos);
-				text_draw(window, marker_text);
-
-				pos[0] += pointWidth;
-				pos[1] -= 2*pointWidth;
-
 				points_set_pos(single_point, pos);
 				points_set_marker(single_point, i+j*0.12493);
 				points_draw(window, single_point, 0, 1);
 				
-				pos[1] -= 3*pointWidth;
+				pos[1] -= 5*pointWidth;
 			}
 
-			pos[1] -= 2*pointWidth;
-
 			points_set_pos(single_point, pos);
-			double fract = 0.2*wtime - floor(0.2*wtime);
-			points_set_marker(single_point, i+fabs(2*fract-1.0));
+			points_set_marker(single_point, i+wtime);
 			points_draw(window, single_point, 0, 1);
 		}
+
+		text_draw(window, marker_text);
 
 		window_update(window);
 	}
 
-	printf("Ended correctly - %.2f second\n", window_get_time(window));
+	printf("Ended correctly");
 
 	points_delete(single_point);
 	text_delete(marker_text);

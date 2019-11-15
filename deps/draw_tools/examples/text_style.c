@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
 	text_param_t parameters = {.outlineColor={1,0,0,2.0},
 	                           .pos={-1.0, 0.66},
 	                           .fillColor={0},// completely transparent
-	                           .height=0.25,
+	                           .fontSize=0.25,
 	                           .boldness=0.25,
 	                           .outlineWidth=0.5};
 	text_set_param(outline, parameters);
@@ -65,17 +65,17 @@ int main(int argc, char *argv[])
 	text_set_param(shift, parameters);
 	text_set_pos(shift, (GLfloat[2]){-1.0, 0.0});
 
-	text_t* height = text_new((unsigned char[]) {
-	                          "varying height"},
+	text_t* fontSize = text_new((unsigned char[]) {
+	                          "varying size"},
 	                          GL_STATIC_DRAW);
-	text_set_param(height, parameters);
-	text_set_pos(height, (GLfloat[2]){-1.0, -0.33});
+	text_set_param(fontSize, parameters);
+	text_set_pos(fontSize, (GLfloat[2]){-1.0, -0.33});
 
 
 
 	text_t* pixel = text_new((unsigned char[]) {
 	                         "This text is unmoovable and unzoomable."
-	                         " Its position and its size (height)"
+	                         " Its position and its size"
 	                         " must be given in pixels"},
 	                         GL_STATIC_DRAW);
 	text_set_space_type(pixel, PIXEL_SPACE);
@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
 	                              GL_STATIC_DRAW);
 	GLfloat pixel64 = 2.0/window_get_yres(window)*64.0; //~64 pixels height
 	text_set_pos(unzoomable, (GLfloat[2]){-1.0, 1-1.1*pixel64});
-	text_set_height(unzoomable, pixel64); 
+	text_set_fontsize(unzoomable, pixel64); 
 	text_set_space_type(unzoomable, UNZOOMABLE_SPACE);
 
 	
@@ -105,8 +105,8 @@ int main(int argc, char *argv[])
 		                                  cos(3*wtime)});
 		text_draw(window, shift);
 
-		text_set_height(height, 0.1*sin(wtime)+0.1);
-		text_draw(window, height);
+		text_set_fontsize(fontSize, 0.1*sin(wtime)+0.1);
+		text_draw(window, fontSize);
 
 		text_draw(window, pixel);
 		text_draw(window, unzoomable);
