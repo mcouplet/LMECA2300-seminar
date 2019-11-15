@@ -92,7 +92,11 @@ int main(int argc, char *argv[])
 		wtime = fabs(2*fract02-1.0);
 
 		// we change the color over time
-		points_set_color(single_point, (float[4]) { sin(0.11*wtime)*0.5+0.5, sin(0.7*wtime)*0.5+0.5, sin(0.67*wtime)*0.5+0.5 , 1});
+		points_set_color(single_point, (float[4]) {
+		                 sin(0.11*wtime)*0.5+0.5,
+		                 sin(0.7*wtime)*0.5+0.5,
+		                 sin(0.67*wtime)*0.5+0.5,
+		                 1});
 
 		for(int i=0; i<NUMMARKERS; i++) {
 

@@ -146,9 +146,9 @@ int main(int argc, char *argv[])
 	}
 
 	printf("Ended correctly - %.2f second, %lu frames, %.2f fps\n",
-		   window_get_time(window),
-		   frameCount,
-		   frameCount/window_get_time(window));
+	       window_get_time(window),
+	       frameCount,
+	       frameCount/window_get_time(window));
 
 	text_delete(points_draw_label);
 	text_delete(lines_draw_label);

@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
 
 	text_t* outline = text_new((unsigned char[]) {
 	                           "varying outline width"},
-		                        GL_STATIC_DRAW);
+	                            GL_STATIC_DRAW);
 
 	// putting more than 1 on the alpha component for radiation effect
 	text_param_t parameters = {.outlineColor={1,0,0,2.0},
@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
 
 
 	text_t* unzoomable = text_new((unsigned char[]) {
-		                          ".you can't zoom on this point"},
+	                              ".you can't zoom on this point"},
 	                              GL_STATIC_DRAW);
 	GLfloat pixel64 = 2.0/window_get_yres(window)*64.0; //~64 pixels height
 	text_set_pos(unzoomable, (GLfloat[2]){-1.0, 1-1.1*pixel64});

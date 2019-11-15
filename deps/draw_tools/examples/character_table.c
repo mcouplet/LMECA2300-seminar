@@ -68,7 +68,7 @@ int main()
 	GLfloat lineheight = 2.0/minres*64.0/3.0; // 64/3 pixels in screen coordinates
 	text_set_fontsize(character_table, lineheight);
 	text_set_pos(character_table, (GLfloat[2]){-xres/minres + 0.5*lineheight,
-		                                        yres/minres - 1.5*lineheight});
+	                                            yres/minres - 1.5*lineheight});
 
 	while(!window_should_close(window)){
 		text_draw(window, character_table);
