@@ -49,14 +49,14 @@ int main(int argc, char *argv[])
 	 */
 
 	window_t* window = window_new(0,0, argv[0]);
-	window_set_color(window, (float[4]){1.0, 0.8, 0.5, 1});
+	window_set_color(window, (GLfloat[4]){1.0f, 0.8f, 0.5f, 1.0f});
 
-	const float pointWidth = 1.0/NUMMARKERS;
+	const GLfloat pointWidth = 1.0f/NUMMARKERS;
 
-	points_t* single_point = points_new((float[1][2]){{0,0}}, 1,
+	points_t* single_point = points_new((float[1][2]){{0.0f, 0.0f}}, 1,
 	                                    GL_STATIC_DRAW);
-	points_set_outline_color(single_point, (float[4]){0.3, 0.3, 0.3, 1});
-	points_set_outline_width(single_point, pointWidth*0.2);
+	points_set_outline_color(single_point, (float[4]){0.3f, 0.3f, 0.3f, 1.0f});
+	points_set_outline_width(single_point, pointWidth*0.2f);
 	points_set_width(single_point, pointWidth);
 
 	text_t* marker_text;
@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
 
 		for(int j=0; j<9; j++) {
 			for(int i=0; i<NUMMARKERS; i++) {
-				sprintf(string+cur, " %6.3f ", i+j*0.12493);
+				sprintf(string+cur, " %6.3f ", i+j*0.12493f);
 				cur += 8;
 			}
 
@@ -82,8 +82,8 @@ int main(int argc, char *argv[])
 
 		marker_text = text_new((unsigned char *) string,
 			                           GL_STATIC_DRAW);
-		text_set_fontsize(marker_text, pointWidth*0.5);
-		text_set_pos(marker_text, (GLfloat[2]){-1, 1-pointWidth});
+		text_set_fontsize(marker_text, pointWidth*0.5f);
+		text_set_pos(marker_text, (GLfloat[2]){-1.0f, 1.0f-pointWidth});
 	}
 	
 
@@ -93,7 +93,7 @@ int main(int argc, char *argv[])
 		wtime = fabs(2*fract02-1.0);
 
 		// we change the color over time
-		points_set_color(single_point, (float[4]) {
+		points_set_color(single_point, (GLfloat[4]) {
 		                 sin(0.11*wtime)*0.5+0.5,
 		                 sin(0.7*wtime)*0.5+0.5,
 		                 sin(0.67*wtime)*0.5+0.5,
@@ -101,15 +101,15 @@ int main(int argc, char *argv[])
 
 		for(int i=0; i<NUMMARKERS; i++) {
 
-			GLfloat pos[2] = {pointWidth-1.0+2.0*pointWidth*i,
-			                 1.0-2.5*pointWidth};
+			GLfloat pos[2] = {pointWidth-1.0f+2.0f*pointWidth*i,
+			                 1.0f-2.5f*pointWidth};
 
 			for(int j=0; j<9; j++) {
 				points_set_pos(single_point, pos);
-				points_set_marker(single_point, i+j*0.12493);
+				points_set_marker(single_point, i+j*0.12493f);
 				points_draw(window, single_point, 0, 1);
 				
-				pos[1] -= 5*pointWidth;
+				pos[1] -= 5.0f*pointWidth;
 			}
 
 			points_set_pos(single_point, pos);

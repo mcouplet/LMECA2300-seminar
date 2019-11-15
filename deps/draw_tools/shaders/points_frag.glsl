@@ -93,7 +93,7 @@ float sdStar(vec2 p, float r, int n, float m) // m=[2,n]
 }
 
 void main( void ) {
-    float m = mod(marker, 25.);      // marker%23
+    float m = mod(marker, 25.);      // marker%25
     float f = fract(m);
     float fw = f*width;          // fictive width
     float delta = fw - width;    // the difference in distance

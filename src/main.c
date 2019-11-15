@@ -33,8 +33,8 @@ static void random_uniform_points(GLfloat coord[][2], GLsizei n,
  * are uniformly*/
 static void random_points(GLfloat coord[][2], GLsizei n) {
 	int n_centroids = rand()%6 + 1;
-	GLfloat (*centroids)[2] = malloc(n_centroids*sizeof(float[2]));
-	GLfloat (*sigma)[2] = malloc(n_centroids*sizeof(float[2]));
+	GLfloat (*centroids)[2] = malloc(sizeof(GLfloat)*n_centroids*2);
+	GLfloat (*sigma)[2] = malloc(sizeof(GLfloat)*n_centroids*2);
 
 	GLfloat range = 0.7*(1.0 - 1.0/n_centroids);
 	random_uniform_points(centroids, n_centroids,
@@ -42,8 +42,8 @@ static void random_points(GLfloat coord[][2], GLsizei n) {
 	                      (GLfloat[2]){ range,  range});
 
 	for (GLsizei i=0; i<n_centroids; i++) {
-		sigma[i][0] = (GLfloat)rand() / RAND_MAX * 0.3 + 0.1;
-		sigma[i][1] = (GLfloat)rand() / RAND_MAX * 0.3 + 0.1;
+		sigma[i][0] = 0.3f * rand() / RAND_MAX + 0.1f;
+		sigma[i][1] = 0.3f * rand() / RAND_MAX + 0.1f;
 	}
 
 	for (GLsizei i=0; i<n; i++) {
@@ -91,7 +91,7 @@ static void random_polygon(GLfloat coord[][2], GLsizei n, int nSmooth) {
 		coord[i][1] = random_gauss(0.0f, sigmay);
 	}
 
-	qsort(coord, n, sizeof(GLfloat[2]), compare_angle);
+	qsort(coord, n, 2*sizeof(GLfloat), compare_angle);
 
 	// a little bit of smoothing
 	for(int smoothing=0; smoothing<nSmooth; smoothing++) {
@@ -101,10 +101,10 @@ static void random_polygon(GLfloat coord[][2], GLsizei n, int nSmooth) {
 		for(int i=1; i<n-1; i++) {
 			coord[(index+i)%n][0] = (2*coord[(index+i)%n][0] + 
 				                       coord[(index+i+n-1)%n][0] +
-				                       coord[(index+i+1)%n][0])*0.25;
+				                       coord[(index+i+1)%n][0])*0.25f;
 			coord[(index+i)%n][1] = (2*coord[(index+i)%n][1] + 
 				                       coord[(index+i+n-1)%n][1] +
-				                       coord[(index+i+1)%n][1])*0.25;
+				                       coord[(index+i+1)%n][1])*0.25f;
 		}
 	}
 }
@@ -113,10 +113,10 @@ int main()
 {
 	// give a bit of entropy for the seed of rand()
 	// or it will always be the same sequence
-	srand(time(NULL));
+	//srand(time(NULL));
 
 	window_t* window = window_new(800,800, "Tutorial 1");
-	window_set_color(window, (GLfloat[]){0.7, 0.7, 0.7, 1.0});
+	window_set_color(window, (GLfloat[]){0.7f, 0.7f, 0.7f, 1.0f});
 
 	const GLsizei nPoints = 100;
 	GLfloat (*coord)[2] = malloc(sizeof(coord[0])*nPoints);

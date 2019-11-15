@@ -231,8 +231,8 @@ static void text_rasterizer_init(window_t* window) {
 
             image[index][0] = font.tex_data[y][x];
             double ampl = sqrt(gx * gx + gy * gy);
-            image[index][1] = fmin(255.9, fmax(0.0, gx/ampl*128. + 128.));
-            image[index][2] = fmin(255.9, fmax(0.0, gy/ampl*128. + 128.));
+            image[index][1] = (unsigned char) fmin(255.9, fmax(0.0, gx/ampl*128. + 128.));
+            image[index][2] = (unsigned char) fmin(255.9, fmax(0.0, gy/ampl*128. + 128.));
         }
     }
 
@@ -853,8 +853,8 @@ static double_t getMiddlePixelTex(GLfloat* a, GLfloat* b, double n) {
     double aNew = (round((*a)*n)+0.5)/n;
     double bNew = (round((*b)*n)-0.5)/n;
     double ratio = (bNew - aNew)/(*b - *a);
-    *a = aNew;
-    *b = bNew;
+    *a = (GLfloat) aNew;
+    *b = (GLfloat) bNew;
     return ratio;
 }
 
@@ -907,22 +907,22 @@ static GLsizei fill_text_data(GLfloat* data, const unsigned char* string, GLsize
                 data[24*num+2] = s0;
                 data[24*num+3] = t0;
                 data[24*num+4] = (GLfloat) x;
-                data[24*num+5] = (GLfloat) y-h;
+                data[24*num+5] = (GLfloat) (y-h);
                 data[24*num+6] = s0;
                 data[24*num+7] = t1;
-                data[24*num+8] = (GLfloat) x+w;
-                data[24*num+9] = (GLfloat) y-h;
+                data[24*num+8] = (GLfloat) (x+w);
+                data[24*num+9] = (GLfloat) (y-h);
                 data[24*num+10] = s1;
                 data[24*num+11] = t1;
                 data[24*num+12] = (GLfloat) x;
                 data[24*num+13] = (GLfloat) y;
                 data[24*num+14] = s0;
                 data[24*num+15] = t0;
-                data[24*num+16] = (GLfloat) x+w;
-                data[24*num+17] = (GLfloat) y-h;
+                data[24*num+16] = (GLfloat) (x+w);
+                data[24*num+17] = (GLfloat) (y-h);
                 data[24*num+18] = s1;
                 data[24*num+19] = t1;
-                data[24*num+20] = (GLfloat) x + w;
+                data[24*num+20] = (GLfloat) (x + w);
                 data[24*num+21] = (GLfloat) y;
                 data[24*num+22] = s1;
                 data[24*num+23] = t0;
@@ -1070,7 +1070,7 @@ points_t* points_new(GLfloat coords[][2], GLsizei n, GLenum usage) {
         .pos={0.0f ,0.0f},           // other
         .scale={1.0f, 1.0f},           // localPos
         .width=0.025f,
-        .marker=0.0f,
+        .marker=0.5f,
         .outlineWidth=-1.0f,
         // .rotation=0.0f,
         .spaceType=USUAL_SPACE};
