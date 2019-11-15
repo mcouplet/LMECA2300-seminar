@@ -53,7 +53,8 @@ int main(int argc, char *argv[])
 
 	const float pointWidth = 1.0/NUMMARKERS;
 
-	points_t* single_point = points_new((float[2]){0,0}, 1, GL_STATIC_DRAW);
+	points_t* single_point = points_new((float[1][2]){{0,0}}, 1,
+	                                    GL_STATIC_DRAW);
 	points_set_outline_color(single_point, (float[4]){0.3, 0.3, 0.3, 1});
 	points_set_outline_width(single_point, pointWidth*0.2);
 	points_set_width(single_point, pointWidth);

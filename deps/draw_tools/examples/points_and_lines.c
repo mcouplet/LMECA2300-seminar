@@ -83,17 +83,18 @@ int main(int argc, char *argv[])
 	text_set_pos(line_loop_draw_with_order_label,
 	             (GLfloat[2]){-1.0+23*0.025, 0.9});
 
-	points_t* pointset = points_new((float[20]) { -1.0, 0,
-	                                             -0.8, -0.6,
-	                                             -0.7, 0.6,
-	                                             -0.5, 0.0,
-	                                             -0.2, -0.4,
-	                                              0.0, 0.8,
-	                                              0.3, 0,
-	                                              0.5, -0.6,
-	                                              0.7, 0.6,
-	                                              0.0, -0.9 },
-		                            10, GL_STATIC_DRAW);
+	points_t* pointset = points_new((float[10][2]) {
+	                                    {-1.0,  0.0},
+	                                    {-0.8, -0.6},
+	                                    {-0.7,  0.6},
+	                                    {-0.5,  0.0},
+	                                    {-0.2, -0.4},
+	                                    { 0.0,  0.8},
+	                                    { 0.3,  0.0},
+	                                    { 0.5, -0.6},
+	                                    { 0.7,  0.6},
+	                                    { 0.0, -0.9}
+	                                }, 10, GL_STATIC_DRAW);
 	points_set_color(pointset, (float[4]){0.05, 0.1, 0.2, 0.6});
 
 	order_t* order = order_new((GLuint[10]){4, 3, 6, 9, 1, 0, 2, 5, 8, 7},

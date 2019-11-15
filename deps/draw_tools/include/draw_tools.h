@@ -146,10 +146,10 @@ void text_delete(text_t* text);
  *    - GL_DYNAMIC_DRAW if you intend to change coordinates regularly with the
  *      points_update or points_partial_update function
  */
-points_t* points_new(GLfloat* coords, GLsizei n, GLenum usage);
+points_t* points_new(GLfloat coords[][2], GLsizei n, GLenum usage);
 
 /* change the content of the points object (the maximum capacity can be increased)*/
-points_t* points_update(points_t* points, GLfloat* coords, GLsizei n);
+points_t* points_update(points_t* points, GLfloat coords[][2], GLsizei n);
 
 /* change the content of the points object, but only from start to
  * start+count excluded.
@@ -159,7 +159,7 @@ points_t* points_update(points_t* points, GLfloat* coords, GLsizei n);
  * `newN` can only be lower than the maximum number of points that has been
  * contained in the given points object (the capacity cannot be increased)
  */
-points_t* points_partial_update(points_t* points, GLfloat* coords,
+points_t* points_partial_update(points_t* points, GLfloat coords[][2],
                                 GLint start, GLsizei count, GLsizei newN);
 
 /* draw points markers to the window
@@ -271,7 +271,7 @@ static inline void window_set_color(window_t* window, GLfloat rgba[4]);
 /* translates the content of the window (similar to dragging with the mouse */
 static inline void window_translate(window_t* window, GLfloat pos[2]);
 
-/* scale the content of the window (similar to zooming) */
+/* scale the content of the window (similar to zooming with mouse) */
 static inline void window_scale(window_t* window, GLfloat scale);
 
 /* enable/disable a little help message for keyboard shortcuts */
@@ -564,7 +564,7 @@ static inline void window_translate(window_t* window, GLfloat pos[2]) {
 }
 
 static inline void window_scale(window_t* window, GLfloat scale) {
-    window->param.zoom *= scale;
+    window->param.zoom = scale;
 }
 
 static inline void window_enable_help(window_t* window) {

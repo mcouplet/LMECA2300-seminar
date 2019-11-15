@@ -64,8 +64,8 @@ int main(int argc, char *argv[])
 	                        { 0.7,  0.6},
 	                        { 0.5, -0.6}};
 
-	points_t* pointset = points_new((GLfloat*) coord, 10, GL_STATIC_DRAW);
-	points_t* diag = points_new((GLfloat[4]){0.0, 0.0, 1.0, 1.0}, 2, GL_STATIC_DRAW);
+	points_t* pointset = points_new(coord, 10, GL_STATIC_DRAW);
+	points_t* diag = points_new((GLfloat[2][2]){{0.0, 0.0}, {1.0, 1.0}}, 2, GL_STATIC_DRAW);
 	points_set_param(pointset, lineParams);
 	points_set_param(diag, lineParams);
 
