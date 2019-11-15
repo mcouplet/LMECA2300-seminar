@@ -446,25 +446,39 @@ static void window_size_callback(GLFWwindow* self, int width, int height)
  %  Window object
  %%%%%%%%%%%%%%%%%%%%%%%%%*/
 static void window_OpenGL_init(window_t* window) {
-#ifndef NDEBUG
+// #ifndef NDEBUG
     {
         text_param_t t;
         points_param_t p;
         if(sizeof(points_param_t)!=sizeof(text_param_t) ||
            ((char*) &t.fillColor - (char*) &t) != ((char*) &p.fillColor - (char*) &p) ||
+           ((char*) &t.fillColor - (char*) &t) != 0  ||
            ((char*) &t.outlineColor - (char*) &t) != ((char*) &p.outlineColor - (char*) &p) ||
+           ((char*) &t.outlineColor - (char*) &t) != 16 ||
            ((char*) &t.pos - (char*) &t) != ((char*) &p.pos - (char*) &p) ||
+           ((char*) &t.pos - (char*) &t) != 32 ||
            ((char*) &t.shift - (char*) &t) != ((char*) &p.scale - (char*) &p) ||
+           ((char*) &t.shift - (char*) &t) != 40 ||
            ((char*) &t.fontSize - (char*) &t) != ((char*) &p.width - (char*) &p) ||
+           ((char*) &t.fontSize - (char*) &t) != 48 ||
            ((char*) &t.boldness - (char*) &t) != ((char*) &p.marker - (char*) &p) ||
-           ((char*) &t.outlineWidth - (char*) &t) != ((char*) &p.outlineWidth - (char*) &p)
+           ((char*) &t.boldness - (char*) &t) != 52 ||
+           ((char*) &t.outlineWidth - (char*) &t) != ((char*) &p.outlineWidth - (char*) &p) ||
+           ((char*) &t.outlineWidth - (char*) &t) != 56
           ){
             ERROR_LOG(SHADER_ERROR, "points_param_t and text_param_t must "
                                     "have identical fields");
+            fprintf(stderr, "%zu\n", (char*) &t.fillColor - (char*) &t);
+            fprintf(stderr, "%zu\n", (char*) &t.outlineColor - (char*) &t);
+            fprintf(stderr, "%zu\n", (char*) &t.pos - (char*) &t);
+            fprintf(stderr, "%zu\n", (char*) &t.shift - (char*) &t);
+            fprintf(stderr, "%zu\n", (char*) &t.fontSize - (char*) &t);
+            fprintf(stderr, "%zu\n", (char*) &t.boldness - (char*) &t);
+            fprintf(stderr, "%zu\n", (char*) &t.outlineWidth - (char*) &t);
             exit(EXIT_FAILURE);
         }
     }
-#endif
+// #endif
 
     // Create draw and object UBO
     glGenBuffers(2, window->ubo);

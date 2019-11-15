@@ -48,7 +48,7 @@ out vec4 outColor;
 
 // see https://www.iquilezles.org/www/articles/distfunctions2d/distfunctions2d.htm
 
-float ndot(vec2 a, vec2 b ) { return a.x*b.x - a.y*b.y; }
+float ndot(in vec2 a, in vec2 b ) { return a.x*b.x - a.y*b.y; }
 float sdRhombus( in vec2 p, in vec2 b ) 
 {
     vec2 q = abs(p);
@@ -58,7 +58,7 @@ float sdRhombus( in vec2 p, in vec2 b )
 }
 
 // p is the coordinate, s is the size
-float sdCross(vec2 p, vec2 s)
+float sdCross(in vec2 p, in vec2 s)
 {
     p = abs(p); p = (p.y>p.x) ? p.yx : p.xy;
     vec2  q = p - s;
@@ -67,14 +67,14 @@ float sdCross(vec2 p, vec2 s)
     return sign(k)*length(max(w,0.0));
 }
 
-float sdBox(vec2 p, vec2 b)
+float sdBox(in vec2 p, in vec2 b)
 {
     vec2 d = abs(p)-b;
     return length(max(d,vec2(0))) + min(max(d.x,d.y),0.0);
 }
 
 // signed distance to a n-star polygon with external angle en
-float sdStar(vec2 p, float r, int n, float m) // m=[2,n]
+float sdStar(in vec2 p, in float r, in int n, in float m) // m=[2,n]
 {
     // these 4 lines can be precomputed for a given shape
     float an = 3.141593/float(n);
