@@ -554,6 +554,7 @@ static inline int window_should_close(window_t* window){
 }
 
 static inline void window_set_color(window_t* window, GLfloat rgba[4]) {
+    (void) window; // unused at the moment
     glClearColor(rgba[0], rgba[1], rgba[2], rgba[3]);
 }
 

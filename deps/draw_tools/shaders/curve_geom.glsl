@@ -72,7 +72,7 @@ void main() {
     vec2 v0, v2;
     float endWidth0, endWidth2;
     if(p0==p1) {
-        v0==v1;
+        v0 = v1;
         endWidth0 = width;
     }
     else {
@@ -81,7 +81,7 @@ void main() {
     }
 
     if(p2==p3) {
-        v2==v1;
+        v2 = v1;
         endWidth2 = width;
     }
     else {

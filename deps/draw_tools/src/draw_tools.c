@@ -33,7 +33,8 @@
 /***************************************
  *   FONT DEFINITION                   *
  ***************************************/
-#include "big_font.h"
+// #include "big_font.h"
+#include "font.h"
 
 /***************************************
  *   SHADERS                           *
@@ -204,63 +205,103 @@ static void text_rasterizer_init(window_t* window) {
                                        font.tex_width * font.tex_height);
     CHECK_MALLOC(image);
 
-    // int smoothing[2] = {1, 2/*, 1*/}; // smoothing in Sobel kernel
-    // int smoothing[2] = {3, 10/*, 3*/};   // in Scharr kernel
-    int smoothing[2] = {47, 162/*, 47*/};// wikipedia optimal Scharr
+    // print the data
+    FILE* f = fopen("font.txt", "w");
+    if (f == NULL)
+      exit(EXIT_FAILURE);
 
-    // compute derivatives with a sort of Sobel kernel, which is
-    // a combination of finite difference and smoothing
-    for(unsigned y=1; y<font.tex_height-1; y++) {
-        for(unsigned x=1; x<font.tex_width-1; x++) {
-            unsigned index = y * font.tex_width + x;
-            int gx =  font.tex_data[y-1][x-1] * (+smoothing[0]) + 
-                      font.tex_data[y-1][x+1] * (-smoothing[0]) +
-                      font.tex_data[y][x-1]   * (+smoothing[1]) + 
-                      font.tex_data[y][x+1]   * (-smoothing[1]) +
-                      font.tex_data[y+1][x-1] * (+smoothing[0]) + 
-                      font.tex_data[y+1][x+1] * (-smoothing[0]);
-
-            int gy =  font.tex_data[y-1][x-1] * (+smoothing[0]) + 
-                      font.tex_data[y-1][x+0] * (+smoothing[1]) + 
-                      font.tex_data[y-1][x+1] * (+smoothing[0]) +
-                      font.tex_data[y+1][x-1] * (-smoothing[0]) + 
-                      font.tex_data[y+1][x+0] * (-smoothing[1]) + 
-                      font.tex_data[y+1][x+1] * (-smoothing[0]);
-
-
-            image[index][0] = font.tex_data[y][x];
-            double ampl = sqrt(gx * gx + gy * gy);
-            image[index][1] = fmin(255.9, fmax(0.0, gx/ampl*128. + 128.));
-            image[index][2] = fmin(255.9, fmax(0.0, gy/ampl*128. + 128.));
+    fprintf(f, "{\n");
+    for (size_t i = 0; i < font.tex_height; i++)
+    {
+      fprintf(f, "{");
+      size_t numZeros=0;
+      for (size_t j = 0; j < font.tex_width; j++)
+      {
+        unsigned char v = font.tex_data[font.tex_width * i + j];
+        if (v == 0) {
+          numZeros++;
         }
-    }
+        else{
+          if (numZeros != 0) {
+            // compute the size of the string that will be outputed in each cases
+            size_t lz = 2 * numZeros; // 0, for each zeros
+            size_t li = (size_t) log10((double) j) + 4; // [number], with number having log10(j)+1 digit
+            if (lz <= li) {
+              for (size_t k = 0; k < numZeros; k++)
+                fprintf(f, "0,");
+            }
+            else {
+              fprintf(f, "[%zu]=", j);
+            }
+            numZeros = 0;
+          }
 
-    for(unsigned y=0; y<font.tex_height; y++) {
-        unsigned index = y * font.tex_width;
-        image[index][0] = font.tex_data[y][0];
-        image[index][1] = 0;
-        image[index][2] = 0;
+          fprintf(f, "%u,", v);
+        }
+      }
+      fprintf(f, "},\n");
     }
+    fprintf(f, "\n}\n");
+    fclose(f);
+    exit(0);
 
-    for(unsigned y=0; y<font.tex_height; y++) {
-        unsigned index = y * font.tex_width + font.tex_width-1;
-        image[index][0] = font.tex_data[y][font.tex_width-1];
-        image[index][1] = 0;
-        image[index][2] = 0;
-    }
+    // // int smoothing[2] = {1, 2/*, 1*/}; // smoothing in Sobel kernel
+    // // int smoothing[2] = {3, 10/*, 3*/};   // in Scharr kernel
+    // int smoothing[2] = {47, 162/*, 47*/};// wikipedia optimal Scharr
 
-    for(unsigned x=1; x<font.tex_width-1; x++) {
-        image[x][0] = font.tex_data[0][x];
-        image[x][1] = 0;
-        image[x][2] = 0;
-    }
+    // // compute derivatives with a sort of Sobel kernel, which is
+    // // a combination of finite difference and smoothing
+    // for(unsigned y=1; y<font.tex_height-1; y++) {
+    //     for(unsigned x=1; x<font.tex_width-1; x++) {
+    //         unsigned index = y * font.tex_width + x;
+    //         int gx =  font.tex_data[y-1][x-1] * (+smoothing[0]) + 
+    //                   font.tex_data[y-1][x+1] * (-smoothing[0]) +
+    //                   font.tex_data[y][x-1]   * (+smoothing[1]) + 
+    //                   font.tex_data[y][x+1]   * (-smoothing[1]) +
+    //                   font.tex_data[y+1][x-1] * (+smoothing[0]) + 
+    //                   font.tex_data[y+1][x+1] * (-smoothing[0]);
 
-    for(unsigned x=1; x<font.tex_width-1; x++) {
-        unsigned index = (font.tex_height-1) * font.tex_width + x;
-        image[index][0] = font.tex_data[font.tex_height-1][x];
-        image[index][1] = 0;
-        image[index][2] = 0;
-    }
+    //         int gy =  font.tex_data[y-1][x-1] * (+smoothing[0]) + 
+    //                   font.tex_data[y-1][x+0] * (+smoothing[1]) + 
+    //                   font.tex_data[y-1][x+1] * (+smoothing[0]) +
+    //                   font.tex_data[y+1][x-1] * (-smoothing[0]) + 
+    //                   font.tex_data[y+1][x+0] * (-smoothing[1]) + 
+    //                   font.tex_data[y+1][x+1] * (-smoothing[0]);
+
+
+    //         image[index][0] = font.tex_data[y][x];
+    //         double ampl = sqrt(gx * gx + gy * gy);
+    //         image[index][1] = fmin(255.9, fmax(0.0, gx/ampl*128. + 128.));
+    //         image[index][2] = fmin(255.9, fmax(0.0, gy/ampl*128. + 128.));
+    //     }
+    // }
+
+    // for(unsigned y=0; y<font.tex_height; y++) {
+    //     unsigned index = y * font.tex_width;
+    //     image[index][0] = font.tex_data[y][0];
+    //     image[index][1] = 0;
+    //     image[index][2] = 0;
+    // }
+
+    // for(unsigned y=0; y<font.tex_height; y++) {
+    //     unsigned index = y * font.tex_width + font.tex_width-1;
+    //     image[index][0] = font.tex_data[y][font.tex_width-1];
+    //     image[index][1] = 0;
+    //     image[index][2] = 0;
+    // }
+
+    // for(unsigned x=1; x<font.tex_width-1; x++) {
+    //     image[x][0] = font.tex_data[0][x];
+    //     image[x][1] = 0;
+    //     image[x][2] = 0;
+    // }
+
+    // for(unsigned x=1; x<font.tex_width-1; x++) {
+    //     unsigned index = (font.tex_height-1) * font.tex_width + x;
+    //     image[index][0] = font.tex_data[font.tex_height-1][x];
+    //     image[index][1] = 0;
+    //     image[index][2] = 0;
+    // }
 
     window->texture = create_texture(font.tex_width, font.tex_height, image, GL_RGB, GL_CLAMP_TO_EDGE);
     glBindTexture(GL_TEXTURE_2D, window->texture);
