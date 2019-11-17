@@ -1,3 +1,0 @@
-[submodule "wiki"]
-	path = wiki
-	url = git@git.immc.ucl.ac.be:marotc/ngp.wiki.git
