@@ -9,11 +9,11 @@ It should contain:
  * a **doc** directory containing more documentation
  * a **deps** directory containing the draw_tools library
 
-See [doc/COMPILING.md](https://git.immc.ucl.ac.be/marotc/ngp/wikis/COMPILING)
-for a step by step tutorial on how to build the program.
+See [doc/COMPILING.md](doc/COMPILING.md) for a step by step tutorial
+on how to build the program.
 
-See [doc/tutorial.md](https://git.immc.ucl.ac.be/marotc/ngp/wikis/tutorial)
-for a step by step tutorial on how to use the draw_tools library.
+See [doc/tutorial.md](doc/tutorial.md) for a step by step tutorial on
+how to use the draw_tools library.
 
 See [deps/draw_tools/include/draw_tools.h](deps/draw_tools/include/draw_tools.h)
 for help on the draw_tools library functions.
