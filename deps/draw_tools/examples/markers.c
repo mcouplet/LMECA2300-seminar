@@ -53,11 +53,11 @@ int main(int argc, char *argv[])
 
 	const GLfloat pointWidth = 1.0f/DT_NMARKERS;
 
-	points_t* single_point = points_new((float[1][2]){{0.0f, 0.0f}}, 1,
+	points_t* points = points_new((float[2][2]){{0.0f, 0.0f}, {1.0f, 0.0f}}, 2,
 	                                    GL_STATIC_DRAW);
-	points_set_outline_color(single_point, (float[4]){0.3f, 0.3f, 0.3f, 1.0f});
-	points_set_outline_width(single_point, pointWidth*0.2f);
-	points_set_width(single_point, pointWidth);
+	points_set_outline_color(points, (float[4]){0.3f, 0.3f, 0.3f, 1.0f});
+	points_set_outline_width(points, pointWidth*0.2f);
+	points_set_width(points, pointWidth);
 
 	text_t* marker_text;
 	{
@@ -89,15 +89,19 @@ int main(int argc, char *argv[])
 
 	while(!window_should_close(window)){
 		double wtime = window_get_time(window);
-		double fract02 = modf(0.2*wtime, &wtime);
-		wtime = fabs(2*fract02-1.0);
 
 		// we change the color over time
-		points_set_color(single_point, (GLfloat[4]) {
+		points_set_color(points, (GLfloat[4]) {
 		                 sin(0.11*wtime)*0.5+0.5,
-		                 sin(0.7*wtime)*0.5+0.5,
-		                 sin(0.67*wtime)*0.5+0.5,
+		                 sin(0.7*wtime)*0.5+0.4,
+		                 sin(0.67*wtime)*0.5+0.6,
 		                 1});
+		points_set_outline_width(points, pointWidth*0.2f);
+		points_set_width(points, pointWidth);
+
+		// we modify wtime to go only between 0 and 1
+		double fract02 = modf(0.2*wtime, &wtime);
+		wtime = fabs(2*fract02-1.0);
 
 		for(int i=0; i<DT_NMARKERS; i++) {
 
@@ -105,26 +109,30 @@ int main(int argc, char *argv[])
 			                 1.0f-2.5f*pointWidth};
 
 			for(int j=0; j<9; j++) {
-				points_set_pos(single_point, pos);
-				points_set_marker(single_point, i+j*0.12493f);
-				points_draw(window, single_point, 0, 1);
+				points_set_pos(points, pos);
+				points_set_marker(points, i+j*0.12493f);
+				points_draw(window, points, 0, 1);
 				
 				pos[1] -= 5.0f*pointWidth;
 			}
 
-			points_set_pos(single_point, pos);
-			points_set_marker(single_point, i+wtime);
-			points_draw(window, single_point, 0, 1);
+			points_set_pos(points, pos);
+			points_set_marker(points, i+wtime);
+			points_draw(window, points, 0, 1);
 		}
 
 		text_draw(window, marker_text);
+		points_set_pos(points, (GLfloat[2]){-0.5, 1.0f - 9*5.0f*pointWidth});
+		points_set_width(points, pointWidth*0.5f);
+		points_set_outline_width(points, pointWidth*(0.5f*0.2f));
+		lines_draw(window, points, 0, 2);
 
 		window_update(window);
 	}
 
 	printf("Ended correctly");
 
-	points_delete(single_point);
+	points_delete(points);
 	text_delete(marker_text);
 	window_delete(window);
 

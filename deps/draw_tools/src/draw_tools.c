@@ -1084,7 +1084,7 @@ points_t* points_new(GLfloat coords[][2], GLsizei n, GLenum usage) {
         .pos={0.0f ,0.0f},           // other
         .scale={1.0f, 1.0f},           // localPos
         .width=0.025f,
-        .marker=0.5f,
+        .marker=0.0f,
         .outlineWidth=-1.0f,
         // .rotation=0.0f,
         .spaceType=USUAL_SPACE};

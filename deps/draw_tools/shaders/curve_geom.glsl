@@ -24,6 +24,9 @@
   * 3. This notice may not be removed or altered from any source
   *    distribution.
   *
+  * testing trigraph ??= 
+  * testing newline sequence etc \n \t \r \\
+  * testing quotes "  coucou " "
   *************************************************************************/
 
 #version 150 core
