@@ -6,9 +6,11 @@
 #define M_PI 3.14159265358979323846
 #endif
 
+
 /* fonction that outputs a random value, with a
  * probability following a gaussian curve */
-static GLfloat random_gauss(GLfloat mu, GLfloat sigma) {
+static GLfloat random_gauss(GLfloat mu, GLfloat sigma)
+{
 	GLfloat u1, u2;
 	do {
 		u1 = (GLfloat)rand() / RAND_MAX;
@@ -20,7 +22,8 @@ static GLfloat random_gauss(GLfloat mu, GLfloat sigma) {
 
 /* fill coord with random coordinates following an uniform distribution */
 static void random_uniform_points(GLfloat coord[][2], GLsizei n,
-                                  GLfloat min[2], GLfloat max[2]) {
+                                  GLfloat min[2], GLfloat max[2])
+{
 	for (GLsizei i=0; i<n; i++) {
 		coord[i][0] = (max[0] - min[0])*rand() / RAND_MAX + min[0];
 		coord[i][1] = (max[1] - min[1])*rand() / RAND_MAX + min[1];
@@ -31,7 +34,8 @@ static void random_uniform_points(GLfloat coord[][2], GLsizei n,
 /* creating random points following a gaussian distribution.
  * around multiple centroid (maximum 6 centroids) which
  * are uniformly*/
-static void random_points(GLfloat coord[][2], GLsizei n) {
+static void random_points(GLfloat coord[][2], GLsizei n)
+{
 	int n_centroids = rand()%6 + 1;
 	GLfloat (*centroids)[2] = malloc(sizeof(GLfloat)*n_centroids*2);
 	GLfloat (*sigma)[2] = malloc(sizeof(GLfloat)*n_centroids*2);
@@ -56,6 +60,7 @@ static void random_points(GLfloat coord[][2], GLsizei n) {
 	free(sigma);
 }
 
+
 // see https://stackoverflow.com/questions/16542042
 static inline GLfloat pseudoangle(GLfloat dx, GLfloat dy) 
 {
@@ -66,12 +71,14 @@ static inline GLfloat pseudoangle(GLfloat dx, GLfloat dy)
     	return 1.0f - p;      //  0 .. 2 decreasing with x
 }
 
+
 /* compare the angles that two points make 
  *
  * The sorting is not robust, there are a possible floating point
  * errors in the pseudoangle function.
  */
-static int compare_angle(const void *a_v, const void *b_v) {
+static int compare_angle(const void *a_v, const void *b_v)
+{
 	GLfloat* a = *(GLfloat(*)[2])a_v;
 	GLfloat* b = *(GLfloat(*)[2])b_v;
 	
@@ -82,7 +89,8 @@ static int compare_angle(const void *a_v, const void *b_v) {
 
 /* create a random polygon
  * the bigger nSmooth is, the rounder it will be  */
-static void random_polygon(GLfloat coord[][2], GLsizei n, int nSmooth) {
+static void random_polygon(GLfloat coord[][2], GLsizei n, int nSmooth)
+{
 	GLfloat sigmax = (GLfloat)rand() / RAND_MAX;
 	GLfloat sigmay = (GLfloat)rand() / RAND_MAX;
 
@@ -108,6 +116,7 @@ static void random_polygon(GLfloat coord[][2], GLsizei n, int nSmooth) {
 		}
 	}
 }
+
 
 int main()
 {
