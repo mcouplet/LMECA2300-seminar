@@ -20,3 +20,6 @@ for help on the draw_tools library functions.
 
 See [deps/draw_tools/examples/](deps/draw_tools/examples/) for more
 examples using the draw_tools library
+
+See the [wikis](https://git.immc.ucl.ac.be/marotc/ngp/wikis/home)
+for even more information.
