@@ -28,6 +28,8 @@
 set(source "")
 file(STRINGS ${IN} lines)
 foreach(line IN LISTS lines)
-    set(source "${source}\"${line}\\n\"\n")
+	# we escape the '?' because an unwanted trigraph would be hard to debug
+	string(REGEX REPLACE "([\\\"?])" "\\\\1" lineCstring "${line}")
+	set(source "${source}\"${lineCstring}\\n\"\n")
 endforeach()
 file(WRITE ${OUT} "static GLchar ${VAR}[]={${source}};\n")
