@@ -271,8 +271,12 @@ static inline void window_set_color(window_t* window, GLfloat rgba[4]);
 /* translates the content of the window (similar to dragging with the mouse */
 static inline void window_translate(window_t* window, GLfloat pos[2]);
 
-/* scale the content of the window (similar to zooming with mouse) */
-static inline void window_scale(window_t* window, GLfloat scale);
+/* set the scaling factor of the whole window content (similar to zooming with
+ * the mouse) */
+static inline void window_set_zoom(window_t* window, GLfloat zoom);
+
+/* get the current zooming factor */
+static inline GLfloat window_get_zoom(window_t* window);
 
 /* enable/disable a little help message for keyboard shortcuts */
 static inline void window_enable_help(window_t* window);
@@ -563,8 +567,12 @@ static inline void window_translate(window_t* window, GLfloat pos[2]) {
     window->param.translate[1] += pos[1];
 }
 
-static inline void window_scale(window_t* window, GLfloat scale) {
-    window->param.zoom = scale;
+static inline void window_set_zoom(window_t* window, GLfloat zoom) {
+    window->param.zoom = zoom;
+}
+
+static inline GLfloat window_get_zoom(window_t* window) {
+    return window->param.zoom;
 }
 
 static inline void window_enable_help(window_t* window) {
