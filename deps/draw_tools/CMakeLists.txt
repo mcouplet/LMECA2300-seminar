@@ -5,7 +5,10 @@ option(DRAW_TOOLS_BUILD_EXAMPLES "Build the Draw_tools example programs" ON)
 
 add_library(draw_tools src/draw_tools.c)
 
-set_target_properties(draw_tools PROPERTIES C_STANDARD 99)
+set_target_properties(draw_tools PROPERTIES
+                      C_STANDARD 99
+                      ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib"
+                      LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib")
 target_include_directories(draw_tools PUBLIC include)
 target_include_directories(draw_tools PRIVATE src)
 target_include_directories(draw_tools PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/shaderIncludes)
@@ -39,15 +42,30 @@ target_link_libraries(draw_tools PUBLIC glad glfw)
 
 if(DRAW_TOOLS_BUILD_EXAMPLES)
     add_executable(animation ${CMAKE_CURRENT_SOURCE_DIR}/examples/animation.c)
-    target_link_libraries(animation draw_tools)
     add_executable(character_table ${CMAKE_CURRENT_SOURCE_DIR}/examples/character_table.c)
-    target_link_libraries(character_table draw_tools)
+    add_executable(hello_world ${CMAKE_CURRENT_SOURCE_DIR}/examples/hello_world.c)
     add_executable(koch_snowflake ${CMAKE_CURRENT_SOURCE_DIR}/examples/koch_snowflake.c)
-    target_link_libraries(koch_snowflake draw_tools)
     add_executable(markers ${CMAKE_CURRENT_SOURCE_DIR}/examples/markers.c)
-    target_link_libraries(markers draw_tools)
     add_executable(points_and_lines ${CMAKE_CURRENT_SOURCE_DIR}/examples/points_and_lines.c)
-    target_link_libraries(points_and_lines draw_tools)
     add_executable(text_style ${CMAKE_CURRENT_SOURCE_DIR}/examples/text_style.c)
+
+    target_link_libraries(animation draw_tools)
+    target_link_libraries(character_table draw_tools)
+    target_link_libraries(hello_world draw_tools)
+    target_link_libraries(koch_snowflake draw_tools)
+    target_link_libraries(markers draw_tools)
+    target_link_libraries(points_and_lines draw_tools)
     target_link_libraries(text_style draw_tools)
+
+    set_target_properties(animation
+                          character_table
+                          koch_snowflake
+                          markers
+                          points_and_lines
+                          text_style
+                          hello_world
+                          PROPERTIES
+                          C_STANDARD 99
+                          RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/examples")
+
 endif(DRAW_TOOLS_BUILD_EXAMPLES)
