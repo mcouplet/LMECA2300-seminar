@@ -6,15 +6,22 @@ int main()
 {
 	// give a bit of entropy for the seed of rand()
 	// or it will always be the same sequence
-	//srand(time(NULL));
+	int seed = (int) time(NULL);
+	srand(seed);
+
+	// we print the seed so you can get the distribution of points back
+	printf("The seed is %d\n", seed);
 
 	window_t* window = window_new(800,800, "Tutorial 1");
 	window_set_color(window, (GLfloat[]){0.7f, 0.7f, 0.7f, 1.0f});
 
 	const GLsizei nPoints = 500;
 	GLfloat (*coord)[2] = malloc(sizeof(coord[0])*nPoints);
-	// random_polygon(coord, nPoints, 4);
+#if 0 // put 1 for random polygon
+	random_polygon(coord, nPoints, 4);
+#else
 	random_points(coord, nPoints);
+#endif
 
 	points_t *coordDraw = points_new(coord, nPoints, GL_STATIC_DRAW);
 	points_set_color(coordDraw, (GLfloat[4]){0.0, 0.0, 0.0, 1.0});
