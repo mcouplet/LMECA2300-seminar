@@ -2,13 +2,15 @@
 Compiling and running
 =====================
 
+This project uses CMake to generate the build tools required to compile the code
+into an executable binary file `bin/project`. CMake can create a Makefile or a
+project file for you favorite IDE.
 
- This project uses CMake to generate the build tools required to compile the code into an executable binary file.
-CMake can create a Makefile or a project file for you favorite IDE.
-
- We will call CMake in a directory called **build**, where all the compilation files and IDE-related stuff will be.
-The project itself, which is contained in the **src** and **deps** folders will stay clean.
-If you have any issue with the procedure explained below, just remove everything in the **build** directory and try again !
+We will call CMake in a directory called **build**, where all the compilation
+files and IDE-related stuff will be.
+The project itself, which is contained in the **src** and **deps** folders will
+stay clean. If you have any issue with the procedure explained below, just
+remove everything in the **build** directory and try again !
 
  * [Instruction for Ubuntu](#on-ubuntu)
  * [Instruction for MacOS](#on-macos)
@@ -23,7 +25,8 @@ If you have any issue with the procedure explained below, just remove everything
 
 #### Learning to use the terminal !
 
- If you don't know how to use a terminal, how to change directories within a terminal etc. see [the tutorial on using the terminal](terminal_tutorial.md)
+If you don't know how to use a terminal, how to change directories within a
+terminal etc. see [the tutorial on using the terminal](Using the Terminal)
 
 #### Installing dependencies:
 
@@ -37,22 +40,25 @@ If you have any issue with the procedure explained below, just remove everything
         cd build      # Go into the build directory
         cmake ..      # Call CMake with the top-level directory as argument (`..` is the parent directory)
 
-	Instead of using `cmake ..` to generate a Makefile, you can also build project for Visual Studio, XCode, Sublime-Text, CodeBlocks, Eclipse... using `cmake -G GENERATOR_NAME ..`  .
-	[Available generators](https://cmake.org/cmake/help/v3.13/manual/cmake-generators.7.html#cmake-generators-7) are listed with `cmake --help`
+    Instead of using `cmake ..` to generate a Makefile, you can also build
+    project for Visual Studio, XCode, Sublime-Text, CodeBlocks, Eclipse... using
+    `cmake -G GENERATOR_NAME ..` .
+    [Available generators](https://cmake.org/cmake/help/v3.13/manual/cmake-generators.7.html#cmake-generators-7) are listed with `cmake --help`
 
  2. Compile the program into an executable (do this every time you changed a file)* : 
 
          make
 
-	*If you created a project file for an IDE instead of a makefile, (if you used `cmake -G GENERATOR_NAME ..`), you should skip this step.
-	Indeed, in any IDE, running the project will automatically compiles the code.
+    *If you created a project file for an IDE instead of a makefile (if you used
+     `cmake -G GENERATOR_NAME ..`), this step will not work. Normally, in an IDE,
+     running the project will automatically compiles the code.
 
 
 #### Running:
 
  Again, if you are not using an IDE:
 
-    ./exec
+    ./bin/project
 
 
 
@@ -63,18 +69,20 @@ If you have any issue with the procedure explained below, just remove everything
 
 #### Learning to use the terminal !
 
- If you don't know how to use a terminal, how to change directories within a terminal etc. see [the tutorial on using the terminal](terminal_tutorial.md)
+If you don't know how to use a terminal, how to change directories within a
+terminal etc. see [the tutorial on using the terminal](Using the Terminal)
 
 **Installing dependencies:**
 
  1. Install XCode
  2. Install CMake
     * Install: https://cmake.org/files/v3.13/cmake-3.13.0-rc1-Darwin-x86_64.dmg
-    * Enable to use `cmake` as a terminal command :
+    * Enable to use `cmake` as a command line :
 
             sudo "/Applications/CMake.app/Contents/bin/cmake-gui" --install
 
-    * If the installation was successfull, the following command should return the path to the cmake program
+    * If the installation was successfull, the following command should return
+      the path to the cmake program
 
             which cmake
 
@@ -86,22 +94,26 @@ If you have any issue with the procedure explained below, just remove everything
         cd build      # Go into the build directory
         cmake ..      # Call CMake with the top-level directory as argument (`..` is the parent directory)
 
-	Instead of using `cmake ..` to generate a Makefile, you can also build project for Visual Studio, XCode, Sublime-Text, CodeBlocks, Eclipse... using `cmake -G GENERATOR_NAME ..`  .
-	[Available generators](https://cmake.org/cmake/help/v3.13/manual/cmake-generators.7.html#cmake-generators-7) are listed with `cmake --help`
+    Instead of using `cmake ..` to generate a Makefile, you can also build
+    project for Visual Studio, XCode, Sublime-Text, CodeBlocks, Eclipse... using
+    `cmake -G GENERATOR_NAME ..` .
+    [Available generators](https://cmake.org/cmake/help/v3.13/manual/cmake-generators.7.html#cmake-generators-7)
+    are listed with `cmake --help`
 
  2. Compile the program into an executable (do this every time you changed a file)* :
 
         make
 
-	*If you created a project file for an IDE instead of a makefile, (if you used `cmake -G GENERATOR_NAME ..`), you should skip this step.
-	Indeed, in any IDE, running the project will automatically compiles the code.
+    *If you created a project file for an IDE instead of a makefile (if you used
+     `cmake -G GENERATOR_NAME ..`), this step will not work. Normally, in an IDE,
+     running the project will automatically compiles the code.
 
 
 #### Running:
 
  Again, if you are not using an IDE:
 
-    ./exec
+    ./bin/project
 
 
 
@@ -125,12 +137,14 @@ If you have any issue with the procedure explained below, just remove everything
 
  If you are familiar with CMake this should be straightforward
 
- 1. Create a directory named "build" in the top-level directory (the one containing **src**, **deps** and **doc**)
+ 1. Create a directory named "build" in the top-level directory (the one
+    containing **src**, **deps**, **doc** and **build**)
  2. Launch CMake GUI (type: Win+S, "cmake-gui", Enter)
  3. For the source code location, select the top-level directory
  4. For the binaries location, select the **build** directory
  5. Click the "Configure" button, a pop-up window will appear:
-    - Optionnally select you version of Visual Studio and Win64 if your computer support 64-bit
+    - Optionnally select you version of Visual Studio and Win64 if your computer
+      support 64-bit
     - Click on the "Finish" button
     - WAIT ! it can take several minutes...
     - Do not worry about the red content.
