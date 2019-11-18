@@ -47,11 +47,10 @@ flat in float pixelSize;
 out vec4 outColor;
 
 void main( void ) {
-    vec2 v = vec2(pRect.x - clamp(pRect.x, 0.0, lba), pRect.y);
-    float alphaRound = fract(marker);
-    vec2 sdf = mix(length(v), max(abs(v.x), abs(v.y)), alphaRound) - vec2(width, width-outlineWidth+step(outlineWidth, 0.0));
+    vec2 v = vec2(pRect.x - clamp(pRect.x, 0.0f, lba), pRect.y);
+    vec2 sdf = mix(length(v), max(abs(v.x), abs(v.y)), fract(marker)) - vec2(width, width-outlineWidth+step(outlineWidth, 0.0f));
 
-    vec2 alpha = smoothstep(0, -2*pixelSize, sdf);
+    vec2 alpha = smoothstep(pixelSize, -pixelSize, sdf);
     outColor = mix(outlineColor, fillColor, alpha.y); // at 0: completely outlineColor, at1: completely fillColor
     outColor.a *= alpha.x;
 }

@@ -57,14 +57,6 @@ flat out float pixelSize;
 flat out float lba;
 
 void main() {
-    vec2 a = gl_in[0].gl_Position.xy*localScale;
-    vec2 b = gl_in[1].gl_Position.xy*localScale;
-
-    vec2 ba = b - a;
-    lba = length(ba);
-    vec2 v = ba/lba;         // direction of this segment
-    vec2 n = vec2(-v.y, v.x);// perpendicular direction
-
     float minRes = min(resolution.x, resolution.y);
     vec2 resRatio = minRes/resolution;
 
@@ -93,21 +85,31 @@ void main() {
         pixelSize = 1.0;
     }
 
+    float w = width + pixelSize;
+
+    vec2 a = gl_in[0].gl_Position.xy*localScale;
+    vec2 b = gl_in[1].gl_Position.xy*localScale;
+
+    vec2 ba = b - a;
+    lba = length(ba);
+    vec2 v = ba/lba;         // direction of this segment
+    vec2 n = vec2(-v.y, v.x);// perpendicular direction
+
     vec2 aScreen = scaling*a + translation;
     vec2 bScreen = scaling*b + translation;
-    vec2 wScreen = scaling*width*v;
-    vec2 hScreen = scaling*width*n;
+    vec2 wScreen = scaling*w*v;
+    vec2 hScreen = scaling*w*n;
 
-    pRect = vec2(-width);
+    pRect = vec2(-w);
     gl_Position = vec4(aScreen - wScreen - hScreen, 0.0, 1.0);
     EmitVertex();
-    pRect = vec2(lba + width, -width);
+    pRect = vec2(lba + w, -w);
     gl_Position = vec4(bScreen + wScreen - hScreen, 0.0, 1.0);
     EmitVertex();
-    pRect = vec2(-width, width);
+    pRect = vec2(-w, w);
     gl_Position = vec4(aScreen - wScreen + hScreen, 0.0, 1.0);
     EmitVertex();
-    pRect = vec2(lba + width, width);
+    pRect = vec2(lba + w, w);
     gl_Position = vec4(bScreen + wScreen + hScreen, 0.0, 1.0);
     EmitVertex();
     EndPrimitive();

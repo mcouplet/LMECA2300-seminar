@@ -64,50 +64,6 @@ vec2 perpendicular(vec2 v) {
 }
 
 void main() {
-    vec2 p0=gl_in[0].gl_Position.xy*localScale;
-    vec2 p1=gl_in[1].gl_Position.xy*localScale;
-    vec2 p2=gl_in[2].gl_Position.xy*localScale;
-    vec2 p3=gl_in[3].gl_Position.xy*localScale;
-
-    vec2 ba = p2 - p1;
-    lba = length(ba);
-    vec2 v1 = ba/lba;
-    vec2 v0, v2;
-    float endWidth0, endWidth2;
-    if(p0==p1) {
-        v0 = v1;
-        endWidth0 = width;
-    }
-    else {
-        v0 = normalize(p1 - p0);
-        endWidth0 = 0.0;
-    }
-
-    if(p2==p3) {
-        v2 = v1;
-        endWidth2 = width;
-    }
-    else {
-        v2 = normalize(p3 - p2);
-        endWidth2 = 0.0;
-    }
-
-    // determine the normal of each of the 3 segments (previous, current, next)
-    vec2 n0 = perpendicular(v0);
-    vec2 n1 = perpendicular(v1);
-    vec2 n2 = perpendicular(v2);
-
-    // determine miter lines by averaging the normals of the 2 segments
-    vec2 miter0 = normalize(n0 + n1);    // miter at start of current segment
-    vec2 miter2 = normalize(n1 + n2);    // miter at end of current segment
-
-    // determine the length of the miter by projecting it onto normal and then inverse it
-    float miter0_size = width / dot(miter0, n1);
-    float miter2_size = width / dot(miter2, n1);
-
-    float miter0v = miter0_size*dot(miter0, v1);
-    float miter2v = miter2_size*dot(miter2, v1);
-    
     float minRes = min(resolution.x, resolution.y);
     vec2 resRatio = minRes/resolution;
 
@@ -136,6 +92,52 @@ void main() {
         pixelSize = 1.0;
     }
 
+    float w = width + pixelSize;
+
+    vec2 p0=gl_in[0].gl_Position.xy*localScale;
+    vec2 p1=gl_in[1].gl_Position.xy*localScale;
+    vec2 p2=gl_in[2].gl_Position.xy*localScale;
+    vec2 p3=gl_in[3].gl_Position.xy*localScale;
+
+    vec2 ba = p2 - p1;
+    lba = length(ba);
+    vec2 v1 = ba/lba;
+    vec2 v0, v2;
+    float endWidth0, endWidth2;
+    if(p0==p1) {
+        v0 = v1;
+        endWidth0 = w;
+    }
+    else {
+        v0 = normalize(p1 - p0);
+        endWidth0 = 0.0;
+    }
+
+    if(p2==p3) {
+        v2 = v1;
+        endWidth2 = w;
+    }
+    else {
+        v2 = normalize(p3 - p2);
+        endWidth2 = 0.0;
+    }
+
+    // determine the normal of each of the 3 segments (previous, current, next)
+    vec2 n0 = perpendicular(v0);
+    vec2 n1 = perpendicular(v1);
+    vec2 n2 = perpendicular(v2);
+
+    // determine miter lines by averaging the normals of the 2 segments
+    vec2 miter0 = normalize(n0 + n1);    // miter at start of current segment
+    vec2 miter2 = normalize(n1 + n2);    // miter at end of current segment
+
+    // determine the length of the miter by projecting it onto normal and then inverse it
+    float miter0_size = w / dot(miter0, n1);
+    float miter2_size = w / dot(miter2, n1);
+
+    float miter0v = miter0_size*dot(miter0, v1);
+    float miter2v = miter2_size*dot(miter2, v1);
+
     vec2 p1_screen = scaling*p1 + translation;
     vec2 p2_screen = scaling*p2 + translation;
     vec2 miter0_screen = miter0_size*scaling*miter0;
@@ -159,45 +161,45 @@ void main() {
 
     // avoid crossing lines
     if(inter>0 && inter<1) {
-        pRect = (1.0-2*inter)*vec2(miter0v - endWidth0, width);
+        pRect = (1.0-2*inter)*vec2(miter0v - endWidth0, w);
         gl_Position.xy = inter*(q1-q0)+q0;
         EmitVertex();
 
         if(ori<0) {
             // the upper part is inverted
-            pRect = vec2(-miter0v - endWidth0, -width);
+            pRect = vec2(-miter0v - endWidth0, -w);
             gl_Position.xy = q1;
             EmitVertex();
 
-            pRect = vec2(lba - miter2v + endWidth2, -width);
+            pRect = vec2(lba - miter2v + endWidth2, -w);
             gl_Position.xy = q3;
             EmitVertex();
         }
         else {
             // the lower part is inverted
-            pRect = vec2(lba + miter2v + endWidth2, width);
+            pRect = vec2(lba + miter2v + endWidth2, w);
             gl_Position.xy = q2;
             EmitVertex();
 
-            pRect = vec2(miter0v - endWidth0, width);
+            pRect = vec2(miter0v - endWidth0, w);
             gl_Position.xy = q0;
             EmitVertex();
         }
     }
     else {
-        pRect = vec2(miter0v - endWidth0, width);
+        pRect = vec2(miter0v - endWidth0, w);
         gl_Position.xy = q0;
         EmitVertex();
 
-        pRect = vec2(-miter0v - endWidth0, -width);
+        pRect = vec2(-miter0v - endWidth0, -w);
         gl_Position.xy = q1;
         EmitVertex();
 
-        pRect = vec2(lba + miter2v + endWidth2, width);
+        pRect = vec2(lba + miter2v + endWidth2, w);
         gl_Position.xy = q2;
         EmitVertex();
 
-        pRect = vec2(lba - miter2v + endWidth2, -width);
+        pRect = vec2(lba - miter2v + endWidth2, -w);
         gl_Position.xy = q3;
         EmitVertex();
     }

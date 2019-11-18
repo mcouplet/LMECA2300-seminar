@@ -53,16 +53,16 @@ void main(void)
     // vec4 texValue = textureGrad(fontTex, texCoord, dpdx, dpdy);
     vec4 texValue = texture(fontTex, texCoord);
     float sdf = texValue.r;
-    vec2 normal = texValue.gb - 0.5;
+    vec2 normal = texValue.gb - 0.5f;
 
     // Outline
     float shift = outlineWidth;
 
     // we add the components of the outlineShift in the direction of the gradient.
-    if(outlineShift.xy!=vec2(0.0)) { shift += dot(outlineShift.xy, normal); }
+    if(outlineShift.xy!=vec2(0.0f)) { shift += dot(outlineShift.xy, normal); }
 
-    float glyph_center = 0.5 - 0.25*boldness;
-    float outline_center = glyph_center + 0.25*shift;
+    float glyph_center = 0.5f - 0.25f*boldness;
+    float outline_center = glyph_center + 0.25f*shift;
 
     float sdfWidth = fwidth(sdf); // length(dxdy);
 
