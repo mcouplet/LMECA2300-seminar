@@ -208,6 +208,8 @@ static void text_rasterizer_init(window_t* window) {
     // int smoothing[2] = {1, 2/*, 1*/}; // smoothing in Sobel kernel
     // int smoothing[2] = {3, 10/*, 3*/};   // in Scharr kernel
     int smoothing[2] = {47, 162/*, 47*/};// wikipedia optimal Scharr
+    // int smoothing[2] = {0, 1/*, 0*/}; // no smoothing
+    // int smoothing[2] = {1,1/*,1*/}; // mega smoothing
 
     // compute derivatives with a sort of Sobel kernel, which is
     // a combination of finite difference and smoothing

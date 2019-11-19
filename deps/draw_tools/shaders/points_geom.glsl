@@ -56,8 +56,6 @@ out vec2 pSquare;
 flat out float pixelSize;
 
 void main() {
-    vec2 p = gl_in[0].gl_Position.xy*localScale;
-
     float minRes = min(resolution.x, resolution.y);
     vec2 resRatio = minRes/resolution;
 
@@ -86,9 +84,13 @@ void main() {
         pixelSize = 1.0;
     }
 
+    float w = width + pixelSize;
+
+    vec2 p = gl_in[0].gl_Position.xy*localScale;
+
     vec2 center = p*scaling + translation;
-    vec2 upRight = center + width*scaling;
-    vec2 downLeft = center - width*scaling;
+    vec2 upRight = center + w*scaling;
+    vec2 downLeft = center - w*scaling;
 
     // a bit of culling
     if(any(lessThanEqual(upRight, -vec2(1.0))) ||
@@ -98,16 +100,16 @@ void main() {
     vec2 upLeft = vec2(downLeft.x, upRight.y);
     vec2 downRight = vec2(upRight.x, downLeft.y);
 
-    pSquare = vec2(-width, width);
+    pSquare = vec2(-w, w);
     gl_Position = vec4(upLeft, 0.0, 1.0);
     EmitVertex();
-    pSquare = vec2(-width);
+    pSquare = vec2(-w);
     gl_Position = vec4(downLeft, 0.0, 1.0);
     EmitVertex();
-    pSquare = vec2(width);
+    pSquare = vec2(w);
     gl_Position = vec4(upRight, 0.0, 1.0);
     EmitVertex();
-    pSquare = vec2(width, -width);
+    pSquare = vec2(w, -w);
     gl_Position = vec4(downRight, 0.0, 1.0);
     EmitVertex();
     EndPrimitive();
