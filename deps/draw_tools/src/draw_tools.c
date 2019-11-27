@@ -517,8 +517,11 @@ static void window_OpenGL_init(window_t* window) {
 
         if(program_init(window, TEXT_PROGRAM_INDEX, 2, fontVS, fontFS))
             goto shader_error;
-        glDetachShader(window->program[TEXT_PROGRAM_INDEX],fontFS);
         glDetachShader(window->program[TEXT_PROGRAM_INDEX],fontVS);
+        glDetachShader(window->program[TEXT_PROGRAM_INDEX],fontFS);
+
+        glDeleteShader(fontVS);
+        glDeleteShader(fontFS);
     }
 
     {
@@ -573,31 +576,41 @@ static void window_OpenGL_init(window_t* window) {
         if(program_init(window, POINTS_PROGRAM_INDEX,
                         3, pointsVS, pointsGS, pointsFS))
             goto shader_error;
-        if(program_init(window, LINES_PROGRAM_INDEX,
-                        3, pointsVS, linesGS, linesFS))
-            goto shader_error;
-        if(program_init(window, CURVE_PROGRAM_INDEX,
-                        3, pointsVS, curveGS, linesFS))
-            goto shader_error;
-
         glDetachShader(window->program[POINTS_PROGRAM_INDEX],pointsVS);
         glDetachShader(window->program[POINTS_PROGRAM_INDEX],pointsGS);
         glDetachShader(window->program[POINTS_PROGRAM_INDEX],pointsFS);
+
+        glDeleteShader(pointsGS);
+        glDeleteShader(pointsFS);
+
+        if(program_init(window, LINES_PROGRAM_INDEX,
+                        3, pointsVS, linesGS, linesFS))
+            goto shader_error;
         glDetachShader(window->program[LINES_PROGRAM_INDEX],pointsVS);
         glDetachShader(window->program[LINES_PROGRAM_INDEX],linesGS);
         glDetachShader(window->program[LINES_PROGRAM_INDEX],linesFS);
+
+        glDeleteShader(linesGS);
+
+        if(program_init(window, CURVE_PROGRAM_INDEX,
+                        3, pointsVS, curveGS, linesFS))
+            goto shader_error;
         glDetachShader(window->program[CURVE_PROGRAM_INDEX],pointsVS);
         glDetachShader(window->program[CURVE_PROGRAM_INDEX],curveGS);
         glDetachShader(window->program[CURVE_PROGRAM_INDEX],linesFS);
+
+        glDeleteShader(pointsVS);
+        glDeleteShader(curveGS);
+        glDeleteShader(linesFS);
     }
 
     // Create all rasterizers
     text_rasterizer_init(window);
     points_rasterizer_init(window->program[POINTS_PROGRAM_INDEX]);
-    points_rasterizer_init(window->program[LINES_PROGRAM_INDEX]);
     points_rasterizer_init(window->program[CURVE_PROGRAM_INDEX]);
 
-    glUseProgram(window->program[LINES_PROGRAM_INDEX]);
+    points_rasterizer_init(window->program[LINES_PROGRAM_INDEX]);
+    // glUseProgram(window->program[LINES_PROGRAM_INDEX]); // already the last used
     window->last_program = LINES_PROGRAM_INDEX;
 
     return;
@@ -787,7 +800,7 @@ void window_delete(window_t* window)
 /*%%%%%%%%%%%%%%%%%%%%%%%%%
  %  Order object
  %%%%%%%%%%%%%%%%%%%%%%%%%*/
-order_t* order_new(GLuint* elements, GLsizei n, GLenum usage) {
+order_t* order_new(const GLuint* elements, GLsizei n, GLenum usage) {
     order_t* order = malloc(sizeof(order_t));
     CHECK_MALLOC(order);
 
@@ -801,7 +814,7 @@ order_t* order_new(GLuint* elements, GLsizei n, GLenum usage) {
 }
 
 
-order_t* order_update(order_t* order, GLuint* elements, GLsizei n) {
+order_t* order_update(order_t* order, const GLuint* elements, GLsizei n) {
     order->eboLen = elements==NULL ? 0 : n;
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, order->ebo);
@@ -816,7 +829,7 @@ order_t* order_update(order_t* order, GLuint* elements, GLsizei n) {
     return order;
 }
 
-order_t* order_partial_update(order_t* order, GLuint* elements, GLint start, GLsizei count, GLsizei newN) {
+order_t* order_partial_update(order_t* order, const GLuint* elements, GLint start, GLsizei count, GLsizei newN) {
     if(elements==NULL) {
         ERROR_LOG(PARAMETER_ERROR, "Cannot do a partial update whith a NULL pointer for array of elements");
         return NULL;
@@ -828,7 +841,7 @@ order_t* order_partial_update(order_t* order, GLuint* elements, GLint start, GLs
     if(start+count > newN)
         newN = start+count;
     if(start + count < count) // detect overflow
-        newN = DRAW_ALL_PTS;
+        newN = TILL_END;
 
     if(newN > order->eboCapacity) {
         ERROR_LOG(PARAMETER_ERROR, "Cannot do a partial update when the new size is bigger than the capacity of the buffer");
@@ -955,7 +968,7 @@ static GLsizei fill_text_data(GLfloat* data, const unsigned char* string, GLsize
 }
 
 // size (in characters) to alloc, and usage (either GL_STATIC_DRAW or GL_DYNAMIC_DRAW)
-text_t* text_new(unsigned char* string, GLenum usage){
+text_t* text_new(const unsigned char* string, GLenum usage){
     text_t* text = malloc(sizeof(text_t));
     CHECK_MALLOC(text);
 
@@ -1021,7 +1034,7 @@ void text_delete(text_t* text){
     free(text);
 }
 
-text_t* text_update(text_t* text, unsigned char* string){
+text_t* text_update(text_t* text, const unsigned char* string){
     // see if the length is not longer than the original string
     GLsizei newLen = (GLsizei) strlen((const char *)string);
 
@@ -1049,7 +1062,7 @@ text_t* text_update(text_t* text, unsigned char* string){
 }
 
 
-void text_draw(window_t* window, text_t* text){
+void text_draw(window_t* window, const text_t* text){
     if(text->vboLen==0)
         return;
 
@@ -1074,7 +1087,7 @@ void text_draw(window_t* window, text_t* text){
 /*%%%%%%%%%%%%%%%%%%%%%%%%%
  %  Points Object
  %%%%%%%%%%%%%%%%%%%%%%%%%*/
-points_t* points_new(GLfloat coords[][2], GLsizei n, GLenum usage) {
+points_t* points_new(const GLfloat coords[][2], GLsizei n, GLenum usage) {
     points_t* points = malloc(sizeof(points_t));
     CHECK_MALLOC(points);
 
@@ -1112,7 +1125,7 @@ points_t* points_new(GLfloat coords[][2], GLsizei n, GLenum usage) {
     return points;
 }
 
-points_t* points_update(points_t* points, GLfloat coords[][2], GLsizei n) {
+points_t* points_update(points_t* points, const GLfloat coords[][2], GLsizei n) {
     points->vboLen = coords==NULL ? 0: n;
 
     glBindBuffer(GL_ARRAY_BUFFER, points->vbo);
@@ -1128,7 +1141,7 @@ points_t* points_update(points_t* points, GLfloat coords[][2], GLsizei n) {
     return points;
 }
 
-points_t* points_partial_update(points_t* points, GLfloat coords[][2], GLint start, GLsizei count, GLsizei newN) {
+points_t* points_partial_update(points_t* points, const GLfloat coords[][2], GLint start, GLsizei count, GLsizei newN) {
     if(coords==NULL) {
         ERROR_LOG(PARAMETER_ERROR, "Cannot do a partial update whith a NULL pointer for array of coordinates");
         return NULL;
@@ -1140,7 +1153,7 @@ points_t* points_partial_update(points_t* points, GLfloat coords[][2], GLint sta
     if(start + count > newN)
         newN = start + count;
     if(start + count < count) // detect overflow
-        newN = DRAW_ALL_PTS;
+        newN = TILL_END;
 
     if(newN > points->vboCapacity) {
         ERROR_LOG(PARAMETER_ERROR, "Cannot do a partial update when the new size is bigger than the capacity of the buffer");
@@ -1166,7 +1179,7 @@ void points_delete(points_t* points){
 }
 
 
-static GLenum switch_rasterizer_with_mode(window_t* window, points_t* points, points_drawing_mode_t mode)
+static GLenum switch_rasterizer_with_mode(window_t* window, const points_t* points, points_drawing_mode_t mode)
 {
     int program_index;
     GLenum primitive = 0;
@@ -1229,7 +1242,7 @@ static GLenum switch_rasterizer_with_mode(window_t* window, points_t* points, po
 }
 
 void points_draw_aux(window_t* window,
-                     points_t* points,
+                     const points_t* points,
                      points_drawing_mode_t mode,
                      GLint start,
                      GLsizei count) {
@@ -1247,23 +1260,46 @@ void points_draw_aux(window_t* window,
 
 
 void points_draw_with_order_aux(window_t* window,
-                                points_t* points,
-                                order_t* order,
-                                points_drawing_mode_t mode) {
+                                const points_t* points,
+                                points_drawing_mode_t mode,
+                                const order_t* order,
+                                GLint start, GLsizei count) {
     if(order==NULL)
-        points_draw_aux(window, points, mode, 0, points->vboLen);
+        points_draw_aux(window, points, mode, start, count);
 
-    if(points->vboLen==0 || (order!=NULL && order->eboLen==0))
+    if(points->vboLen==0 || start>=order->eboLen)
         return;
+
+    if(count+start>order->eboLen || start + count < count) { //< don't forget to detect overflow
+        count = order->eboLen - start;
+    }
 
     GLenum primitive = switch_rasterizer_with_mode(window, points, mode);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, order->ebo);
-    glDrawElements(primitive, order->eboLen, GL_UNSIGNED_INT, 0);
+    glDrawElements(primitive, count, GL_UNSIGNED_INT, (void*) (start*sizeof(GLuint)));
     // glBindVertexArray(0);
 }
 
-void window_screenshot(window_t* window, char* filename) {
+
+void points_draw_with_indices_aux(window_t* window,
+                                  const points_t* points,
+                                  points_drawing_mode_t mode,
+                                  const GLuint* indices,
+                                  GLint start, GLsizei count) {
+    if(indices==NULL)
+        points_draw_aux(window, points, mode, start, count);
+
+    if(points->vboLen==0 || start>=count)
+        return;
+
+    GLenum primitive = switch_rasterizer_with_mode(window, points, mode);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); // no vbo must be bound
+    glDrawElements(primitive, count, GL_UNSIGNED_INT, indices+start);
+}
+
+void window_screenshot(const window_t* window, const char* filename) {
     static unsigned char* data = NULL;
 
     if(window==NULL || filename==NULL) {

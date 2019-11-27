@@ -142,7 +142,7 @@ int main(int argc, char *argv[])
 			points_update(pointset, coords, maxPoints);
 			parameters_update(pointset, segWidth, s);
 
-			curve_draw_with_order(window, pointset, order);
+			curve_draw_with_order(window, pointset, order, 0, TILL_END);
 			window_update(window);
 
 			tnow = window_get_time(window);
@@ -169,7 +169,7 @@ int main(int argc, char *argv[])
 	points_update(pointset, coords, maxPoints);
 
 	while(!window_should_close(window)) {
-		curve_draw_with_order(window, pointset, order);
+		curve_draw_with_order(window, pointset, order, 0, TILL_END);
 		text_draw(window, end);
 		window_update_and_wait_events(window);
 	}

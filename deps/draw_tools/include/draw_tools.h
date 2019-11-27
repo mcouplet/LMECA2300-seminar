@@ -114,14 +114,14 @@ void window_delete(window_t* window);
  *      object (the string of characters)
  *    - GL_DYNAMIC_DRAW if you intend to change it with the text_update function
  */
-text_t* text_new(unsigned char* string, GLenum usage);
+text_t* text_new(const unsigned char* string, GLenum usage);
 
 /* change the content of the text object */
-text_t* text_update(text_t* text, unsigned char* string);
+text_t* text_update(text_t* text, const unsigned char* string);
 
 /* draw a text object, using a text rasterizer (note: a text rasterizer can be
  * used to draw multiple text object)*/
-void text_draw(window_t* window, text_t* text);
+void text_draw(window_t* window, const text_t* text);
 
 /* delete text properly */
 void text_delete(text_t* text);
@@ -130,7 +130,7 @@ void text_delete(text_t* text);
 /*%%%%%%%%%%%%%%%%%%%%%%%%%
  %  Points
  %%%%%%%%%%%%%%%%%%%%%%%%%*/
-#define DRAW_ALL_PTS (0x7FFFFFFFUL)
+#define TILL_END (0x7FFFFFFFUL)
 
 /* Create a points object
  *
@@ -146,10 +146,10 @@ void text_delete(text_t* text);
  *    - GL_DYNAMIC_DRAW if you intend to change coordinates regularly with the
  *      points_update or points_partial_update function
  */
-points_t* points_new(GLfloat coords[][2], GLsizei n, GLenum usage);
+points_t* points_new(const GLfloat coords[][2], GLsizei n, GLenum usage);
 
 /* change the content of the points object (the maximum capacity can be increased)*/
-points_t* points_update(points_t* points, GLfloat coords[][2], GLsizei n);
+points_t* points_update(points_t* points, const GLfloat coords[][2], GLsizei n);
 
 /* change the content of the points object, but only from start to
  * start+count excluded.
@@ -159,7 +159,7 @@ points_t* points_update(points_t* points, GLfloat coords[][2], GLsizei n);
  * `newN` can only be lower than the maximum number of points that has been
  * contained in the given points object (the capacity cannot be increased)
  */
-points_t* points_partial_update(points_t* points, GLfloat coords[][2],
+points_t* points_partial_update(points_t* points, const GLfloat coords[][2],
                                 GLint start, GLsizei count, GLsizei newN);
 
 /* draw points markers to the window
@@ -167,12 +167,14 @@ points_t* points_partial_update(points_t* points, GLfloat coords[][2],
  * `start` is the index of the first point to draw
  * `count` is the number of points to draw
  * if `count` is greater than the number of points, all the points are drawn.
- * the value DRAW_ALL_PTS is guaranteed to be greater than the number of points.
+ * the value TILL_END is guaranteed to be greater than the number of points.
  */
-static inline void points_draw(window_t* window, points_t* pts,
+static inline void points_draw(window_t* window, const points_t* pts,
                                GLint start, GLsizei count);
-static inline void points_draw_with_order(window_t* window, points_t* pts,
-                                          order_t* order);
+// using the order defined by the order object
+static inline void points_draw_with_order(window_t* window, const points_t* pts,
+                                          const order_t* order,
+                                          GLint start, GLsizei count);
 
 /* same argument as above, but draw lines between pairs of points,
  * (p1->p2) (p3->p4) (p5->p6)...
@@ -180,31 +182,36 @@ static inline void points_draw_with_order(window_t* window, points_t* pts,
  * line are only drawn when both points are withing [start, start+count[,
  * so only the even part of count is taken into account
  */
-static inline void lines_draw(window_t* window, points_t* pts,
+static inline void lines_draw(window_t* window, const points_t* pts,
                               GLint start, GLsizei count);
-static inline void lines_draw_with_order(window_t* window, points_t* pts,
-                                         order_t* order);
+static inline void lines_draw_with_order(window_t* window, const points_t* pts,
+                                         const order_t* order,
+                                         GLint start, GLsizei count);
 
 /* draw lines that connect each points p1->p2->p3->p4->p5->p6...->pn */
-static inline void line_strip_draw(window_t* window, points_t* pts,
+static inline void line_strip_draw(window_t* window, const points_t* pts,
                                    GLint start, GLsizei count);
-static inline void line_strip_draw_with_order(window_t* window, points_t* pts,
-                                              order_t* order);
+static inline void line_strip_draw_with_order(window_t* window, const points_t* pts,
+                                              const order_t* order,
+                                              GLint start, GLsizei count);
+
 
 /* draw lines that connect each points and end with the first
  * p1->p2->p3->p4->p5->p6...->pn->p1*/
-static inline void line_loop_draw(window_t* window, points_t* pts,
+static inline void line_loop_draw(window_t* window, const points_t* pts,
                                   GLint start, GLsizei count);
-static inline void line_loop_draw_with_order(window_t* window, points_t* pts,
-                                             order_t* order);
+static inline void line_loop_draw_with_order(window_t* window, const points_t* pts,
+                                             const order_t* order,
+                                             GLint start, GLsizei count);
 
 /* draw a single line that connect each points p1->p2->p3->p4->p5->p6...->pn
  * The difference with line_strip_draw can really be seen with an outline or
  * transparency */
-static inline void curve_draw(window_t* window, points_t* pts,
+static inline void curve_draw(window_t* window, const points_t* pts,
                               GLint start, GLsizei count);
-static inline void curve_draw_with_order(window_t* window, points_t* pts,
-                                         order_t* order);
+static inline void curve_draw_with_order(window_t* window, const points_t* pts,
+                                         const order_t* order,
+                                         GLint start, GLsizei count);
 
 /* delete a points object */
 void points_delete(points_t* points);
@@ -228,10 +235,10 @@ void points_delete(points_t* points);
  *    - GL_DYNAMIC_DRAW if you intend to change it regularly with the
  *      order_update or order_partial_update function
  */
-order_t* order_new(GLuint* elements, GLsizei n, GLenum usage);
+order_t* order_new(const GLuint* elements, GLsizei n, GLenum usage);
 
 /* Change the content of the order object. */
-order_t* order_update(order_t* order, GLuint* elements, GLsizei n);
+order_t* order_update(order_t* order, const GLuint* elements, GLsizei n);
 
 /* change the content of the points object, but only from start to
  * start+count excluded.
@@ -241,7 +248,7 @@ order_t* order_update(order_t* order, GLuint* elements, GLsizei n);
  * `newN` can only be lower than the maximum number of indices that has been
  * contained in the given order object (the capacity cannot be increased)
  */
-order_t* order_partial_update(order_t* order, GLuint* elements,
+order_t* order_partial_update(order_t* order, const GLuint* elements,
                               GLint start, GLsizei count, GLsizei newN);
 
 /* delete an order object */
@@ -255,35 +262,35 @@ void order_delete(order_t* order);
 /* get the time in second associated with the window. The time is updated via
  * the window_update() and window_update_and_wait_events() functions. The time
  * is stopped if the user press the space bar. */
-static inline double window_get_time(window_t* window);
+static inline double window_get_time(const window_t* window);
 
 /* get the resolution in pixel of the window */
-static inline GLfloat window_get_xres(window_t* window);
-static inline GLfloat window_get_yres(window_t* window);
+static inline GLfloat window_get_xres(const window_t* window);
+static inline GLfloat window_get_yres(const window_t* window);
 
 /* tells if the window should close (because the user decided it) */
-static inline int window_should_close(window_t* window);
+static inline int window_should_close(const window_t* window);
 
 /* sets the background color with a 4-channel color (red, blue, green, alpha).
  * The alpha channel (transparency) is useless here */
-static inline void window_set_color(window_t* window, GLfloat rgba[4]);
+static inline void window_set_color(window_t* window, const GLfloat rgba[4]);
 
 /* translates the content of the window (similar to dragging with the mouse */
-static inline void window_translate(window_t* window, GLfloat pos[2]);
+static inline void window_translate(window_t* window, const GLfloat pos[2]);
 
 /* set the scaling factor of the whole window content (similar to zooming with
  * the mouse) */
 static inline void window_set_zoom(window_t* window, GLfloat zoom);
 
 /* get the current zooming factor */
-static inline GLfloat window_get_zoom(window_t* window);
+static inline GLfloat window_get_zoom(const window_t* window);
 
 /* enable/disable a little help message for keyboard shortcuts */
 static inline void window_enable_help(window_t* window);
 static inline void window_disable_help(window_t* window);
 
 /* take a screenshot and save it as a PPM with the name 'filename' */
-void window_screenshot(window_t* window, char* filename);
+void window_screenshot(const window_t* window, const char* filename);
 
 /*%%%%%%%%%%%%%%%%%%%%%%%%%
  %  text parameters
@@ -291,7 +298,7 @@ void window_screenshot(window_t* window, char* filename);
 /* set the position of the text on the screen.
  * Note that coordinates must be given in pixels if the space type is set to
  * PIXEL_SPACE*/
-static inline void text_set_pos(text_t* text, GLfloat pos[2]);
+static inline void text_set_pos(text_t* text, const GLfloat pos[2]);
 
 /* set the font size of the text object on the screen.
  * The font size is equal to the baselineskip, which is
@@ -301,18 +308,15 @@ static inline void text_set_pos(text_t* text, GLfloat pos[2]);
  * the space type is set to PIXEL_SPACE */
 static inline void text_set_fontsize(text_t* text, GLfloat baselineskip);
 
-// not implemented yet
-// static inline void text_set_rotation(text_t* text, GLfloat rotation);
-
 /* sets the text color to a 4 channel color (red, gree, blue, alpha) */
-static inline void text_set_color(text_t* text, GLfloat rgba[4]);
+static inline void text_set_color(text_t* text, const GLfloat rgba[4]);
 
 /* boldness is a parameter, usually between -1 and 1, that define
  * how massive the font should be. -1 means light, 1 means bold */ 
 static inline void text_set_boldness(text_t* text, GLfloat width);
 
 /* sets the text outline color to a 4 channel color (red, gree, blue, alpha) */
-static inline void text_set_outline_color(text_t* text, GLfloat rgba[4]);
+static inline void text_set_outline_color(text_t* text, const GLfloat rgba[4]);
 
 /* for text, the outline width must be between 0 and 1
  * 0 means no outline, 1 means the outline might meet in the middle of the character */
@@ -330,7 +334,7 @@ static inline void text_set_outline_width(text_t* text, GLfloat width);
  * actually, it uses the gradient of the sdf based font to calculate
  * the normal, and this gradient approaches 0 when zoomed in...
  */
-static inline void text_set_outline_shift(text_t* text, GLfloat shift[2]);
+static inline void text_set_outline_shift(text_t* text, const GLfloat shift[2]);
 
 /* for more detail on what this function does, see:
  * - the structure `space_type_t`
@@ -354,7 +358,7 @@ typedef struct {
 } text_param_t;
 
 /* retrieve all the parameters from a text object */
-static inline text_param_t text_get_param(text_t* text);
+static inline text_param_t text_get_param(const text_t* text);
 
 /* set all the parameters of a text object at once */
 static inline void text_set_param(text_t* text, text_param_t parameters);
@@ -366,17 +370,14 @@ static inline void text_set_param(text_t* text, text_param_t parameters);
 /* set the position of the points on the screen.
  * Note that coordinates must be given in pixels if the space type is set to
  * PIXEL_SPACE*/
-static inline void points_set_pos(points_t* points, GLfloat pos[2]);
+static inline void points_set_pos(points_t* points, const GLfloat pos[2]);
 
 /* you can give a local scaling factor to your set of points in both x and y
  * directions. The translation given by points_set_pos() is applied AFTER the
  * local scaling, so it is not impacted by the scaling. The local scaling
  * factors is only applied to point coordinates, not to the width and outline
  * width*/
-static inline void points_scale(points_t* points, GLfloat scale[2]);
-
-// not implemented yet
-// static inline void points_set_rotation(points_t* points, GLfloat rotation);
+static inline void points_scale(points_t* points, const GLfloat scale[2]);
 
 /* set the width of the marker/line/curve/... associated with the points
  * Note that the width must be given in pixels if the space type is set to
@@ -385,8 +386,8 @@ static inline void points_set_width(points_t* points, GLfloat width);
 
 /* sets color of the marker/line/curve/... associated with the points to a 4 
  * channel color (red, gree, blue, alpha) */
-static inline void points_set_color(points_t* points, GLfloat rgba[4]);
-static inline void points_set_outline_color(points_t* points, GLfloat rgba[4]);
+static inline void points_set_color(points_t* points, const GLfloat rgba[4]);
+static inline void points_set_outline_color(points_t* points, const GLfloat rgba[4]);
 static inline void points_set_outline_width(points_t* points, GLfloat width);
 
 /* TODO: document the different shapes */
@@ -414,7 +415,7 @@ typedef struct {
 } points_param_t;
 
 /* retrieve all the parameters from a points object */
-static inline points_param_t points_get_param(points_t* points);
+static inline points_param_t points_get_param(const points_t* points);
 
 /* set all the parameters of a points object at once */
 static inline void points_set_param(points_t* points, points_param_t parameters);
@@ -478,7 +479,6 @@ typedef struct {
     GLfloat res[2];
     GLfloat translate[2];
     GLfloat zoom;
-    // GLfloat rotation;
 } world_param_t;
 
 struct window_struct
@@ -527,42 +527,30 @@ struct points_struct{
     points_param_t param;
 };
 
-typedef enum {
-    POINTS_PROGRAM,
-    LINES_PROGRAM,
-    LINE_LOOP_PROGRAM,
-    LINE_STRIP_PROGRAM,
-    CURVE_PROGRAM,
-    TRIANGLES_PROGRAM,
-    TRIANGLE_STRIP_PROGRAM,
-    TRIANGLE_FAN_PROGRAM,
-    QUADS_PROGRAM
-} points_drawing_mode_t;
 
-
-static inline double window_get_time(window_t* window){
+static inline double window_get_time(const window_t* window){
     return window->wtime;
 }
 
-static inline GLfloat window_get_xres(window_t* window){
+static inline GLfloat window_get_xres(const window_t* window){
     return window->param.res[0];
 }
 
-static inline GLfloat window_get_yres(window_t* window){
+static inline GLfloat window_get_yres(const window_t* window){
     return window->param.res[1];
 }
 
 
-static inline int window_should_close(window_t* window){
+static inline int window_should_close(const window_t* window){
     return glfwWindowShouldClose(window->self);
 }
 
-static inline void window_set_color(window_t* window, GLfloat rgba[4]) {
+static inline void window_set_color(window_t* window, const GLfloat rgba[4]) {
     (void) window; // unused at the moment
     glClearColor(rgba[0], rgba[1], rgba[2], rgba[3]);
 }
 
-static inline void window_translate(window_t* window, GLfloat pos[2]) {
+static inline void window_translate(window_t* window, const GLfloat pos[2]) {
     window->param.translate[0] += pos[0];
     window->param.translate[1] += pos[1];
 }
@@ -571,7 +559,7 @@ static inline void window_set_zoom(window_t* window, GLfloat zoom) {
     window->param.zoom = zoom;
 }
 
-static inline GLfloat window_get_zoom(window_t* window) {
+static inline GLfloat window_get_zoom(const window_t* window) {
     return window->param.zoom;
 }
 
@@ -584,7 +572,7 @@ static inline void window_disable_help(window_t* window) {
 }
 
 
-static inline void text_set_pos(text_t* text, GLfloat pos[2]) {
+static inline void text_set_pos(text_t* text, const GLfloat pos[2]) {
     text->param.pos[0] = pos[0];
     text->param.pos[1] = pos[1];
 }
@@ -593,11 +581,7 @@ static inline void text_set_fontsize(text_t* text, GLfloat baselineskip) {
     text->param.fontSize = baselineskip;
 }
 
-// static inline void text_set_rotation(text_t* text, GLfloat rotation) {
-//     text->param.rotation = rotation;
-// }
-
-static inline void text_set_color(text_t* text, GLfloat rgba[4]) {
+static inline void text_set_color(text_t* text, const GLfloat rgba[4]) {
     for (int i=0; i<4; i++)
         text->param.fillColor[i] = rgba[i];
 }
@@ -606,7 +590,7 @@ static inline void text_set_boldness(text_t* text, GLfloat boldness) {
     text->param.boldness = boldness;
 }
 
-static inline void text_set_outline_color(text_t* text, GLfloat rgba[4]) {
+static inline void text_set_outline_color(text_t* text, const GLfloat rgba[4]) {
     for (int i=0; i<4; i++)
         text->param.outlineColor[i] = rgba[i];
 }
@@ -615,7 +599,7 @@ static inline void text_set_outline_width(text_t* text, GLfloat width) {
     text->param.outlineWidth = width;
 }
 
-static inline void text_set_outline_shift(text_t* text, GLfloat shift[2]) {
+static inline void text_set_outline_shift(text_t* text, const GLfloat shift[2]) {
     text->param.shift[0] = shift[0];
     text->param.shift[1] = shift[1];
 }
@@ -633,7 +617,7 @@ static inline void text_set_space_type(text_t* text, space_type_t spaceType) {
     text->param.spaceType = spaceType;
 }
 
-static inline text_param_t text_get_param(text_t* text) {
+static inline text_param_t text_get_param(const text_t* text) {
     return text->param;
 }
 
@@ -642,30 +626,26 @@ static inline void text_set_param(text_t* text, text_param_t parameters) {
 }
 
 
-static inline void points_set_pos(points_t* points, GLfloat pos[2]) {
+static inline void points_set_pos(points_t* points, const GLfloat pos[2]) {
     points->param.pos[0] = pos[0];
     points->param.pos[1] = pos[1];
 }
 
-static inline void points_scale(points_t* points, GLfloat scale[2]) {
+static inline void points_scale(points_t* points, const GLfloat scale[2]) {
     points->param.scale[0] = scale[0];
     points->param.scale[1] = scale[1];
 }
-
-// static inline void points_set_rotation(points_t* points, GLfloat rotation) {
-//     points->param.rotation = rotation;
-// }
 
 static inline void points_set_width(points_t* points, GLfloat width) {
     points->param.width = width;
 }
 
-static inline void points_set_color(points_t* points, GLfloat rgba[4]) {
+static inline void points_set_color(points_t* points, const GLfloat rgba[4]) {
     for (int i=0; i<4; i++)
         points->param.fillColor[i] = rgba[i];
 }
 
-static inline void points_set_outline_color(points_t* points, GLfloat rgba[4]) {
+static inline void points_set_outline_color(points_t* points, const GLfloat rgba[4]) {
     for (int i=0; i<4; i++)
         points->param.outlineColor[i] = rgba[i];
 }
@@ -690,7 +670,7 @@ static inline void points_set_space_type(points_t* points, space_type_t spaceTyp
     points->param.spaceType = spaceType;
 }
 
-static inline points_param_t points_get_param(points_t* points) {
+static inline points_param_t points_get_param(const points_t* points) {
     return points->param;
 }
 
@@ -699,107 +679,61 @@ static inline void points_set_param(points_t* points, points_param_t parameters)
 }
 
 
+
+
+
+typedef enum {
+    POINTS_PROGRAM,
+    LINES_PROGRAM,
+    LINE_LOOP_PROGRAM,
+    LINE_STRIP_PROGRAM,
+    CURVE_PROGRAM,
+    TRIANGLES_PROGRAM,
+    TRIANGLE_STRIP_PROGRAM,
+    TRIANGLE_FAN_PROGRAM,
+    QUADS_PROGRAM
+} points_drawing_mode_t;
+
+
 void points_draw_aux(window_t* window,
-                     points_t* points,
+                     const points_t* points,
                      points_drawing_mode_t mode,
                      GLint start,
                      GLsizei count);
 
 void points_draw_with_order_aux(window_t* window,
-                                points_t* points,
-                                order_t* order,
-                                points_drawing_mode_t mode);
+                                const points_t* points,
+                                points_drawing_mode_t mode,
+                                const order_t* order,
+                                GLint start, GLsizei count);
 
+void points_draw_with_indices_aux(window_t* window,
+                                  const points_t* points,
+                                  points_drawing_mode_t mode,
+                                  const GLuint* indices,
+                                  GLint start, GLsizei count) ;
 
-static inline void points_draw(window_t* window, points_t* pts,
-                               GLint start, GLsizei count) {
-    points_draw_aux(window, pts, POINTS_PROGRAM, start, count);
-}
+// use cpp to preprocess a file with
+#define createDrawingFunctions(primitive, program)\
+static inline void primitive##_draw(\
+window_t* win,const points_t*pts,GLint start,GLsizei count){\
+points_draw_aux(win,pts,program,start,count);}\
+static inline void primitive##_draw_with_order(\
+window_t* win,const points_t*pts,const order_t*order,GLint start,GLsizei count){\
+points_draw_with_order_aux(win,pts,program,order,start,count);}\
+static inline void primitive##_draw_with_indices(\
+window_t* win,const points_t*pts,const GLuint*indices,GLint start,GLsizei count){\
+points_draw_with_indices_aux(win,pts,program,indices,start,count);}
 
-static inline void points_draw_with_order(window_t* window, points_t* pts,
-                                          order_t* order) {
-    points_draw_with_order_aux(window, pts, order, POINTS_PROGRAM);
-}
-
-static inline void curve_draw(window_t* window, points_t* pts,
-                              GLint start, GLsizei count) {
-    points_draw_aux(window, pts, CURVE_PROGRAM, start, count);
-}
-
-static inline void curve_draw_with_order(window_t* window, points_t* pts,
-                                         order_t* order) {
-    points_draw_with_order_aux(window, pts, order, CURVE_PROGRAM);
-}
-
-static inline void lines_draw(window_t* window, points_t* pts,
-                              GLint start, GLsizei count) {
-    points_draw_aux(window, pts, LINES_PROGRAM, start, count);
-}
-
-static inline void lines_draw_with_order(window_t* window, points_t* pts,
-                                         order_t* order) {
-    points_draw_with_order_aux(window, pts, order, LINES_PROGRAM);
-}
-
-static inline void line_strip_draw(window_t* window, points_t* pts,
-                                   GLint start, GLsizei count) {
-    points_draw_aux(window, pts, LINE_STRIP_PROGRAM, start, count);
-}
-
-static inline void line_strip_draw_with_order(window_t* window, points_t* pts,
-                                              order_t* order) {
-    points_draw_with_order_aux(window, pts, order, LINE_STRIP_PROGRAM);
-}
-
-static inline void line_loop_draw(window_t* window, points_t* pts,
-                                  GLint start, GLsizei count) {
-    points_draw_aux(window, pts, LINE_LOOP_PROGRAM, start, count);
-}
-
-static inline void line_loop_draw_with_order(window_t* window, points_t* pts,
-                                             order_t* order) {
-    points_draw_with_order_aux(window, pts, order, LINE_LOOP_PROGRAM);
-}
-
-static inline void triangles_draw(window_t* window, points_t* pts,
-                                  GLint start, GLsizei count) {
-    points_draw_aux(window, pts, TRIANGLES_PROGRAM, start, count);
-}
-
-static inline void triangles_draw_with_order(window_t* window, points_t* pts,
-                                             order_t* order) {
-    points_draw_with_order_aux(window, pts, order, TRIANGLES_PROGRAM);
-}
-
-static inline void triangle_strip_draw(window_t* window, points_t* pts,
-                                       GLint start, GLsizei count) {
-    points_draw_aux(window, pts, TRIANGLE_STRIP_PROGRAM, start, count);
-}
-
-static inline void triangle_strip_draw_with_order(window_t* window, points_t* pts,
-                                                  order_t* order) {
-    points_draw_with_order_aux(window, pts, order, TRIANGLE_STRIP_PROGRAM);
-}
-
-static inline void triangle_fan_draw(window_t* window, points_t* pts,
-                                     GLint start, GLsizei count) {
-    points_draw_aux(window, pts, TRIANGLE_FAN_PROGRAM, start, count);
-}
-
-static inline void triangle_fan_draw_with_order(window_t* window, points_t* pts,
-                                                order_t* order) {
-    points_draw_with_order_aux(window, pts, order, TRIANGLE_FAN_PROGRAM);
-}
-
-static inline void quad_draw(window_t* window, points_t* pts,
-                             GLint start, GLsizei count) {
-    points_draw_aux(window, pts, QUADS_PROGRAM, start, count);
-}
-
-static inline void quad_draw_with_order(window_t* window, points_t* pts,
-                                        order_t* order) {
-    points_draw_with_order_aux(window, pts, order, QUADS_PROGRAM);
-}
+createDrawingFunctions(points, POINTS_PROGRAM)
+createDrawingFunctions(lines, LINES_PROGRAM)
+createDrawingFunctions(line_strip, LINE_STRIP_PROGRAM)
+createDrawingFunctions(line_loop, LINE_LOOP_PROGRAM)
+createDrawingFunctions(curve, CURVE_PROGRAM)
+createDrawingFunctions(triangles, TRIANGLES_PROGRAM)
+createDrawingFunctions(triangle_strip, TRIANGLE_STRIP_PROGRAM)
+createDrawingFunctions(triangle_fan, TRIANGLE_FAN_PROGRAM)
+createDrawingFunctions(quads, QUADS_PROGRAM)
 
 #ifdef __GNUC__
 void error_log(int errorCode, const char *fmt, ...)__attribute__((format (printf, 2, 3)));

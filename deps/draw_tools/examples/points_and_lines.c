@@ -109,35 +109,35 @@ int main(int argc, char *argv[])
 		switch( (unsigned) wtime/4%8) {
 		case 0:
 			text_draw(window, points_draw_label);
-			points_draw(window, pointset, 0, DRAW_ALL_PTS);
+			points_draw(window, pointset, 0, TILL_END);
 			break;
 		case 1:
 			text_draw(window, lines_draw_label);
-			lines_draw(window, pointset, 0, DRAW_ALL_PTS);
+			lines_draw(window, pointset, 0, TILL_END);
 			break;
 		case 2:
 			text_draw(window, line_strip_draw_label);
-			line_strip_draw(window, pointset, 0, DRAW_ALL_PTS);
+			line_strip_draw(window, pointset, 0, TILL_END);
 			break;
 		case 3:
 			text_draw(window, line_loop_draw_label);
-			line_loop_draw(window, pointset, 0, DRAW_ALL_PTS);
+			line_loop_draw(window, pointset, 0, TILL_END);
 			break;
 		case 4:
 			text_draw(window, curve_draw_label);
-			curve_draw(window, pointset, 0, DRAW_ALL_PTS);
+			curve_draw(window, pointset, 0, TILL_END);
 			break;
 		case 5:
 			text_draw(window, lines_draw_with_order_label);
-			lines_draw_with_order(window, pointset, order);
+			lines_draw_with_order(window, pointset, order, 0, TILL_END);
 			break;
 		case 6:
 			text_draw(window, line_strip_draw_with_order_label);
-			line_strip_draw_with_order(window, pointset, order);
+			line_strip_draw_with_order(window, pointset, order, 0, TILL_END);
 			break;
 		case 7:
 			text_draw(window, line_loop_draw_with_order_label);
-			line_loop_draw_with_order(window, pointset, order);
+			line_loop_draw_with_order(window, pointset, order, 0, TILL_END);
 			break;
 		}
 
