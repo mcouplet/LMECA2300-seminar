@@ -67,8 +67,8 @@ void main(void)
     float sdfWidth = fwidth(sdf); // length(dxdy);
 
     // glyph_center = min(glyph_center, outline_center);
-    float opacity = smoothstep(glyph_center-sdfWidth, glyph_center+sdfWidth, sdf); // ~2 pixels antialising
-    float mu = smoothstep(outline_center-sdfWidth, outline_center+sdfWidth, sdf);
+    float opacity = smoothstep(-sdfWidth, sdfWidth, sdf - glyph_center); // ~2 pixels antialising
+    float mu = smoothstep(-sdfWidth, sdfWidth, sdf - outline_center);
     outColor = mix(outlineColor, fillColor, mu); // at 0: completely outlineColor, at1: completely fillColor
     outColor.a *= opacity;
 }

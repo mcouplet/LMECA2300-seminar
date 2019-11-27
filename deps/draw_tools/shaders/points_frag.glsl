@@ -129,7 +129,7 @@ void main() {
         sdf = sdStar(pSquare, fw, nbranch, ad) + fw - width;
     }
 
-    vec2 alpha = smoothstep(pixelSize, -pixelSize, sdf + vec2(0.0f, outlineWidth));
+    vec2 alpha = smoothstep(-pixelSize, pixelSize, -sdf - vec2(0.0f, outlineWidth));
     outColor = mix(outlineColor, fillColor, alpha.y);
     outColor.a *= alpha.x;
 }
