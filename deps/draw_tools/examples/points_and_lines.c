@@ -42,46 +42,46 @@ int main(int argc, char* argv[])
 	    (unsigned char[]){
 	    "points_draw()"},
 	    GL_STATIC_DRAW);
+
+	GLfloat textPos[2] = {-1.0 + 23 * 0.025, 0.9};
+
 	// the default size for a character is 0.025 in width and 0.05 in height
-	text_set_pos(points_draw_label,(GLfloat[2]) {-1.0 + 23 * 0.025, 0.9});
+	text_set_pos(points_draw_label, textPos);
 
 	text_t* curve_draw_label = text_new(
 	    (unsigned char[]) {"curve_draw()"},
 	    GL_STATIC_DRAW);
-	text_set_pos(curve_draw_label, (GLfloat[2]) {-1.0 + 23 * 0.025, 0.9});
+	text_set_pos(curve_draw_label, textPos);
 
 	text_t* lines_draw_label = text_new(
 	    (unsigned char[]) {"lines_draw()"},
 	    GL_STATIC_DRAW);
-	text_set_pos(lines_draw_label, (GLfloat[2]) {-1.0 + 23 * 0.025, 0.9});
+	text_set_pos(lines_draw_label, textPos);
 
 	text_t* lines_draw_with_order_label = text_new(
 	    (unsigned char[]) {"lines_draw_with_order()"},
 	    GL_STATIC_DRAW);
-	text_set_pos(lines_draw_with_order_label,
-	             (GLfloat[2]) {-1.0+23*0.025, 0.9});
+	text_set_pos(lines_draw_with_order_label, textPos);
 
 	text_t* line_strip_draw_label = text_new(
 	    (unsigned char[]) {"line_strip_draw()"},
 	    GL_STATIC_DRAW);
-	text_set_pos(line_strip_draw_label, (GLfloat[2]) {-1.0 + 23 * 0.025, 0.9});
+	text_set_pos(line_strip_draw_label, textPos);
 
 	text_t* line_strip_draw_with_order_label = text_new(
 	    (unsigned char[]) {"line_strip_draw_with_order()"},
 	    GL_STATIC_DRAW);
-	text_set_pos(line_strip_draw_with_order_label,
-	             (GLfloat[2]) {-1.0 + 23 * 0.025, 0.9});
+	text_set_pos(line_strip_draw_with_order_label, textPos);
 
 	text_t* line_loop_draw_label = text_new(
 	    (unsigned char[]) {"line_loop_draw()"},
 	    GL_STATIC_DRAW);
-	text_set_pos(line_loop_draw_label, (GLfloat[2]) {-1.0 + 23 * 0.025, 0.9});
+	text_set_pos(line_loop_draw_label, textPos);
 
 	text_t* line_loop_draw_with_order_label = text_new(
 	    (unsigned char[]) {"line_loop_draw_with_order()"},
 	    GL_STATIC_DRAW);
-	text_set_pos(line_loop_draw_with_order_label,
-	             (GLfloat[2]) {-1.0+23*0.025, 0.9});
+	text_set_pos(line_loop_draw_with_order_label, textPos);
 
 	points_t* pointset = points_new((float[10][2]) {
 	                                    {-1.0,  0.0},

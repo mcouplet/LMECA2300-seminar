@@ -50,6 +50,7 @@ if(DRAW_TOOLS_BUILD_EXAMPLES)
 	add_executable(markers ${CMAKE_CURRENT_SOURCE_DIR}/examples/markers.c)
 	add_executable(points_and_lines ${CMAKE_CURRENT_SOURCE_DIR}/examples/points_and_lines.c)
 	add_executable(text_style ${CMAKE_CURRENT_SOURCE_DIR}/examples/text_style.c)
+	add_executable(triangles ${CMAKE_CURRENT_SOURCE_DIR}/examples/triangles.c)
 
 	target_link_libraries(animation draw_tools)
 	target_link_libraries(character_table draw_tools)
@@ -58,6 +59,7 @@ if(DRAW_TOOLS_BUILD_EXAMPLES)
 	target_link_libraries(markers draw_tools)
 	target_link_libraries(points_and_lines draw_tools)
 	target_link_libraries(text_style draw_tools)
+	target_link_libraries(triangles draw_tools)
 
 	set_target_properties(animation
 	                      character_table
@@ -66,6 +68,7 @@ if(DRAW_TOOLS_BUILD_EXAMPLES)
 	                      points_and_lines
 	                      text_style
 	                      hello_world
+	                      triangles
 	                      PROPERTIES
 	                      C_STANDARD 99
 	                      RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/examples")

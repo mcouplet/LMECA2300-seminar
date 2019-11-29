@@ -86,9 +86,42 @@ void main()
 		pixelSize = 1.0;
 	}
 
-	float w = width + pixelSize;
-
 	vec2 p0 = gl_in[0].gl_Position.xy * localScale;
 	vec2 p1 = gl_in[1].gl_Position.xy * localScale;
-	vec2 p2 = gl_in[0].gl_Position.xy * localScale;
+	vec2 p2 = gl_in[2].gl_Position.xy * localScale;
+
+	// compute heights (simply crossprod/base...)
+	vec2 a = p1 - p0;
+	vec2 b = p2 - p0;
+	vec2 c = p2 - p1;
+
+	float la = length(a);
+	float lb = length(b);
+	float lc = length(c);
+
+	float crossProd = a.x*b.y - a.y*b.x;
+
+	vec2 p0_screen = scaling * p0 + translation;
+	vec2 p1_screen = scaling * p1 + translation;
+	vec2 p2_screen = scaling * p2 + translation;
+	vec2 pxla_screen = scaling * pixelSize * a/la;
+	vec2 pxlb_screen = scaling * pixelSize * b/lb;
+	vec2 pxlc_screen = scaling * pixelSize * c/lc;
+
+
+	float h0 = crossProd / lc;
+	bary = vec3(h0 + pixelSize, -pixelSize, -pixelSize);
+	gl_Position = vec4(p0_screen - pxla_screen - pxlb_screen, 0.0, 1.0);
+	EmitVertex();
+
+	float h1 = crossProd / lb;
+	bary = vec3(-pixelSize, h1 + pixelSize, -pixelSize);
+	gl_Position = vec4(p1_screen + pxla_screen - pxlc_screen, 0.0, 1.0);
+	EmitVertex();
+
+	float h2 = crossProd / la;
+	bary = vec3(-pixelSize, -pixelSize, h2 + pixelSize);
+	gl_Position = vec4(p2_screen + pxlb_screen + pxlc_screen, 0.0, 1.0);
+	EmitVertex();
+	EndPrimitive();
 }

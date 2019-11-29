@@ -49,10 +49,6 @@ layout (std140) uniform worldBlock
 	// float rotation;
 };
 
-layout(triangles) in;
-layout(triangle_strip, max_vertices = 3) out;
-
-
 in vec3 bary;
 flat in float pixelSize;
 
@@ -61,12 +57,12 @@ out vec4 outColor;
 
 void main()
 {
-	outColor = fillColor;
-	return;
-	// vec2 sdf = vec2(0.0, 0.0 - outlineWidth + step(outlineWidth, 0.0))
-	//           - min(bary.x, min(bary.y, bary.z));
+	// outColor = fillColor;
+	// return;
+	vec2 sdf = vec2(0.0, 0.0 - outlineWidth + step(outlineWidth, 0.0))
+	          + min(bary.x, min(bary.y, bary.z));
 
-	// vec2 alpha = smoothstep(0, -2*pixelSize, sdf);
-	// outColor = mix(outlineColor, fillColor, alpha.y); // at 0: completely outlineColor, at1: completely fillColor
-	// outColor.a *= alpha.x;
+	vec2 alpha = smoothstep(-pixelSize, pixelSize, sdf);
+	outColor = mix(outlineColor, fillColor, alpha.y); // at 0: completely outlineColor, at1: completely fillColor
+	outColor.a *= alpha.x;
 }

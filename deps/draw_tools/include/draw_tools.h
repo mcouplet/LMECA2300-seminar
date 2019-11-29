@@ -215,6 +215,27 @@ static inline void curve_draw_with_order(window_t* window, const points_t* pts,
                                          const order_t* order,
                                          GLint start, GLsizei count);
 
+static inline void triangles_draw(window_t* window, const points_t* pts,
+                                  GLint start, GLsizei count);
+static inline void triangles_draw_with_order(window_t* window,
+                                             const points_t* pts,
+                                             const order_t* order,
+                                             GLint start, GLsizei count);
+
+static inline void triangle_strip_draw(window_t* window, const points_t* pts,
+                                       GLint start, GLsizei count);
+static inline void triangle_strip_draw_with_order(window_t* window,
+                                                  const points_t* pts,
+                                                  const order_t* order,
+                                                  GLint start, GLsizei count);
+
+static inline void triangle_fan_draw(window_t* window, const points_t* pts,
+                                     GLint start, GLsizei count);
+static inline void triangle_fan_draw_with_order(window_t* window,
+                                                const points_t* pts,
+                                                const order_t* order,
+                                                GLint start, GLsizei count);
+
 /* delete a points object */
 void points_delete(points_t* points);
 

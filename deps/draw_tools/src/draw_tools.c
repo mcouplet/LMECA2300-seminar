@@ -46,6 +46,8 @@
 #include "lines_geom.h"
 #include "lines_frag.h"
 #include "curve_geom.h"
+#include "triangles_geom.h"
+#include "triangles_frag.h"
 #include "text_vert.h"
 #include "text_frag.h"
 
@@ -550,7 +552,8 @@ static void window_OpenGL_init(window_t* window)
 	}
 
 	{
-		GLuint pointsVS, pointsGS, linesGS, curveGS, pointsFS, linesFS;
+		GLuint pointsVS, pointsGS, linesGS, curveGS, pointsFS, linesFS,
+		       trianglesGS, trianglesFS;
 
 		if((pointsVS = LoadShader(1,
 		                          (const GLchar* []) {points_vert},
@@ -576,6 +579,12 @@ static void window_OpenGL_init(window_t* window)
 		                         "curve_geom.glsl",
 		                         GL_GEOMETRY_SHADER))==0)
 			goto shader_error;
+		if((trianglesGS = LoadShader(1,
+		                             (const GLchar* []) {triangles_geom},
+		                             (const GLint[]) {sizeof(triangles_geom) - 1},
+		                             "triangles_geom.glsl",
+		                             GL_GEOMETRY_SHADER))==0)
+			goto shader_error;
 		if((pointsFS = LoadShader(1,
 		                          (const GLchar* []) {points_frag},
 		                          (const GLint[]) {sizeof(points_frag) - 1},
@@ -588,10 +597,17 @@ static void window_OpenGL_init(window_t* window)
 		                         "lines_frag.glsl",
 		                         GL_FRAGMENT_SHADER))==0)
 			goto shader_error;
+		if((trianglesFS = LoadShader(1,
+		                             (const GLchar* []) {triangles_frag},
+		                             (const GLint[]) {sizeof(triangles_frag) - 1},
+		                             "triangles_frag.glsl",
+		                             GL_FRAGMENT_SHADER))==0)
+			goto shader_error;
 
 		window->program[POINTS_PROGRAM_INDEX] = glCreateProgram();
 		window->program[LINES_PROGRAM_INDEX] = glCreateProgram();
 		window->program[CURVE_PROGRAM_INDEX] = glCreateProgram();
+		window->program[TRIANGLES_PROGRAM_INDEX] = glCreateProgram();
 
 		// Specify the layout of the vertex data
 		glBindAttribLocation(window->program[POINTS_PROGRAM_INDEX],
@@ -600,13 +616,15 @@ static void window_OpenGL_init(window_t* window)
 		                     POS_LOCATION, "pos");
 		glBindAttribLocation(window->program[CURVE_PROGRAM_INDEX],
 		                     POS_LOCATION, "pos");
+		glBindAttribLocation(window->program[TRIANGLES_PROGRAM_INDEX],
+		                     POS_LOCATION, "pos");
 
 		if(program_init(window, POINTS_PROGRAM_INDEX,
 		                3, pointsVS, pointsGS, pointsFS))
 			goto shader_error;
-		glDetachShader(window->program[POINTS_PROGRAM_INDEX],pointsVS);
-		glDetachShader(window->program[POINTS_PROGRAM_INDEX],pointsGS);
-		glDetachShader(window->program[POINTS_PROGRAM_INDEX],pointsFS);
+		glDetachShader(window->program[POINTS_PROGRAM_INDEX], pointsVS);
+		glDetachShader(window->program[POINTS_PROGRAM_INDEX], pointsGS);
+		glDetachShader(window->program[POINTS_PROGRAM_INDEX], pointsFS);
 
 		glDeleteShader(pointsGS);
 		glDeleteShader(pointsFS);
@@ -614,28 +632,39 @@ static void window_OpenGL_init(window_t* window)
 		if(program_init(window, LINES_PROGRAM_INDEX,
 		                3, pointsVS, linesGS, linesFS))
 			goto shader_error;
-		glDetachShader(window->program[LINES_PROGRAM_INDEX],pointsVS);
-		glDetachShader(window->program[LINES_PROGRAM_INDEX],linesGS);
-		glDetachShader(window->program[LINES_PROGRAM_INDEX],linesFS);
+		glDetachShader(window->program[LINES_PROGRAM_INDEX], pointsVS);
+		glDetachShader(window->program[LINES_PROGRAM_INDEX], linesGS);
+		glDetachShader(window->program[LINES_PROGRAM_INDEX], linesFS);
 
 		glDeleteShader(linesGS);
 
 		if(program_init(window, CURVE_PROGRAM_INDEX,
 		                3, pointsVS, curveGS, linesFS))
 			goto shader_error;
-		glDetachShader(window->program[CURVE_PROGRAM_INDEX],pointsVS);
-		glDetachShader(window->program[CURVE_PROGRAM_INDEX],curveGS);
-		glDetachShader(window->program[CURVE_PROGRAM_INDEX],linesFS);
+		glDetachShader(window->program[CURVE_PROGRAM_INDEX], pointsVS);
+		glDetachShader(window->program[CURVE_PROGRAM_INDEX], curveGS);
+		glDetachShader(window->program[CURVE_PROGRAM_INDEX], linesFS);
 
-		glDeleteShader(pointsVS);
 		glDeleteShader(curveGS);
 		glDeleteShader(linesFS);
+
+		if(program_init(window, TRIANGLES_PROGRAM_INDEX,
+		                3, pointsVS, trianglesGS, trianglesFS))
+			goto shader_error;
+		glDetachShader(window->program[TRIANGLES_PROGRAM_INDEX], pointsVS);
+		glDetachShader(window->program[TRIANGLES_PROGRAM_INDEX], trianglesGS);
+		glDetachShader(window->program[TRIANGLES_PROGRAM_INDEX], trianglesFS);
+
+		glDeleteShader(pointsVS);
+		glDeleteShader(trianglesGS);
+		glDeleteShader(trianglesFS);
 	}
 
 	// Create all rasterizers
 	text_rasterizer_init(window);
 	points_rasterizer_init(window->program[POINTS_PROGRAM_INDEX]);
 	points_rasterizer_init(window->program[CURVE_PROGRAM_INDEX]);
+	points_rasterizer_init(window->program[TRIANGLES_PROGRAM_INDEX]);
 
 	points_rasterizer_init(window->program[LINES_PROGRAM_INDEX]);
 	// glUseProgram(window->program[LINES_PROGRAM_INDEX]); // already the last used
