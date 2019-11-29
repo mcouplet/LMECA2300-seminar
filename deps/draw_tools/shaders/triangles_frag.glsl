@@ -30,23 +30,23 @@
 
 layout (std140) uniform objectBlock
 {
-    vec4 fillColor;
-    vec4 outlineColor;
-    vec2 localPos;
-    vec2 localScale;
-    float width;
-    float marker;
-    float outlineWidth;
-    // float rotation;
-    int space_type; // 0: normal sizes, 1: unzoomable, 2: unmodifable pixel size
+	vec4 fillColor;
+	vec4 outlineColor;
+	vec2 localPos;
+	vec2 localScale;
+	float width;
+	float marker;
+	float outlineWidth;
+	// float rotation;
+	int space_type; // 0: normal sizes, 1: unzoomable, 2: unmodifable pixel size
 };
 
 layout (std140) uniform worldBlock
 {
-    vec2 resolution;
-    vec2 translate;
-    float zoom;
-    // float rotation;
+	vec2 resolution;
+	vec2 translate;
+	float zoom;
+	// float rotation;
 };
 
 layout(triangles) in;
@@ -59,13 +59,14 @@ flat in float pixelSize;
 out vec4 outColor;
 
 
-void main() {
-    outColor = fillColor;
-    return;
-    // vec2 sdf = vec2(0.0, 0.0 - outlineWidth + step(outlineWidth, 0.0))
-    //           - min(bary.x, min(bary.y, bary.z));
+void main()
+{
+	outColor = fillColor;
+	return;
+	// vec2 sdf = vec2(0.0, 0.0 - outlineWidth + step(outlineWidth, 0.0))
+	//           - min(bary.x, min(bary.y, bary.z));
 
-    // vec2 alpha = smoothstep(0, -2*pixelSize, sdf);
-    // outColor = mix(outlineColor, fillColor, alpha.y); // at 0: completely outlineColor, at1: completely fillColor
-    // outColor.a *= alpha.x;
+	// vec2 alpha = smoothstep(0, -2*pixelSize, sdf);
+	// outColor = mix(outlineColor, fillColor, alpha.y); // at 0: completely outlineColor, at1: completely fillColor
+	// outColor.a *= alpha.x;
 }

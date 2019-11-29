@@ -30,22 +30,22 @@
 
 layout (std140) uniform objectBlock
 {
-    vec4 fillColor;
-    vec4 outlineColor;
-    vec2 localPos;
-    vec2 outlineShift;
-    float fontSize;
-    float boldness;
-    float outlineWidth;
-    int space_type; // 0: normal sizes, 1: size in pixels, 2: size in pixels without translation
+	vec4 fillColor;
+	vec4 outlineColor;
+	vec2 localPos;
+	vec2 outlineShift;
+	float fontSize;
+	float boldness;
+	float outlineWidth;
+	int space_type; // 0: normal sizes, 1: size in pixels, 2: size in pixels without translation
 };
 
 layout (std140) uniform worldBlock
 {
-    vec2 resolution;
-    vec2 translate;
-    float zoom;
-    // float rotation;
+	vec2 resolution;
+	vec2 translate;
+	float zoom;
+	// float rotation;
 };
 
 // position of this vertex compared to
@@ -60,23 +60,26 @@ out vec2 texCoord;
 
 void main()
 {
-    texCoord = tex;
+	texCoord = tex;
 
-    vec2 resRatio = min(resolution.x, resolution.y)/resolution;
+	vec2 resRatio = min(resolution.x, resolution.y) / resolution;
 
-    // note: conditional based on uniform should not slow the shader down
-    vec2 vertexPos = pos * fontSize;
-    if(space_type==0) {
-        // classical case
-        gl_Position = vec4(resRatio*zoom*(localPos + translate + vertexPos), 0.0, 1.0);
-    }
-    else if(space_type==1) {
-        // no scaling of the vertexPos is applied
-        gl_Position = vec4(resRatio*(zoom*(localPos + translate) + vertexPos), 0.0, 1.0);
-    }
-    else {
-        // everything is given in pixel, from the bottom left corner :-)
-        vec2 pixelPos = localPos + vertexPos;
-        gl_Position = vec4(2.0*pixelPos/resolution - 1.0, 0.0, 1.0);
-    }
+	// note: conditional based on uniform should not slow the shader down
+	vec2 vertexPos = pos * fontSize;
+	if(space_type==0) {
+		// classical case
+		gl_Position = vec4(resRatio * zoom * (localPos + translate + vertexPos),
+		                   0.0, 1.0);
+	}
+	else if(space_type==1) {
+		// no scaling of the vertexPos is applied
+		gl_Position = vec4(resRatio * (zoom * (localPos + translate) + vertexPos),
+		                   0.0, 1.0);
+	}
+	else {
+		// everything is given in pixel, from the bottom left corner :-)
+		vec2 pixelPos = localPos + vertexPos;
+		gl_Position = vec4(2.0*pixelPos  resolution - 1.0,
+		                   0.0, 1.0);
+	}
 }
