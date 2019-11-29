@@ -32,7 +32,7 @@
 
 int main()
 {
-	window_t* window = window_new(-1,1, "Character Table"); // maximized window
+	window_t* window = window_new(-1, 1, "Character Table"); // maximized window
 
 	text_t* character_table = text_new((unsigned char[]){
 		"Here is a complete list of the available characters, with their hexadecimal value\n"
@@ -61,14 +61,14 @@ int main()
 		"in a C string by using \\xV, where V is an hexadecimal value\n"
 		"For example, to insert the smiley \xa1, you have to use text_new(\"\\xa1\")\n"
 		}, GL_STATIC_DRAW);
-	
+
 	GLfloat xres = window_get_xres(window);
 	GLfloat yres = window_get_yres(window);
-	GLfloat minres = xres<yres?xres:yres;
-	GLfloat lineheight = 2.0/minres*64.0/3.0; // 64/3 pixels in screen coordinates
+	GLfloat minres = xres<yres ? xres : yres;
+	GLfloat lineheight = 2.0 / minres * 64.0 / 3.0; // 64/3 pixels in screen coordinates
 	text_set_fontsize(character_table, lineheight);
-	text_set_pos(character_table, (GLfloat[2]){-xres/minres + 0.5*lineheight,
-	                                            yres/minres - 1.5*lineheight});
+	text_set_pos(character_table, (GLfloat[2]) {-xres / minres + 0.5 * lineheight,
+	                                             yres / minres - 1.5 * lineheight});
 
 	while(!window_should_close(window)){
 		text_draw(window, character_table);

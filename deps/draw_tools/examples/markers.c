@@ -35,7 +35,7 @@
 #define DT_NMARKERS 25
 
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
 	/* Actually, this is not an example at all, you shouldn't draw the
 	 * same f**king point 250 time, each time with a different draw
@@ -49,14 +49,14 @@ int main(int argc, char *argv[])
 	 */
 
 	window_t* window = window_new(0,0, argv[0]);
-	window_set_color(window, (GLfloat[4]){1.0f, 0.8f, 0.5f, 1.0f});
+	window_set_color(window, (GLfloat[4]) {1.0f, 0.8f, 0.5f, 1.0f});
 
 	const GLfloat pointWidth = 1.0f/DT_NMARKERS;
 
-	points_t* points = points_new((float[2][2]){{0.0f, 0.0f}, {1.0f, 0.0f}}, 2,
-	                                    GL_STATIC_DRAW);
-	points_set_outline_color(points, (float[4]){0.3f, 0.3f, 0.3f, 1.0f});
-	points_set_outline_width(points, pointWidth*0.2f);
+	points_t* points = points_new((float[2][2]) {{0.0f, 0.0f}, {1.0f, 0.0f}}, 2,
+	                              GL_STATIC_DRAW);
+	points_set_outline_color(points, (float[4]) {0.3f, 0.3f, 0.3f, 1.0f});
+	points_set_outline_width(points, pointWidth * 0.2f);
 	points_set_width(points, pointWidth);
 
 	text_t* marker_text;
@@ -70,61 +70,61 @@ int main(int argc, char *argv[])
 
 		for(int j=0; j<9; j++) {
 			for(int i=0; i<DT_NMARKERS; i++) {
-				sprintf(string+cur, " %6.3f ", i+j*0.12493f);
+				sprintf(string+cur, " %6.3f ", i + j * 0.12493f);
 				cur += 8;
 			}
 
 			// replace the 2 trailing space with 4 '\n'
 			sprintf(string+cur-1, "\n\n\n\n\n\n\n\n\n\n");
-			cur+= 9;
+			cur += 9;
 		}
 
 
-		marker_text = text_new((unsigned char *) string,
+		marker_text = text_new((unsigned char*) string,
 			                           GL_STATIC_DRAW);
-		text_set_fontsize(marker_text, pointWidth*0.5f);
-		text_set_pos(marker_text, (GLfloat[2]){-1.0f, 1.0f-pointWidth});
+		text_set_fontsize(marker_text, pointWidth * 0.5f);
+		text_set_pos(marker_text, (GLfloat[2]) {-1.0f, 1.0f - pointWidth});
 	}
-	
 
-	while(!window_should_close(window)){
+
+	while(!window_should_close(window)) {
 		double wtime = window_get_time(window);
 
 		// we change the color over time
 		points_set_color(points, (GLfloat[4]) {
-		                 sin(0.11*wtime)*0.5+0.5,
-		                 sin(0.7*wtime)*0.5+0.4,
-		                 sin(0.67*wtime)*0.5+0.6,
+		                 sin(0.11 * wtime) * 0.5 + 0.5,
+		                 sin(0.7 * wtime) * 0.5 + 0.4,
+		                 sin(0.67 * wtime) * 0.5 + 0.6,
 		                 1});
-		points_set_outline_width(points, pointWidth*0.2f);
+		points_set_outline_width(points, pointWidth * 0.2f);
 		points_set_width(points, pointWidth);
 
 		// we modify wtime to go only between 0 and 1
-		double fract02 = modf(0.2*wtime, &wtime);
-		wtime = fabs(2*fract02-1.0);
+		double fract02 = modf(0.2 * wtime, &wtime);
+		wtime = fabs(2 * fract02 - 1.0);
 
 		for(int i=0; i<DT_NMARKERS; i++) {
 
-			GLfloat pos[2] = {pointWidth-1.0f+2.0f*pointWidth*i,
-			                 1.0f-2.5f*pointWidth};
+			GLfloat pos[2] = {pointWidth-1.0f + 2.0f * pointWidth * i,
+			                 1.0f - 2.5f * pointWidth};
 
 			for(int j=0; j<9; j++) {
 				points_set_pos(points, pos);
-				points_set_marker(points, i+j*0.12493f);
+				points_set_marker(points, i + j * 0.12493f);
 				points_draw(window, points, 0, 1);
-				
-				pos[1] -= 5.0f*pointWidth;
+
+				pos[1] -= 5.0f * pointWidth;
 			}
 
 			points_set_pos(points, pos);
-			points_set_marker(points, i+wtime);
+			points_set_marker(points, i + wtime);
 			points_draw(window, points, 0, 1);
 		}
 
 		text_draw(window, marker_text);
-		points_set_pos(points, (GLfloat[2]){-0.5, 1.0f - 9*5.0f*pointWidth});
-		points_set_width(points, pointWidth*0.5f);
-		points_set_outline_width(points, pointWidth*(0.5f*0.2f));
+		points_set_pos(points, (GLfloat[2]) {-0.5, 1.0f - 9 * 5.0f * pointWidth});
+		points_set_width(points, pointWidth * 0.5f);
+		points_set_outline_width(points, pointWidth * (0.5f * 0.2f));
 		lines_draw(window, points, 0, 2);
 
 		window_update(window);

@@ -40,32 +40,37 @@ void transition(points_t* diag, float a[2], float b[2], float x)
 }
 
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
-	window_t* window = window_new(0,0, argv[0]);
+	window_t* window = window_new(0, 0, argv[0]);
 	window_enable_help(window);
-	
+
 	// a grey background
-	window_set_color(window, (GLfloat[4]){0.3, 0.3, 0.3, 1});
+	window_set_color(window, (GLfloat[4]) {0.3, 0.3, 0.3, 1});
 
 	// we define a style for the lines
-	points_param_t lineParams = {.fillColor={1.0, 0.6, 0.3, 1.0},
-	                             .scale={1.0, 1.0},
-	                             .width=0.03};
+	points_param_t lineParams = {
+		.fillColor = {1.0, 0.6, 0.3, 1.0},
+		.scale = {1.0, 1.0},
+		.width = 0.03
+	};
 
-	GLfloat coord[10][2] = {{-0.2, -0.4},
-	                        {-0.5,  0.0},
-	                        { 0.3,  0.0},
-	                        { 0.0, -0.9},
-	                        {-0.8, -0.6},
-	                        {-1.0,  0.0},
-	                        {-0.7,  0.6},
-	                        { 0.0,  0.8},
-	                        { 0.7,  0.6},
-	                        { 0.5, -0.6}};
+	GLfloat coord[10][2] = {
+		{-0.2, -0.4},
+		{-0.5,  0.0},
+		{ 0.3,  0.0},
+		{ 0.0, -0.9},
+		{-0.8, -0.6},
+		{-1.0,  0.0},
+		{-0.7,  0.6},
+		{ 0.0,  0.8},
+		{ 0.7,  0.6},
+		{ 0.5, -0.6}
+	};
 
 	points_t* pointset = points_new(coord, 10, GL_STATIC_DRAW);
-	points_t* diag = points_new((GLfloat[2][2]){{0.0, 0.0}, {1.0, 1.0}}, 2, GL_STATIC_DRAW);
+	points_t* diag = points_new((GLfloat[2][2]) {{0.0, 0.0}, {1.0, 1.0}},
+	                            2, GL_STATIC_DRAW);
 	points_set_param(pointset, lineParams);
 	points_set_param(diag, lineParams);
 
@@ -77,9 +82,9 @@ int main(int argc, char *argv[])
 			if(window_should_close(window))
 				goto end_of_program; // break all the loop (only valid use of goto)
 
-			line_strip_draw(window, pointset, 0, i+1);
+			line_strip_draw(window, pointset, 0, i + 1);
 
-			transition(diag, coord[i], coord[(i+1)%10], (tnow-tbegin)/transition_time);
+			transition(diag, coord[i], coord[(i + 1) % 10], (tnow-tbegin)/transition_time);
 			lines_draw(window, diag, 0, 2);
 
 			window_update(window);

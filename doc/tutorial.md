@@ -18,7 +18,7 @@ animation for your upcoming project.
 
 The first question that you might ask is:
 
-> Why is the Numerical Geometry project in C and not in Python, Java, 
+> Why is the Numerical Geometry project in C and not in Python, Java,
   C++, Rust or Julia ?
 
 You will realize that C is very transparent about memory allocation.
@@ -109,7 +109,7 @@ int main()
 Before drawing things into a window, we have to understand that the
 window object is actually much more than a window.
 Indeed, when you will draw primitive shapes with `points_draw()`,
-`text_draw()`... you will in fact draw to a texture in the memory of 
+`text_draw()`... you will in fact draw to a texture in the memory of
 your computer which is called a framebuffer. Once you've filled the
 framebuffer with what you want to draw, you can show it in the window
 using:
@@ -196,9 +196,9 @@ in this manner
 
 ```C
 while(!window_should_close(window)) {
-	// draw stuff here
+    // draw stuff here
 
-	// ...
+    // ...
 
     window_update(window);
 }
@@ -254,19 +254,19 @@ with some pretty effects, by varying the text object parameters.
 
 void nice_colormap(float color[4], float a)
 {
-   color[0] = sin(.33*a)*0.3+0.7;
-   color[1] = sin(.23*a+2.)*0.3+0.7;
-   color[2] = sin(.17*a+5.)*0.3+0.6;
-   color[3] = 1; // solid
+    color[0] = sin(0.33 * a) * 0.3 + 0.7;
+    color[1] = sin(0.23 * a + 2.) * 0.3 + 0.7;
+    color[2] = sin(0.17 * a + 5.) * 0.3 + 0.6;
+    color[3] = 1.0; // solid
 }
 
 int main()
 {
-    window_t* window = window_new(800,800, "Tutorial 1");
-    window_set_color(window, (GLfloat[]){0.5, 0.5, 0.5, 1.0});
+    window_t* window = window_new(800, 800, "Tutorial 1");
+    window_set_color(window, (GLfloat[]) {0.5, 0.5, 0.5, 1.0});
 
     // hw is prefix for hello world :p
-    text_t* hw_obj = text_new((unsigned char[]){"Hello World !"},
+    text_t* hw_obj = text_new((unsigned char[]) {"Hello World !"},
                               GL_STATIC_DRAW);
 
     float hw_color[4] = {1.0, 1.0, 1.0, 1.0};
@@ -274,13 +274,13 @@ int main()
 
     // a character here is 0.1 wide (it is 0.05 with no scaling)
     // centering "Hello World !": 13/2=6.5 characters => 0.65
-    text_set_pos(hw_obj, (GLfloat[2]){-0.65, 0.0});
+    text_set_pos(hw_obj, (GLfloat[2]) {-0.65, 0.0});
     text_set_boldness(hw_obj, 0.4); // bold
     text_set_outline_width(hw_obj, 1.0); // big outline
     text_set_outline_color(hw_obj, (float[4]) {0, 0, 0, 1}); // black
 
 
-    while(!window_should_close(window)){
+    while(!window_should_close(window)) {
         nice_colormap(hw_color, window_get_time(window));
         text_set_color(hw_obj, hw_color);
         text_draw(window, hw_obj);

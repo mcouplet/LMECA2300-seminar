@@ -29,59 +29,59 @@
 #include <math.h>
 
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
 	window_t* window = window_new(1080,640, argv[0]);
 
 	text_t* common_text = text_new(
 	    (unsigned char[]){"rendering points using"},
 	    GL_STATIC_DRAW);
-	text_set_pos(common_text, (GLfloat[2]){-1.0, 0.9});
+	text_set_pos(common_text, (GLfloat[2]) {-1.0, 0.9});
 
 	text_t* points_draw_label = text_new(
 	    (unsigned char[]){
 	    "points_draw()"},
 	    GL_STATIC_DRAW);
 	// the default size for a character is 0.025 in width and 0.05 in height
-	text_set_pos(points_draw_label,(GLfloat[2]){-1.0+23*0.025, 0.9});
+	text_set_pos(points_draw_label,(GLfloat[2]) {-1.0 + 23 * 0.025, 0.9});
 
 	text_t* curve_draw_label = text_new(
-	    (unsigned char[]){"curve_draw()"},
+	    (unsigned char[]) {"curve_draw()"},
 	    GL_STATIC_DRAW);
-	text_set_pos(curve_draw_label, (GLfloat[2]){-1.0+23*0.025, 0.9});
+	text_set_pos(curve_draw_label, (GLfloat[2]) {-1.0 + 23 * 0.025, 0.9});
 
 	text_t* lines_draw_label = text_new(
-	    (unsigned char[]){"lines_draw()"},
+	    (unsigned char[]) {"lines_draw()"},
 	    GL_STATIC_DRAW);
-	text_set_pos(lines_draw_label, (GLfloat[2]){-1.0+23*0.025, 0.9});
+	text_set_pos(lines_draw_label, (GLfloat[2]) {-1.0 + 23 * 0.025, 0.9});
 
 	text_t* lines_draw_with_order_label = text_new(
-	    (unsigned char[]){"lines_draw_with_order()"},
+	    (unsigned char[]) {"lines_draw_with_order()"},
 	    GL_STATIC_DRAW);
 	text_set_pos(lines_draw_with_order_label,
-	             (GLfloat[2]){-1.0+23*0.025, 0.9});
+	             (GLfloat[2]) {-1.0+23*0.025, 0.9});
 
 	text_t* line_strip_draw_label = text_new(
-	    (unsigned char[]){"line_strip_draw()"},
+	    (unsigned char[]) {"line_strip_draw()"},
 	    GL_STATIC_DRAW);
-	text_set_pos(line_strip_draw_label, (GLfloat[2]){-1.0+23*0.025, 0.9});
+	text_set_pos(line_strip_draw_label, (GLfloat[2]) {-1.0 + 23 * 0.025, 0.9});
 
 	text_t* line_strip_draw_with_order_label = text_new(
-	    (unsigned char[]){"line_strip_draw_with_order()"},
+	    (unsigned char[]) {"line_strip_draw_with_order()"},
 	    GL_STATIC_DRAW);
 	text_set_pos(line_strip_draw_with_order_label,
-	             (GLfloat[2]){-1.0+23*0.025, 0.9});
+	             (GLfloat[2]) {-1.0 + 23 * 0.025, 0.9});
 
 	text_t* line_loop_draw_label = text_new(
-	    (unsigned char[]){"line_loop_draw()"},
+	    (unsigned char[]) {"line_loop_draw()"},
 	    GL_STATIC_DRAW);
-	text_set_pos(line_loop_draw_label, (GLfloat[2]){-1.0+23*0.025, 0.9});
+	text_set_pos(line_loop_draw_label, (GLfloat[2]) {-1.0 + 23 * 0.025, 0.9});
 
 	text_t* line_loop_draw_with_order_label = text_new(
-	    (unsigned char[]){"line_loop_draw_with_order()"},
+	    (unsigned char[]) {"line_loop_draw_with_order()"},
 	    GL_STATIC_DRAW);
 	text_set_pos(line_loop_draw_with_order_label,
-	             (GLfloat[2]){-1.0+23*0.025, 0.9});
+	             (GLfloat[2]) {-1.0+23*0.025, 0.9});
 
 	points_t* pointset = points_new((float[10][2]) {
 	                                    {-1.0,  0.0},
@@ -95,18 +95,18 @@ int main(int argc, char *argv[])
 	                                    { 0.7,  0.6},
 	                                    { 0.0, -0.9}
 	                                }, 10, GL_STATIC_DRAW);
-	points_set_color(pointset, (float[4]){0.05, 0.1, 0.2, 0.6});
+	points_set_color(pointset, (float[4]) {0.05, 0.1, 0.2, 0.6});
 
-	order_t* order = order_new((GLuint[10]){4, 3, 6, 9, 1, 0, 2, 5, 8, 7},
+	order_t* order = order_new((GLuint[10]) {4, 3, 6, 9, 1, 0, 2, 5, 8, 7},
 	                           10, GL_STATIC_DRAW);
 
 	unsigned long frameCount = 0;
-	while(!window_should_close(window)){
+	while(!window_should_close(window)) {
 		double wtime = window_get_time(window);
 
 		text_draw(window, common_text);
 
-		switch( (unsigned) wtime/4%8) {
+		switch( (unsigned) wtime / 4 % 8) {
 		case 0:
 			text_draw(window, points_draw_label);
 			points_draw(window, pointset, 0, TILL_END);
@@ -149,7 +149,7 @@ int main(int argc, char *argv[])
 	printf("Ended correctly - %.2f second, %lu frames, %.2f fps\n",
 	       window_get_time(window),
 	       frameCount,
-	       frameCount/window_get_time(window));
+	       frameCount / window_get_time(window));
 
 	text_delete(points_draw_label);
 	text_delete(lines_draw_label);

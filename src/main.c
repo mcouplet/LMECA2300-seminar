@@ -12,7 +12,7 @@ int main()
 	// we print the seed so you can get the distribution of points back
 	printf("Tseed=%d\n", seed);
 
-	window_t* window = window_new(800,800, "Tutorial 1");
+	window_t* window = window_new(800, 800, "Tutorial 1");
 	window_set_color(window, (GLfloat[]){0.9f, 0.85f, 0.8f, 1.0f});
 
 	const GLsizei nPoints = 500;
@@ -24,8 +24,8 @@ int main()
 #endif
 
 	points_t *coordDraw = points_new(coord, nPoints, GL_STATIC_DRAW);
-	points_set_color(coordDraw, (GLfloat[4]){0.0, 0.0, 0.0, 1.0});
-	points_set_outline_color(coordDraw, (GLfloat[4]){0.3, 0.12, 0.0, 0.25});
+	points_set_color(coordDraw, (GLfloat[4]) {0.0, 0.0, 0.0, 1.0});
+	points_set_outline_color(coordDraw, (GLfloat[4]) {0.3, 0.12, 0.0, 0.25});
 
 	while(!window_should_close(window)){
 		points_set_width(coordDraw, 0.003);

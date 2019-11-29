@@ -977,30 +977,30 @@ static GLsizei fill_text_data(GLfloat* data, const unsigned char* string,
 				w = glyph->width*rx/font.size;
 				h = glyph->height*ry/font.size;
 
-				data[24 * num + 0] = (GLfloat) x;
-				data[24 * num + 1] = (GLfloat) y;
-				data[24 * num + 2] = s0;
-				data[24 * num + 3] = t0;
-				data[24 * num + 4] = (GLfloat) x;
-				data[24 * num + 5] = (GLfloat) (y - h);
-				data[24 * num + 6] = s0;
-				data[24 * num + 7] = t1;
-				data[24 * num + 8] = (GLfloat) (x + w);
-				data[24 * num + 9] = (GLfloat) (y - h);
-				data[24 * num + 10] = s1;
-				data[24 * num + 11] = t1;
-				data[24 * num + 12] = (GLfloat) x;
-				data[24 * num + 13] = (GLfloat) y;
-				data[24 * num + 14] = s0;
-				data[24 * num + 15] = t0;
-				data[24 * num + 16] = (GLfloat) (x + w);
-				data[24 * num + 17] = (GLfloat) (y - h);
-				data[24 * num + 18] = s1;
-				data[24 * num + 19] = t1;
-				data[24 * num + 20] = (GLfloat) (x + w);
-				data[24 * num + 21] = (GLfloat) y;
-				data[24 * num + 22] = s1;
-				data[24 * num + 23] = t0;
+				data[24*num + 0] = (GLfloat) x;
+				data[24*num + 1] = (GLfloat) y;
+				data[24*num + 2] = s0;
+				data[24*num + 3] = t0;
+				data[24*num + 4] = (GLfloat) x;
+				data[24*num + 5] = (GLfloat) (y - h);
+				data[24*num + 6] = s0;
+				data[24*num + 7] = t1;
+				data[24*num + 8] = (GLfloat) (x + w);
+				data[24*num + 9] = (GLfloat) (y - h);
+				data[24*num + 10] = s1;
+				data[24*num + 11] = t1;
+				data[24*num + 12] = (GLfloat) x;
+				data[24*num + 13] = (GLfloat) y;
+				data[24*num + 14] = s0;
+				data[24*num + 15] = t0;
+				data[24*num + 16] = (GLfloat) (x + w);
+				data[24*num + 17] = (GLfloat) (y - h);
+				data[24*num + 18] = s1;
+				data[24*num + 19] = t1;
+				data[24*num + 20] = (GLfloat) (x + w);
+				data[24*num + 21] = (GLfloat) y;
+				data[24*num + 22] = s1;
+				data[24*num + 23] = t0;
 
 				num++;
 				break;
@@ -1020,16 +1020,15 @@ text_t* text_new(const unsigned char* string, GLenum usage)
 	text_t* text = malloc(sizeof(text_t));
 	CHECK_MALLOC(text);
 
-	text->param = (text_param_t){
-		.fillColor={0.0f, 0.0f, 0.0f, 1.0f},
-		.outlineColor={1.0f ,1.0f, 1.0f, 2.0f},
-		.pos={0.0f, 0.0f},
-		.shift={0.0f, 0.0f},
-		.fontSize=0.05f,
-		.boldness=0.0f,
-		.outlineWidth=-1.0f,
-		// .rotation=0.0f,
-		.spaceType=USUAL_SPACE};
+	text->param = (text_param_t) {
+		.fillColor = {0.0f, 0.0f, 0.0f, 1.0f},
+		.outlineColor = {1.0f ,1.0f, 1.0f, 2.0f},
+		.pos = {0.0f, 0.0f},
+		.shift = {0.0f, 0.0f},
+		.fontSize = 0.05f,
+		.boldness = 0.0f,
+		.outlineWidth = -1.0f,
+		.spaceType = USUAL_SPACE};
 
 	// Create Vertex Array Object
 	glGenVertexArrays(1, &text->vao);
@@ -1151,16 +1150,15 @@ points_t* points_new(const GLfloat coords[][2], GLsizei n, GLenum usage)
 
 	points->vboLen = coords==NULL ? 0 : n;
 
-	points->param = (points_param_t){
-		.fillColor={0.0f, 0.0f, 0.0f, 1.0f}, // color
-		.outlineColor={1.0f ,1.0f, 1.0f, 1.0f}, // outlineColor
-		.pos={0.0f ,0.0f},           // other
-		.scale={1.0f, 1.0f},           // localPos
-		.width=0.025f,
-		.marker=0.0f,
-		.outlineWidth=-1.0f,
-		// .rotation=0.0f,
-		.spaceType=USUAL_SPACE
+	points->param = (points_param_t) {
+		.fillColor = {0.0f, 0.0f, 0.0f, 1.0f}, // color
+		.outlineColor = {1.0f ,1.0f, 1.0f, 1.0f}, // outlineColor
+		.pos = {0.0f ,0.0f},           // other
+		.scale = {1.0f, 1.0f},           // localPos
+		.width = 0.025f,
+		.marker = 0.0f,
+		.outlineWidth = -1.0f,
+		.spaceType = USUAL_SPACE
 	};
 
 	// Create Vertex Array Object
