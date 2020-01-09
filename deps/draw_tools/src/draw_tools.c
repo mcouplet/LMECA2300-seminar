@@ -690,7 +690,7 @@ window_t* window_new(int width, int height, const char* win_name)
 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-	glfwWindowHint(GLFW_SAMPLES, 4); // multisampling (MSAA) x4
+	glfwWindowHint(GLFW_SAMPLES, 0); // we disable multisampling has we already use shader antialiasing
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
