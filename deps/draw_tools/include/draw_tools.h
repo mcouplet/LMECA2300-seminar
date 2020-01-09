@@ -751,7 +751,14 @@ typedef enum {
 	TRIANGLES_PROGRAM,
 	TRIANGLE_STRIP_PROGRAM,
 	TRIANGLE_FAN_PROGRAM,
-	QUADS_PROGRAM
+	// QUADS_PROGRAM,
+  FAST_POINTS_PROGRAM,
+  FAST_LINES_PROGRAM,
+  FAST_LINE_LOOP_PROGRAM,
+  FAST_LINE_STRIP_PROGRAM,
+  FAST_TRIANGLES_PROGRAM,
+  FAST_TRIANGLE_STRIP_PROGRAM,
+  FAST_TRIANGLE_FAN_PROGRAM,
 } points_drawing_mode_t;
 
 
@@ -793,7 +800,18 @@ createDrawingFunctions(curve, CURVE_PROGRAM)
 createDrawingFunctions(triangles, TRIANGLES_PROGRAM)
 createDrawingFunctions(triangle_strip, TRIANGLE_STRIP_PROGRAM)
 createDrawingFunctions(triangle_fan, TRIANGLE_FAN_PROGRAM)
-createDrawingFunctions(quads, QUADS_PROGRAM)
+// createDrawingFunctions(quads, QUADS_PROGRAM)
+
+// alternative shaders, using default primitive rendering
+// they understand only fillColor and the space_type for the position
+// of points
+createDrawingFunctions(fast_points, FAST_POINTS_PROGRAM)
+createDrawingFunctions(fast_lines, FAST_LINES_PROGRAM)
+createDrawingFunctions(fast_line_strip, FAST_LINE_STRIP_PROGRAM)
+createDrawingFunctions(fast_line_loop, FAST_LINE_LOOP_PROGRAM)
+createDrawingFunctions(fast_triangles, FAST_TRIANGLES_PROGRAM)
+createDrawingFunctions(fast_triangle_strip, FAST_TRIANGLE_STRIP_PROGRAM)
+createDrawingFunctions(fast_triangle_fan, FAST_TRIANGLE_FAN_PROGRAM)
 
 #ifdef __GNUC__
 void error_log(int errorCode, const char *fmt, ...)__attribute__((format (printf, 2, 3)));

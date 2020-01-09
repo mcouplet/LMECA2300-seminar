@@ -50,6 +50,8 @@
 #include "triangles_frag.h"
 #include "text_vert.h"
 #include "text_frag.h"
+#include "default_vert.h"
+#include "default_frag.h"
 
 #define POS_LOCATION 0
 #define TEX_LOCATION 1
@@ -59,7 +61,9 @@
 #define LINES_PROGRAM_INDEX    2
 #define CURVE_PROGRAM_INDEX    3
 #define TRIANGLES_PROGRAM_INDEX 4
-#define QUAD_PROGRAM_INDEX     5
+#define DEFAULT_PROGRAM_INDEX  5
+// #define QUAD_PROGRAM_INDEX     6
+
 
 
 
@@ -553,7 +557,7 @@ static void window_OpenGL_init(window_t* window)
 
 	{
 		GLuint pointsVS, pointsGS, linesGS, curveGS, pointsFS, linesFS,
-		       trianglesGS, trianglesFS;
+		       trianglesGS, trianglesFS, defaultVS, defaultFS;
 
 		if((pointsVS = LoadShader(1,
 		                          (const GLchar* []) {points_vert},
@@ -603,11 +607,24 @@ static void window_OpenGL_init(window_t* window)
 		                             "triangles_frag.glsl",
 		                             GL_FRAGMENT_SHADER))==0)
 			goto shader_error;
+		if((defaultVS = LoadShader(1,
+		                          (const GLchar* []) {default_vert},
+		                          (const GLint[]) {sizeof(default_vert) - 1},
+		                          "default_vert.glsl",
+		                          GL_VERTEX_SHADER))==0)
+			goto shader_error;
+		if((defaultFS = LoadShader(1,
+		                          (const GLchar* []) {default_frag},
+		                          (const GLint[]) {sizeof(default_frag) - 1},
+		                          "default_frag.glsl",
+		                          GL_FRAGMENT_SHADER))==0)
+			goto shader_error;
 
 		window->program[POINTS_PROGRAM_INDEX] = glCreateProgram();
 		window->program[LINES_PROGRAM_INDEX] = glCreateProgram();
 		window->program[CURVE_PROGRAM_INDEX] = glCreateProgram();
 		window->program[TRIANGLES_PROGRAM_INDEX] = glCreateProgram();
+		window->program[DEFAULT_PROGRAM_INDEX] = glCreateProgram();
 
 		// Specify the layout of the vertex data
 		glBindAttribLocation(window->program[POINTS_PROGRAM_INDEX],
@@ -617,6 +634,8 @@ static void window_OpenGL_init(window_t* window)
 		glBindAttribLocation(window->program[CURVE_PROGRAM_INDEX],
 		                     POS_LOCATION, "pos");
 		glBindAttribLocation(window->program[TRIANGLES_PROGRAM_INDEX],
+		                     POS_LOCATION, "pos");
+		glBindAttribLocation(window->program[DEFAULT_PROGRAM_INDEX],
 		                     POS_LOCATION, "pos");
 
 		if(program_init(window, POINTS_PROGRAM_INDEX,
@@ -658,6 +677,16 @@ static void window_OpenGL_init(window_t* window)
 		glDeleteShader(pointsVS);
 		glDeleteShader(trianglesGS);
 		glDeleteShader(trianglesFS);
+
+		if(program_init(window, DEFAULT_PROGRAM_INDEX,
+		                2, defaultVS, defaultFS))
+			goto shader_error;
+
+		glDetachShader(window->program[DEFAULT_PROGRAM_INDEX], defaultVS);
+		glDetachShader(window->program[DEFAULT_PROGRAM_INDEX], defaultFS);
+
+		glDeleteShader(defaultVS);
+		glDeleteShader(defaultFS);
 	}
 
 	// Create all rasterizers
@@ -665,6 +694,7 @@ static void window_OpenGL_init(window_t* window)
 	points_rasterizer_init(window->program[POINTS_PROGRAM_INDEX]);
 	points_rasterizer_init(window->program[CURVE_PROGRAM_INDEX]);
 	points_rasterizer_init(window->program[TRIANGLES_PROGRAM_INDEX]);
+	points_rasterizer_init(window->program[DEFAULT_PROGRAM_INDEX]);
 
 	points_rasterizer_init(window->program[LINES_PROGRAM_INDEX]);
 	// glUseProgram(window->program[LINES_PROGRAM_INDEX]); // already the last used
@@ -851,6 +881,7 @@ void window_delete(window_t* window)
 	glDeleteProgram(window->program[POINTS_PROGRAM_INDEX]);
 	glDeleteProgram(window->program[LINES_PROGRAM_INDEX]);
 	glDeleteProgram(window->program[CURVE_PROGRAM_INDEX]);
+	glDeleteProgram(window->program[DEFAULT_PROGRAM_INDEX]);
 	glDeleteBuffers(2, window->ubo);
 	glfwDestroyWindow(window->self);
 	glfwTerminate();
@@ -1316,9 +1347,37 @@ static GLenum switch_rasterizer_with_mode(window_t* window,
 			program_index = TRIANGLES_PROGRAM_INDEX;
 			primitive = GL_TRIANGLE_FAN;
 			break;
-		case QUADS_PROGRAM:
-			program_index = QUAD_PROGRAM_INDEX;
-			primitive = GL_LINES_ADJACENCY;
+		// case QUADS_PROGRAM:
+		// 	program_index = QUAD_PROGRAM_INDEX;
+		// 	primitive = GL_LINES_ADJACENCY;
+		// 	break;
+		case FAST_POINTS_PROGRAM:
+			program_index = DEFAULT_PROGRAM_INDEX;
+			primitive = GL_POINTS;
+			break;
+		case FAST_LINES_PROGRAM:
+			program_index = DEFAULT_PROGRAM_INDEX;
+			primitive = GL_LINES;
+			break;
+		case FAST_LINE_LOOP_PROGRAM:
+			program_index = DEFAULT_PROGRAM_INDEX;
+			primitive = GL_LINE_LOOP;
+			break;
+		case FAST_LINE_STRIP_PROGRAM:
+			program_index = DEFAULT_PROGRAM_INDEX;
+			primitive = GL_LINE_STRIP;
+			break;
+		case FAST_TRIANGLES_PROGRAM:
+			program_index = DEFAULT_PROGRAM_INDEX;
+			primitive = GL_TRIANGLES;
+			break;
+		case FAST_TRIANGLE_STRIP_PROGRAM:
+			program_index = DEFAULT_PROGRAM_INDEX;
+			primitive = GL_TRIANGLE_STRIP;
+			break;
+		case FAST_TRIANGLE_FAN_PROGRAM:
+			program_index = DEFAULT_PROGRAM_INDEX;
+			primitive = GL_TRIANGLE_FAN;
 			break;
 		default:
 			ERROR_LOG(PARAMETER_ERROR, "this function is private but was "
