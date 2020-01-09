@@ -57,8 +57,6 @@ out vec4 outColor;
 
 void main()
 {
-	// outColor = fillColor;
-	// return;
 	vec2 sdf = vec2(0.0, 0.0 - outlineWidth + step(outlineWidth, 0.0))
 	          + min(bary.x, min(bary.y, bary.z));
 

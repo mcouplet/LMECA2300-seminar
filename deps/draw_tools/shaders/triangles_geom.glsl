@@ -86,42 +86,45 @@ void main()
 		pixelSize = 1.0;
 	}
 
+	float w = width + pixelSize;
+
 	vec2 p0 = gl_in[0].gl_Position.xy * localScale;
 	vec2 p1 = gl_in[1].gl_Position.xy * localScale;
 	vec2 p2 = gl_in[2].gl_Position.xy * localScale;
 
+	// direction of each segment
+	vec2 d01 = normalize(p1 - p0);
+	vec2 d12 = normalize(p2 - p1);
+	vec2 d20 = normalize(p0 - p2);
+
+	vec2 miter0 = normalize(d20 - d01);
+	vec2 miter1 = normalize(d01 - d12);
+	vec2 miter2 = normalize(d12 - d20);
+
+	// determine the length of the miter by projecting it onto normal and then inverse it
+	// the exterior normal is n01=vec2(d01.y, -d01.x), doing a dot product with the normal
+	// is the same as a 2D determinant
+	p0 += miter0 * w / determinant(mat2(miter0, d01));
+	p1 += miter1 * w / determinant(mat2(miter1, d12));
+	p2 += miter2 * w / determinant(mat2(miter2, d20));
+
+	vec2 v01 = p1 - p0;
+	vec2 v12 = p2 - p1;
+	vec2 v20 = p0 - p2;
+
 	// compute heights (simply crossprod/base...)
-	vec2 a = p1 - p0;
-	vec2 b = p2 - p0;
-	vec2 c = p2 - p1;
-
-	float la = length(a);
-	float lb = length(b);
-	float lc = length(c);
-
-	float crossProd = a.x*b.y - a.y*b.x;
-
-	vec2 p0_screen = scaling * p0 + translation;
-	vec2 p1_screen = scaling * p1 + translation;
-	vec2 p2_screen = scaling * p2 + translation;
-	vec2 pxla_screen = scaling * pixelSize * a/la;
-	vec2 pxlb_screen = scaling * pixelSize * b/lb;
-	vec2 pxlc_screen = scaling * pixelSize * c/lc;
-
-
-	float h0 = crossProd / lc;
-	bary = vec3(h0 + pixelSize, -pixelSize, -pixelSize);
-	gl_Position = vec4(p0_screen - pxla_screen - pxlb_screen, 0.0, 1.0);
+	float crossProd = v01.y*v20.x - v01.x*v20.y;
+	
+	bary = vec3(crossProd / length(v12), -pixelSize, -pixelSize);
+	gl_Position = vec4(scaling * p0 + translation, 0.0, 1.0);
 	EmitVertex();
-
-	float h1 = crossProd / lb;
-	bary = vec3(-pixelSize, h1 + pixelSize, -pixelSize);
-	gl_Position = vec4(p1_screen + pxla_screen - pxlc_screen, 0.0, 1.0);
+	
+	bary = vec3(-pixelSize, crossProd / length(v20), -pixelSize);
+	gl_Position = vec4(scaling * p1 + translation, 0.0, 1.0);
 	EmitVertex();
-
-	float h2 = crossProd / la;
-	bary = vec3(-pixelSize, -pixelSize, h2 + pixelSize);
-	gl_Position = vec4(p2_screen + pxlb_screen + pxlc_screen, 0.0, 1.0);
+	
+	bary = vec3(-pixelSize, -pixelSize, crossProd / length(v01));
+	gl_Position = vec4(scaling * p2 + translation, 0.0, 1.0);
 	EmitVertex();
 	EndPrimitive();
 }
