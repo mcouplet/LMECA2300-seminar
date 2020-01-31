@@ -45,7 +45,7 @@ terminal etc. see [the tutorial on using the terminal](Using the Terminal)
     `cmake -G GENERATOR_NAME ..` .
     [Available generators](https://cmake.org/cmake/help/v3.13/manual/cmake-generators.7.html#cmake-generators-7) are listed with `cmake --help`
 
- 2. Compile the program into an executable (do this every time you changed a file)* : 
+ 2. Compile the program into an executable (do this every time you changed a file)* :
 
          make
 
@@ -171,8 +171,3 @@ terminal etc. see [the tutorial on using the terminal](Using the Terminal)
 
 
 <br>
-
-## Contact 
-
- - Célestin Marot: celestin.marot@uclouvain.be
- - Kilian Verhetsel: kilian.verhetsel@uclouvain.be
