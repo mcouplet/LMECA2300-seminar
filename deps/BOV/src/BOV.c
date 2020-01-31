@@ -807,6 +807,9 @@ bov_window_t* bov_window_new(int width, int height, const char* win_name)
 	glEnable( GL_BLEND );
 	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 
+	glPointSize(5); // 10 pixels for a point
+	glEnable( GL_LINE_SMOOTH );
+
 	glfwSetTime(0.0); // set the time to 0
 
 	{

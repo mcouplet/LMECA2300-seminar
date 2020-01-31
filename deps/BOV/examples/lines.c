@@ -1,5 +1,5 @@
  /*************************************************************************
-  * Triangles example program using BOV, a wrapper around OpenGL and
+  * Lines example program using BOV, a wrapper around OpenGL and
   * GLFW (www.glfw.org) to draw simple 2D graphics.
   *------------------------------------------------------------------------
   * Copyright (c) 2019-2020 Célestin Marot <marotcelestin@gmail.com>
@@ -39,61 +39,65 @@ int main(int argc, char* argv[])
 	bov_text_set_pos(common_label, (GLfloat[2]) {-1.0, 0.9});
 
 	// make an array of message
-	const unsigned char* label_msg[8] = {
+	const unsigned char* label_msg[9] = {
 		(unsigned char[]){"bov_points_draw()"},
-		(unsigned char[]){"bov_triangles_draw()"},
-		(unsigned char[]){"bov_triangle_strip_draw()"},
-		(unsigned char[]){"bov_triangle_fan_draw()"},
+		(unsigned char[]){"bov_lines_draw()"},
+		(unsigned char[]){"bov_line_strip_draw()"},
+		(unsigned char[]){"bov_line_loop_draw()"},
+		(unsigned char[]){"bov_curve_draw()"},
 		(unsigned char[]){"bov_fast_points_draw()"},
-		(unsigned char[]){"bov_fast_triangles_draw()"},
-		(unsigned char[]){"bov_fast_triangle_strip_draw()"},
-		(unsigned char[]){"bov_fast_triangle_fan_draw()"},
+		(unsigned char[]){"bov_fast_lines_draw()"},
+		(unsigned char[]){"bov_fast_line_strip_draw()"},
+		(unsigned char[]){"bov_fast_line_loop_draw()"},
 	};
 
-	void (*functions[8])(bov_window_t* window,
+	void (*functions[9])(bov_window_t* window,
 	                     const bov_points_t* pts,
 	                     GLint start,
 	                     GLsizei count) = {
 		bov_points_draw,
-		bov_triangles_draw,
-		bov_triangle_strip_draw,
-		bov_triangle_fan_draw,
+		bov_lines_draw,
+		bov_line_strip_draw,
+		bov_line_loop_draw,
+		bov_curve_draw,
 		bov_fast_points_draw,
-		bov_fast_triangles_draw,
-		bov_fast_triangle_strip_draw,
-		bov_fast_triangle_fan_draw,
+		bov_fast_lines_draw,
+		bov_fast_line_strip_draw,
+		bov_fast_line_loop_draw,
 	};
 
-	const unsigned char* label_msg_with_order[8] = {
+	const unsigned char* label_msg_with_order[9] = {
 		(unsigned char[]){"bov_points_draw_with_order()"},
-		(unsigned char[]){"bov_triangles_draw_with_order()"},
-		(unsigned char[]){"bov_triangle_strip_draw_with_order()"},
-		(unsigned char[]){"bov_triangle_fan_draw_with_order()"},
+		(unsigned char[]){"bov_lines_draw_with_order()"},
+		(unsigned char[]){"bov_line_strip_draw_with_order()"},
+		(unsigned char[]){"bov_line_loop_draw_with_order()"},
+		(unsigned char[]){"bov_curve_draw_with_order()"},
 		(unsigned char[]){"bov_fast_points_draw_with_order()"},
-		(unsigned char[]){"bov_fast_triangles_draw_with_order()"},
-		(unsigned char[]){"bov_fast_triangle_strip_draw_with_order()"},
-		(unsigned char[]){"bov_fast_triangle_fan_draw_with_order()"},
+		(unsigned char[]){"bov_fast_lines_draw_with_order()"},
+		(unsigned char[]){"bov_fast_line_strip_draw_with_order()"},
+		(unsigned char[]){"bov_fast_line_loop_draw_with_order()"},
 	};
 
-	void (*functions_with_order[8])(bov_window_t* window,
+	void (*functions_with_order[9])(bov_window_t* window,
                                     const bov_points_t* pts,
                                     const bov_order_t* order,
                                     GLint start,
                                     GLsizei count) = {
 		bov_points_draw_with_order,
-		bov_triangles_draw_with_order,
-		bov_triangle_strip_draw_with_order,
-		bov_triangle_fan_draw_with_order,
+		bov_lines_draw_with_order,
+		bov_line_strip_draw_with_order,
+		bov_line_loop_draw_with_order,
+		bov_curve_draw_with_order,
 		bov_fast_points_draw_with_order,
-		bov_fast_triangles_draw_with_order,
-		bov_fast_triangle_strip_draw_with_order,
-		bov_fast_triangle_fan_draw_with_order,
+		bov_fast_lines_draw_with_order,
+		bov_fast_line_strip_draw_with_order,
+		bov_fast_line_loop_draw_with_order,
 	};
 
 	// with an array of corresponding labels
-	bov_text_t* label[8];
-	bov_text_t* label_with_order[8];
-	for(int i=0; i<8; i++) {
+	bov_text_t* label[9];
+	bov_text_t* label_with_order[9];
+	for(int i=0; i<9; i++) {
 		label[i] = bov_text_new(label_msg[i], GL_STATIC_DRAW);
 		label_with_order[i] = bov_text_new(label_msg_with_order[i], GL_STATIC_DRAW);
 		bov_text_set_pos(label[i], (GLfloat[2]) {-1.0 + 23 * 0.025, 0.9});
@@ -115,9 +119,6 @@ int main(int argc, char* argv[])
 
 	bov_points_t* pointset = bov_points_new(coord, 10, GL_STATIC_DRAW);
 	bov_points_set_color(pointset, (float[4]) {0.05, 0.1, 0.2, 0.6});
-	bov_points_set_outline_width(pointset, 0.025);
-	bov_points_set_width(pointset, 0.0);
-	bov_points_set_outline_color(pointset, (GLfloat[4]) {0.3, 0.0, 0.0, 0.5});
 
 	bov_order_t* order = bov_order_new((GLuint[10]) {4, 3, 6, 9, 1, 0, 2, 5, 8, 7},
 	                                    10,
@@ -128,15 +129,15 @@ int main(int argc, char* argv[])
 		double wtime = bov_window_get_time(window);
 
 		bov_text_draw(window, common_label);
-		unsigned mode = (unsigned) wtime / 2 % 16;
+		unsigned mode = (unsigned) wtime / 2 % 18;
 
-		if(mode<8) {
+		if(mode<9) {
 			bov_text_draw(window, label[mode]);
 			functions[mode](window, pointset, 0, BOV_TILL_END);
 		}
 		else {
-			bov_text_draw(window, label_with_order[mode-8]);
-			functions_with_order[mode-8](window, pointset, order, 0, BOV_TILL_END);
+			bov_text_draw(window, label_with_order[mode-9]);
+			functions_with_order[mode-9](window, pointset, order, 0, BOV_TILL_END);
 		}
 
 		bov_window_update(window);
@@ -149,7 +150,7 @@ int main(int argc, char* argv[])
 	       frameCount,
 	       frameCount / bov_window_get_time(window));
 
-	for(int i=0; i<8; i++) {
+	for(int i=0; i<9; i++) {
 		bov_text_delete(label[i]);
 		bov_text_delete(label_with_order[i]);
 	}

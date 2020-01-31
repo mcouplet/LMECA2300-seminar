@@ -32,7 +32,7 @@
 // At the moment, markers value wraps around at 25
 // We cannot have more than 100 markers without chaning the way the
 // string is created (putting %7.3f and lengthen the string)
-#define DT_NMARKERS 25
+#define BOV_NMARKERS 25
 
 
 int main(int argc, char* argv[])
@@ -51,7 +51,7 @@ int main(int argc, char* argv[])
 	bov_window_t* window = bov_window_new(0,0, argv[0]);
 	bov_window_set_color(window, (GLfloat[4]) {1.0f, 0.8f, 0.5f, 1.0f});
 
-	const GLfloat pointWidth = 1.0f/DT_NMARKERS;
+	const GLfloat pointWidth = 1.0f/BOV_NMARKERS;
 
 	bov_points_t* points = bov_points_new((float[2][2]) {{0.0f, 0.0f}, {1.0f, 0.0f}}, 2,
 	                              GL_STATIC_DRAW);
@@ -65,11 +65,11 @@ int main(int argc, char* argv[])
 		// we will have 6 charater per number (2digit, one dot, 3 digit)
 		// then 2 space, for each marker.
 		// then we have 10 \n at the end of each line
-		char string[9*(DT_NMARKERS*8 + 9)+1];
+		char string[9*(BOV_NMARKERS*8 + 9)+1];
 		int cur = 0;
 
 		for(int j=0; j<9; j++) {
-			for(int i=0; i<DT_NMARKERS; i++) {
+			for(int i=0; i<BOV_NMARKERS; i++) {
 				sprintf(string+cur, " %6.3f ", i + j * 0.12493f);
 				cur += 8;
 			}
@@ -103,7 +103,7 @@ int main(int argc, char* argv[])
 		double fract02 = modf(0.2 * wtime, &wtime);
 		wtime = fabs(2 * fract02 - 1.0);
 
-		for(int i=0; i<DT_NMARKERS; i++) {
+		for(int i=0; i<BOV_NMARKERS; i++) {
 
 			GLfloat pos[2] = {pointWidth-1.0f + 2.0f * pointWidth * i,
 			                 1.0f - 2.5f * pointWidth};

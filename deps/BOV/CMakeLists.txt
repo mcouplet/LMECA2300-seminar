@@ -48,7 +48,7 @@ if(BOV_BUILD_EXAMPLES)
 	add_executable(hello_world ${CMAKE_CURRENT_SOURCE_DIR}/examples/hello_world.c)
 	add_executable(koch_snowflake ${CMAKE_CURRENT_SOURCE_DIR}/examples/koch_snowflake.c)
 	add_executable(markers ${CMAKE_CURRENT_SOURCE_DIR}/examples/markers.c)
-	add_executable(points_and_lines ${CMAKE_CURRENT_SOURCE_DIR}/examples/points_and_lines.c)
+	add_executable(lines ${CMAKE_CURRENT_SOURCE_DIR}/examples/lines.c)
 	add_executable(text_style ${CMAKE_CURRENT_SOURCE_DIR}/examples/text_style.c)
 	add_executable(triangles ${CMAKE_CURRENT_SOURCE_DIR}/examples/triangles.c)
 
@@ -57,7 +57,7 @@ if(BOV_BUILD_EXAMPLES)
 	target_link_libraries(hello_world bov)
 	target_link_libraries(koch_snowflake bov)
 	target_link_libraries(markers bov)
-	target_link_libraries(points_and_lines bov)
+	target_link_libraries(lines bov)
 	target_link_libraries(text_style bov)
 	target_link_libraries(triangles bov)
 
@@ -65,7 +65,7 @@ if(BOV_BUILD_EXAMPLES)
 	                      character_table
 	                      koch_snowflake
 	                      markers
-	                      points_and_lines
+	                      lines
 	                      text_style
 	                      hello_world
 	                      triangles
