@@ -32,9 +32,9 @@
 
 int main()
 {
-	window_t* window = window_new(-1, 1, "Character Table"); // maximized window
+	bov_window_t* window = bov_window_new(-1, 1, "Character Table"); // maximized window
 
-	text_t* character_table = text_new((unsigned char[]){
+	bov_text_t* character_table = bov_text_new((unsigned char[]){
 		"Here is a complete list of the available characters, with their hexadecimal value\n"
 		"\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\n"
 		"       \t 01. \x01\t 02. \x02\t 03. \x03\t 04. \x04\t 05. \x05\t 06. \x06\t 07. \\a\t 08. \\b\t 09.\t 0a. \\n\t 0b. \\v\t 0c. \\f\t 0d. \\r\t 0e. \x0e\t 0f. \x0f \n"
@@ -55,30 +55,30 @@ int main()
 		"  f0. \xf0\t f1. \xf1\t f2. \xf2\t f3. \xf3\t f4. \xf4\t f5. \xf5\t f6. \xf6\t f7. \xf7\t f8. \xf8\t f9. \xf9\t fa. \xfa\t fb. \xfb\t fc. \xfc\t fd. \xfd\t fe. \xfe\t ff. \xff \n"
 		"\n---\n\n"
 		"\tFor classical ASCII character, the value corresponding to each character is the usual one.\n"
-		"It means that you can display \"coucou\", simply by using text_new(\"coucou\").\n"
+		"It means that you can display \"coucou\", simply by using bov_text_new(\"coucou\").\n"
 		"However, for characters with a value greater or equal to 0xff (128), there are no corresponding ASCII characters...\n"
 		"Thus, you will have to use a lesser known feature of C strings: you can insert whatever value you want \n"
 		"in a C string by using \\xV, where V is an hexadecimal value\n"
-		"For example, to insert the smiley \xa1, you have to use text_new(\"\\xa1\")\n"
+		"For example, to insert the smiley \xa1, you have to use bov_text_new(\"\\xa1\")\n"
 		}, GL_STATIC_DRAW);
 
-	GLfloat xres = window_get_xres(window);
-	GLfloat yres = window_get_yres(window);
+	GLfloat xres = bov_window_get_xres(window);
+	GLfloat yres = bov_window_get_yres(window);
 	GLfloat minres = xres<yres ? xres : yres;
 	GLfloat lineheight = 2.0 / minres * 64.0 / 3.0; // 64/3 pixels in screen coordinates
-	text_set_fontsize(character_table, lineheight);
-	text_set_pos(character_table, (GLfloat[2]) {-xres / minres + 0.5 * lineheight,
+	bov_text_set_fontsize(character_table, lineheight);
+	bov_text_set_pos(character_table, (GLfloat[2]) {-xres / minres + 0.5 * lineheight,
 	                                             yres / minres - 1.5 * lineheight});
 
-	while(!window_should_close(window)){
-		text_draw(window, character_table);
-		window_update(window);
+	while(!bov_window_should_close(window)){
+		bov_text_draw(window, character_table);
+		bov_window_update(window);
 	}
 
-	printf("Ended correctly - %.2f second\n", window_get_time(window));
+	printf("Ended correctly - %.2f second\n", bov_window_get_time(window));
 
-	text_delete(character_table);
-	window_delete(window);
+	bov_text_delete(character_table);
+	bov_window_delete(window);
 
 	return EXIT_SUCCESS;
 }

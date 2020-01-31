@@ -48,18 +48,18 @@ int main(int argc, char* argv[])
 	 * REMINDER: DO NOT MAKE THAT MANY DRAW CALL IN YOUR CODE !!!!
 	 */
 
-	window_t* window = window_new(0,0, argv[0]);
-	window_set_color(window, (GLfloat[4]) {1.0f, 0.8f, 0.5f, 1.0f});
+	bov_window_t* window = bov_window_new(0,0, argv[0]);
+	bov_window_set_color(window, (GLfloat[4]) {1.0f, 0.8f, 0.5f, 1.0f});
 
 	const GLfloat pointWidth = 1.0f/DT_NMARKERS;
 
-	points_t* points = points_new((float[2][2]) {{0.0f, 0.0f}, {1.0f, 0.0f}}, 2,
+	bov_points_t* points = bov_points_new((float[2][2]) {{0.0f, 0.0f}, {1.0f, 0.0f}}, 2,
 	                              GL_STATIC_DRAW);
-	points_set_outline_color(points, (float[4]) {0.3f, 0.3f, 0.3f, 1.0f});
-	points_set_outline_width(points, pointWidth * 0.2f);
-	points_set_width(points, pointWidth);
+	bov_points_set_outline_color(points, (float[4]) {0.3f, 0.3f, 0.3f, 1.0f});
+	bov_points_set_outline_width(points, pointWidth * 0.2f);
+	bov_points_set_width(points, pointWidth);
 
-	text_t* marker_text;
+	bov_text_t* marker_text;
 	{
 		/* first, we will generate all the text values */
 		// we will have 6 charater per number (2digit, one dot, 3 digit)
@@ -80,24 +80,24 @@ int main(int argc, char* argv[])
 		}
 
 
-		marker_text = text_new((unsigned char*) string,
+		marker_text = bov_text_new((unsigned char*) string,
 			                           GL_STATIC_DRAW);
-		text_set_fontsize(marker_text, pointWidth * 0.5f);
-		text_set_pos(marker_text, (GLfloat[2]) {-1.0f, 1.0f - pointWidth});
+		bov_text_set_fontsize(marker_text, pointWidth * 0.5f);
+		bov_text_set_pos(marker_text, (GLfloat[2]) {-1.0f, 1.0f - pointWidth});
 	}
 
 
-	while(!window_should_close(window)) {
-		double wtime = window_get_time(window);
+	while(!bov_window_should_close(window)) {
+		double wtime = bov_window_get_time(window);
 
 		// we change the color over time
-		points_set_color(points, (GLfloat[4]) {
+		bov_points_set_color(points, (GLfloat[4]) {
 		                 sin(0.11 * wtime) * 0.5 + 0.5,
 		                 sin(0.7 * wtime) * 0.5 + 0.4,
 		                 sin(0.67 * wtime) * 0.5 + 0.6,
 		                 1});
-		points_set_outline_width(points, pointWidth * 0.2f);
-		points_set_width(points, pointWidth);
+		bov_points_set_outline_width(points, pointWidth * 0.2f);
+		bov_points_set_width(points, pointWidth);
 
 		// we modify wtime to go only between 0 and 1
 		double fract02 = modf(0.2 * wtime, &wtime);
@@ -109,32 +109,32 @@ int main(int argc, char* argv[])
 			                 1.0f - 2.5f * pointWidth};
 
 			for(int j=0; j<9; j++) {
-				points_set_pos(points, pos);
-				points_set_marker(points, i + j * 0.12493f);
-				points_draw(window, points, 0, 1);
+				bov_points_set_pos(points, pos);
+				bov_points_set_marker(points, i + j * 0.12493f);
+				bov_points_draw(window, points, 0, 1);
 
 				pos[1] -= 5.0f * pointWidth;
 			}
 
-			points_set_pos(points, pos);
-			points_set_marker(points, i + wtime);
-			points_draw(window, points, 0, 1);
+			bov_points_set_pos(points, pos);
+			bov_points_set_marker(points, i + wtime);
+			bov_points_draw(window, points, 0, 1);
 		}
 
-		text_draw(window, marker_text);
-		points_set_pos(points, (GLfloat[2]) {-0.5, 1.0f - 9 * 5.0f * pointWidth});
-		points_set_width(points, pointWidth * 0.5f);
-		points_set_outline_width(points, pointWidth * (0.5f * 0.2f));
-		lines_draw(window, points, 0, 2);
+		bov_text_draw(window, marker_text);
+		bov_points_set_pos(points, (GLfloat[2]) {-0.5, 1.0f - 9 * 5.0f * pointWidth});
+		bov_points_set_width(points, pointWidth * 0.5f);
+		bov_points_set_outline_width(points, pointWidth * (0.5f * 0.2f));
+		bov_lines_draw(window, points, 0, 2);
 
-		window_update(window);
+		bov_window_update(window);
 	}
 
 	printf("Ended correctly");
 
-	points_delete(points);
-	text_delete(marker_text);
-	window_delete(window);
+	bov_points_delete(points);
+	bov_text_delete(marker_text);
+	bov_window_delete(window);
 
 	return EXIT_SUCCESS;
 }

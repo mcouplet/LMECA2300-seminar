@@ -12,8 +12,8 @@ int main()
 	// we print the seed so you can get the distribution of points back
 	printf("Tseed=%d\n", seed);
 
-	window_t* window = window_new(800, 800, "Tutorial 1");
-	window_set_color(window, (GLfloat[]){0.9f, 0.85f, 0.8f, 1.0f});
+	bov_window_t* window = bov_window_new(800, 800, "Tutorial 1");
+	bov_window_set_color(window, (GLfloat[]){0.9f, 0.85f, 0.8f, 1.0f});
 
 	const GLsizei nPoints = 500;
 	GLfloat (*coord)[2] = malloc(sizeof(coord[0])*nPoints);
@@ -23,26 +23,26 @@ int main()
 	random_points(coord, nPoints);
 #endif
 
-	points_t *coordDraw = points_new(coord, nPoints, GL_STATIC_DRAW);
-	points_set_color(coordDraw, (GLfloat[4]) {0.0, 0.0, 0.0, 1.0});
-	points_set_outline_color(coordDraw, (GLfloat[4]) {0.3, 0.12, 0.0, 0.25});
+	bov_points_t *coordDraw = bov_points_new(coord, nPoints, GL_STATIC_DRAW);
+	bov_points_set_color(coordDraw, (GLfloat[4]) {0.0, 0.0, 0.0, 1.0});
+	bov_points_set_outline_color(coordDraw, (GLfloat[4]) {0.3, 0.12, 0.0, 0.25});
 
-	while(!window_should_close(window)){
-		points_set_width(coordDraw, 0.003);
-		points_set_outline_width(coordDraw, 0.002);
-		line_loop_draw(window, coordDraw, 0, nPoints);
+	while(!bov_window_should_close(window)){
+		bov_points_set_width(coordDraw, 0.003);
+		bov_points_set_outline_width(coordDraw, 0.002);
+		bov_line_loop_draw(window, coordDraw, 0, nPoints);
 
 		// points_set_width(coordDraw, 0.003);
-		points_set_outline_width(coordDraw, -1.);
-		points_draw(window, coordDraw, 0, nPoints);
+		bov_points_set_outline_width(coordDraw, -1.);
+		bov_points_draw(window, coordDraw, 0, nPoints);
 
 
-		window_update(window);
+		bov_window_update(window);
 	}
 
-	points_delete(coordDraw);
+	bov_points_delete(coordDraw);
 	free(coord);
-	window_delete(window);
+	bov_window_delete(window);
 
 	return EXIT_SUCCESS;
 }

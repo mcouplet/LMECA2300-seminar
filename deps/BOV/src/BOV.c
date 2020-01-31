@@ -56,12 +56,12 @@
 #define POS_LOCATION 0
 #define TEX_LOCATION 1
 
-#define TEXT_PROGRAM_INDEX     0
-#define POINTS_PROGRAM_INDEX   1
-#define LINES_PROGRAM_INDEX    2
-#define CURVE_PROGRAM_INDEX    3
+#define TEXT_PROGRAM_INDEX      0
+#define POINTS_PROGRAM_INDEX    1
+#define LINES_PROGRAM_INDEX     2
+#define CURVE_PROGRAM_INDEX     3
 #define TRIANGLES_PROGRAM_INDEX 4
-#define DEFAULT_PROGRAM_INDEX  5
+#define DEFAULT_PROGRAM_INDEX   5
 // #define QUAD_PROGRAM_INDEX     6
 
 
@@ -70,7 +70,7 @@
 /*%%%%%%%%%%%%%%%%%%%%%%%%%
  %  Struct def
  %%%%%%%%%%%%%%%%%%%%%%%%%*/
-struct order_struct{
+struct bov_order_struct{
 	GLuint ebo;
 	GLsizei eboCapacity;
 	GLsizei eboLen;
@@ -80,9 +80,9 @@ struct order_struct{
 /*%%%%%%%%%%%%%%%%%%%%%%%%%
  %  Errors
  %%%%%%%%%%%%%%%%%%%%%%%%%*/
-void error_log(int errorCode, const char *fmt, ...)
+void bov_error_log(int errorCode, const char *fmt, ...)
 {
-	if(errorCode>=OUT_OF_MEM_ERROR)
+	if(errorCode>=BOV_OUT_OF_MEM_ERROR)
 		perror("Current system error message: ");
 
 	va_list vl;
@@ -96,7 +96,8 @@ void error_log(int errorCode, const char *fmt, ...)
 
 /* used to check the result of a memory allocation, exit on failure */
 #define CHECK_MALLOC(ptr) if((ptr)==NULL) { \
-		ERROR_LOG(OUT_OF_MEM_ERROR, "Memory allocation failed"); \
+		BOV_ERROR_LOG(BOV_OUT_OF_MEM_ERROR, \
+		              "Memory allocation failed"); \
 		exit(EXIT_FAILURE); }
 
 
@@ -119,13 +120,19 @@ static int checkivError(GLuint object, GLenum pname,
 
 		glGetInfoLog(object, logsize, &logsize, log);
 		if(pname==GL_LINK_STATUS)
-			ERROR_LOG(SHADER_ERROR, "%s\t-> link operation failed", log);
+			BOV_ERROR_LOG(BOV_SHADER_ERROR,
+			              "%s\t-> link operation failed",
+			              log);
 		else if(pname==GL_COMPILE_STATUS)
-			ERROR_LOG(SHADER_ERROR, "%s\t-> compile operation failed",log);
+			BOV_ERROR_LOG(BOV_SHADER_ERROR,
+			              "%s\t-> compile operation failed",
+			              log);
 		else
-			ERROR_LOG(SHADER_ERROR, "%s\t-> Unknown object operation failed",log);
+			BOV_ERROR_LOG(BOV_SHADER_ERROR,
+			              "%s\t-> Unknown object operation failed",
+			              log);
 		free(log);
-		return SHADER_ERROR;
+		return BOV_SHADER_ERROR;
 	}
 	return 0;
 }
@@ -139,7 +146,9 @@ static GLuint LoadShader(GLsizei count,
 {
 	GLuint shader = glCreateShader(shaderType);
 	if(shader==0) {
-		ERROR_LOG(SHADER_ERROR, "shader '%s' creation failed", shaderName);
+		BOV_ERROR_LOG(BOV_SHADER_ERROR,
+		              "shader '%s' creation failed",
+		              shaderName);
 		return 0;
 	}
 
@@ -155,8 +164,9 @@ static GLuint LoadShader(GLsizei count,
 			shaderType_desc = "fragment";
 		else if(shaderType==GL_GEOMETRY_SHADER)
 			shaderType_desc = "geometry";
-		ERROR_LOG(SHADER_ERROR, "%s shader: %s compilation failed",
-		          shaderType_desc, shaderName);
+		BOV_ERROR_LOG(BOV_SHADER_ERROR,
+		              "%s shader: %s compilation failed",
+		              shaderType_desc, shaderName);
 		return 0;
 	}
 
@@ -164,7 +174,7 @@ static GLuint LoadShader(GLsizei count,
 }
 
 
-static int program_init(window_t* window, int program_index, int n, ...)
+static int program_init(bov_window_t* window, int program_index, int n, ...)
 {
 	GLuint shaderProgram =  window->program[program_index];
 	int i;
@@ -180,10 +190,13 @@ static int program_init(window_t* window, int program_index, int n, ...)
 	glBindFragDataLocation(shaderProgram, 0, "outColor");
 	glLinkProgram(shaderProgram);
 
-	if(checkivError(shaderProgram, GL_LINK_STATUS,
-	                glGetProgramiv,glGetProgramInfoLog)) {
-		ERROR_LOG(SHADER_ERROR, "shader program %d creation failed",
-		          program_index);
+	if(checkivError(shaderProgram,
+	                GL_LINK_STATUS,
+	                glGetProgramiv,
+	                glGetProgramInfoLog)) {
+		BOV_ERROR_LOG(BOV_SHADER_ERROR,
+		              "shader program %d creation failed",
+		              program_index);
 		return 1;
 	}
 
@@ -191,8 +204,11 @@ static int program_init(window_t* window, int program_index, int n, ...)
 }
 
 
-static GLuint create_texture(GLsizei width, GLsizei height,const GLvoid* data,
-                             GLenum format, GLint wrapParam)
+static GLuint create_texture(GLsizei width,
+                             GLsizei height,
+                             const GLvoid* data,
+                             GLenum format,
+                             GLint wrapParam)
 {
 	GLuint texture;
 	glGenTextures(1, &texture);
@@ -218,7 +234,7 @@ static GLuint create_texture(GLsizei width, GLsizei height,const GLvoid* data,
 /*%%%%%%%%%%%%%%%%%%%%%%%%%
  %  Rasterizers
  %%%%%%%%%%%%%%%%%%%%%%%%%*/
-static void text_rasterizer_init(window_t* window)
+static void text_rasterizer_init(bov_window_t* window)
 {
 	// TODO: make it a 3 component texture with integrated derivatives
 	unsigned char (*image)[3] = malloc(sizeof(char) * 3 *
@@ -320,7 +336,7 @@ static void points_rasterizer_init(GLuint program)
 static void mouse_button_callback(GLFWwindow* self,
                                   int button, int action, int mod)
 {
-	window_t* window = (window_t*) glfwGetWindowUserPointer(self);
+	bov_window_t* window = (bov_window_t*) glfwGetWindowUserPointer(self);
 
 	if(button==GLFW_MOUSE_BUTTON_LEFT) {
 		if(action==GLFW_PRESS){
@@ -349,7 +365,7 @@ static void mouse_button_callback(GLFWwindow* self,
  %   mouse_button_callback
  %%%%%%%%%%%%%%%%%%%%%%%%%*/
 static void scroll_callback(GLFWwindow* self, double x, double y) {
-	window_t* window = (window_t*) glfwGetWindowUserPointer(self);
+	bov_window_t* window = (bov_window_t*) glfwGetWindowUserPointer(self);
 
 	if(y>0.0) {
 		window->param.zoom *= (GLfloat)(1.0 + 0.1 * y);
@@ -365,7 +381,7 @@ static void scroll_callback(GLFWwindow* self, double x, double y) {
  %%%%%%%%%%%%%%%%%%%%%%%%%*/
 static void cursor_pos_callback(GLFWwindow* self, double x, double y)
 {
-	window_t* window = (window_t*) glfwGetWindowUserPointer(self);
+	bov_window_t* window = (bov_window_t*) glfwGetWindowUserPointer(self);
 
 	double scale[2];
 	if(window->param.res[0] > window->param.res[1]) {
@@ -397,7 +413,7 @@ static void cursor_pos_callback(GLFWwindow* self, double x, double y)
  %%%%%%%%%%%%%%%%%%%%%%%%%*/
 static void error_callback(int errorCode, const char* description)
 {
-	ERROR_LOG(errorCode, "%s", description);
+	BOV_ERROR_LOG(errorCode, "%s", description);
 	exit(EXIT_FAILURE);
 }
 
@@ -410,7 +426,7 @@ static void key_callback(GLFWwindow* self,
 {
 	static unsigned screenshot_nbr = 0;
 	char screenshot_name[64] = "screenshot";
-	window_t* window = (window_t*) glfwGetWindowUserPointer(self);
+	bov_window_t* window = (bov_window_t*) glfwGetWindowUserPointer(self);
 	if(action==GLFW_PRESS || action==GLFW_REPEAT) {
 		switch(key) {
 			case GLFW_KEY_ESCAPE:
@@ -435,7 +451,7 @@ static void key_callback(GLFWwindow* self,
 				break;
 			case GLFW_KEY_P:
 				snprintf(screenshot_name + 10, 54, "%u.ppm", screenshot_nbr++);
-				window_screenshot(window, screenshot_name);
+				bov_window_screenshot(window, screenshot_name);
 				break;
 			case GLFW_KEY_R:
 				window->param.zoom = 1.0f;
@@ -454,7 +470,7 @@ static void key_callback(GLFWwindow* self,
  %%%%%%%%%%%%%%%%%%%%%%%%%*/
 static void framebuffer_size_callback(GLFWwindow* self, int width, int height)
 {
-	window_t* window = (window_t*) glfwGetWindowUserPointer(self);
+	bov_window_t* window = (bov_window_t*) glfwGetWindowUserPointer(self);
 	window->param.res[0] = (GLfloat) width;
 	window->param.res[1] = (GLfloat) height;
 	glViewport(0, 0, width, height);
@@ -466,7 +482,7 @@ static void framebuffer_size_callback(GLFWwindow* self, int width, int height)
  %%%%%%%%%%%%%%%%%%%%%%%%%*/
 static void window_size_callback(GLFWwindow* self, int width, int height)
 {
-	window_t* window = (window_t*) glfwGetWindowUserPointer(self);
+	bov_window_t* window = (bov_window_t*) glfwGetWindowUserPointer(self);
 	window->size[0] = width;
 	window->size[1] = height;
 }
@@ -475,13 +491,13 @@ static void window_size_callback(GLFWwindow* self, int width, int height)
 /*%%%%%%%%%%%%%%%%%%%%%%%%%
  %  Window object
  %%%%%%%%%%%%%%%%%%%%%%%%%*/
-static void window_OpenGL_init(window_t* window)
+static void window_OpenGL_init(bov_window_t* window)
 {
 #ifndef NDEBUG
 	{
-		text_param_t t;
-		points_param_t p;
-		if(sizeof(points_param_t)!=sizeof(text_param_t) ||
+		bov_text_param_t t;
+		bov_points_param_t p;
+		if(sizeof(bov_points_param_t)!=sizeof(bov_text_param_t) ||
 		   ((char*) &t.fillColor - (char*) &t) != ((char*) &p.fillColor - (char*) &p) ||
 		   ((char*) &t.fillColor - (char*) &t) != 0  ||
 		   ((char*) &t.outlineColor - (char*) &t) != ((char*) &p.outlineColor - (char*) &p) ||
@@ -497,8 +513,9 @@ static void window_OpenGL_init(window_t* window)
 		   ((char*) &t.outlineWidth - (char*) &t) != ((char*) &p.outlineWidth - (char*) &p) ||
 		   ((char*) &t.outlineWidth - (char*) &t) != 56
 		  ) {
-			ERROR_LOG(SHADER_ERROR, "points_param_t and text_param_t must "
-			                        "have identical fields");
+			BOV_ERROR_LOG(BOV_SHADER_ERROR,
+			              "bov_points_param_t and bov_text_param_t must "
+			              "have identical fields");
 			fprintf(stderr, "%zu\n", (char*) &t.fillColor - (char*) &t);
 			fprintf(stderr, "%zu\n", (char*) &t.outlineColor - (char*) &t);
 			fprintf(stderr, "%zu\n", (char*) &t.pos - (char*) &t);
@@ -514,12 +531,12 @@ static void window_OpenGL_init(window_t* window)
 	// Create draw and object UBO
 	glGenBuffers(2, window->ubo);
 	glBindBuffer(GL_UNIFORM_BUFFER, window->ubo[0]);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(world_param_t), NULL, GL_STATIC_DRAW);
-	glBindBufferRange(GL_UNIFORM_BUFFER, 0, window->ubo[0], 0, sizeof(world_param_t));
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(bov_world_param_t), NULL, GL_STATIC_DRAW);
+	glBindBufferRange(GL_UNIFORM_BUFFER, 0, window->ubo[0], 0, sizeof(bov_world_param_t));
 
 	glBindBuffer(GL_UNIFORM_BUFFER, window->ubo[1]);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(points_param_t), NULL, GL_DYNAMIC_DRAW);
-	glBindBufferRange(GL_UNIFORM_BUFFER, 1, window->ubo[1], 0, sizeof(points_param_t));
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(bov_points_param_t), NULL, GL_DYNAMIC_DRAW);
+	glBindBufferRange(GL_UNIFORM_BUFFER, 1, window->ubo[1], 0, sizeof(bov_points_param_t));
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 	// compile shaders
@@ -703,14 +720,15 @@ static void window_OpenGL_init(window_t* window)
 	return;
 
 shader_error:
-	ERROR_LOG(SHADER_ERROR, "check your driver and OpenGL capabilities");
+	BOV_ERROR_LOG(BOV_SHADER_ERROR,
+	              "check your driver and OpenGL capabilities");
 	exit(EXIT_FAILURE);
 }
 
 
-window_t* window_new(int width, int height, const char* win_name)
+bov_window_t* bov_window_new(int width, int height, const char* win_name)
 {
-	window_t* window = malloc(sizeof(window_t));
+	bov_window_t* window = malloc(sizeof(bov_window_t));
 	CHECK_MALLOC(window);
 
 	glfwSetErrorCallback(error_callback);
@@ -761,7 +779,8 @@ window_t* window_new(int width, int height, const char* win_name)
 
 	// load opengl functions with GLAD
 	if(!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress))
-		ERROR_LOG(GLAD_ERROR, "Failed to initialize OpenGL context");
+		BOV_ERROR_LOG(BOV_GLAD_ERROR,
+		              "Failed to initialize OpenGL context");
 
 	window->param.zoom = 1.0;
 	glfwGetFramebufferSize(window->self, &width, &height);
@@ -806,7 +825,7 @@ window_t* window_new(int width, int height, const char* win_name)
 
 	window_OpenGL_init(window);
 
-	window->help = text_new((unsigned char[]) {
+	window->help = bov_text_new((unsigned char[]) {
 		" Keyboard shortcuts:\n"
 		" -------------------\n\n"
 		"   [esc]   exit\n"
@@ -815,31 +834,31 @@ window_t* window_new(int width, int height, const char* win_name)
 		"     r     reset zoom and translation\n"
 		"    h k    display/hide keyboard shortcuts\n"
 	}, GL_STATIC_DRAW);
-	text_set_space_type(window->help, PIXEL_SPACE);
-	text_set_fontsize(window->help, 32); // 32 pixel height
-	text_set_pos(window->help, (GLfloat[2]){16.0, 7 * 32 + 64});
-	text_set_boldness(window->help, 0.1);
-	text_set_outline_width(window->help, 0.5);
+	bov_text_set_space_type(window->help, PIXEL_SPACE);
+	bov_text_set_fontsize(window->help, 32); // 32 pixel height
+	bov_text_set_pos(window->help, (GLfloat[2]){16.0, 7 * 32 + 64});
+	bov_text_set_boldness(window->help, 0.1);
+	bov_text_set_outline_width(window->help, 0.5);
 
-	window->indication = text_new((unsigned char[]) {
+	window->indication = bov_text_new((unsigned char[]) {
 		"press 'k' for keyboard shortcuts\n"
 	}, GL_STATIC_DRAW);
-	text_set_space_type(window->indication, PIXEL_SPACE);
-	text_set_fontsize(window->indication, 32); // 32 pixel height
-	text_set_pos(window->indication, (GLfloat[2]){16.0, 16.0});
-	text_set_boldness(window->indication, 0.1);
-	text_set_outline_width(window->indication, 0.5);
+	bov_text_set_space_type(window->indication, PIXEL_SPACE);
+	bov_text_set_fontsize(window->indication, 32); // 32 pixel height
+	bov_text_set_pos(window->indication, (GLfloat[2]){16.0, 16.0});
+	bov_text_set_boldness(window->indication, 0.1);
+	bov_text_set_outline_width(window->indication, 0.5);
 
 	return window;
 }
 
 
-void window_update(window_t* window)
+void bov_window_update(bov_window_t* window)
 {
 	if(window->help_needed)
-		text_draw(window, window->help);
+		bov_text_draw(window, window->help);
 	else if(window->indication_needed)
-		text_draw(window, window->indication);
+		bov_text_draw(window, window->indication);
 
 	// Swap front and back buffers
 	glfwSwapBuffers(window->self);
@@ -856,26 +875,26 @@ void window_update(window_t* window)
 
 	// update the world ubo (we update every frame, even if it isn't changed...)
 	glBindBuffer(GL_UNIFORM_BUFFER, window->ubo[0]);
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(world_param_t), &window->param);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(bov_world_param_t), &window->param);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 	glClear(GL_COLOR_BUFFER_BIT);
 }
 
 
-void window_update_and_wait_events(window_t* window)
+void bov_window_update_and_wait_events(bov_window_t* window)
 {
 	int state = window->running;
 	window->running = 0;
-	window_update(window);
+	bov_window_update(window);
 	window->running = state;
 }
 
 
-void window_delete(window_t* window)
+void bov_window_delete(bov_window_t* window)
 {
-	text_delete(window->help);
-	text_delete(window->indication);
+	bov_text_delete(window->help);
+	bov_text_delete(window->indication);
 	glDeleteTextures(1, &window->texture);
 	glDeleteProgram(window->program[TEXT_PROGRAM_INDEX]);
 	glDeleteProgram(window->program[POINTS_PROGRAM_INDEX]);
@@ -892,9 +911,9 @@ void window_delete(window_t* window)
 /*%%%%%%%%%%%%%%%%%%%%%%%%%
  %  Order object
  %%%%%%%%%%%%%%%%%%%%%%%%%*/
-order_t* order_new(const GLuint* elements, GLsizei n, GLenum usage)
+bov_order_t* bov_order_new(const GLuint* elements, GLsizei n, GLenum usage)
 {
-	order_t* order = malloc(sizeof(order_t));
+	bov_order_t* order = malloc(sizeof(bov_order_t));
 	CHECK_MALLOC(order);
 
 	order->eboLen = elements==NULL ? 0 : n;
@@ -907,7 +926,7 @@ order_t* order_new(const GLuint* elements, GLsizei n, GLenum usage)
 }
 
 
-order_t* order_update(order_t* order, const GLuint* elements, GLsizei n)
+bov_order_t* bov_order_update(bov_order_t* order, const GLuint* elements, GLsizei n)
 {
 	order->eboLen = elements==NULL ? 0 : n;
 
@@ -925,12 +944,13 @@ order_t* order_update(order_t* order, const GLuint* elements, GLsizei n)
 }
 
 
-order_t* order_partial_update(order_t* order, const GLuint* elements,
+bov_order_t* bov_order_partial_update(bov_order_t* order, const GLuint* elements,
                               GLint start, GLsizei count, GLsizei newN)
 {
 	if(elements==NULL) {
-		ERROR_LOG(PARAMETER_ERROR, "Cannot do a partial update whith a NULL "
-		                           "pointer as array of elements");
+		BOV_ERROR_LOG(BOV_PARAMETER_ERROR,
+		              "Cannot do a partial update whith a NULL "
+		              "pointer as array of elements");
 		return NULL;
 	}
 
@@ -940,12 +960,13 @@ order_t* order_partial_update(order_t* order, const GLuint* elements,
 	if(start + count > newN)
 		newN = start+count;
 	if(start + count < count) // detect overflow
-		newN = TILL_END;
+		newN = BOV_TILL_END;
 
 	if(newN > order->eboCapacity) {
-		ERROR_LOG(PARAMETER_ERROR, "Cannot do a partial update when the new "
-		                           "size is bigger than the capacity of the "
-		                           "buffer");
+		BOV_ERROR_LOG(BOV_PARAMETER_ERROR,
+		              "Cannot do a partial update when the new "
+		              "size is bigger than the capacity of the "
+		              "buffer");
 		return NULL;
 	}
 
@@ -966,13 +987,15 @@ order_t* order_partial_update(order_t* order, const GLuint* elements,
 		return order;
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, order->ebo);
-	glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, start, sizeof(GLuint) * count,
+	glBufferSubData(GL_ELEMENT_ARRAY_BUFFER,
+	                start,
+	                sizeof(GLuint) * count,
 	                elements);
 	return order;
 }
 
 
-void order_delete(order_t* order)
+void bov_order_delete(bov_order_t* order)
 {
 	glDeleteBuffers(1, &order->ebo);
 	free(order);
@@ -996,7 +1019,8 @@ static double_t getMiddlePixelTex(GLfloat* a, GLfloat* b, double n)
 /*%%%%%%%%%%%%%%%%%%%%%%%%%
  %  Text Object
  %%%%%%%%%%%%%%%%%%%%%%%%%*/
-static GLsizei fill_text_data(GLfloat* data, const unsigned char* string,
+static GLsizei fill_text_data(GLfloat* data,
+                              const unsigned char* string,
                               GLsizei len)
 {
 	double pen_x = 0.5; // position in pixel
@@ -1075,12 +1099,12 @@ static GLsizei fill_text_data(GLfloat* data, const unsigned char* string,
 
 
 // size (in characters) to alloc, and usage (either GL_STATIC_DRAW or GL_DYNAMIC_DRAW)
-text_t* text_new(const unsigned char* string, GLenum usage)
+bov_text_t* bov_text_new(const unsigned char* string, GLenum usage)
 {
-	text_t* text = malloc(sizeof(text_t));
+	bov_text_t* text = malloc(sizeof(bov_text_t));
 	CHECK_MALLOC(text);
 
-	text->param = (text_param_t) {
+	text->param = (bov_text_param_t) {
 		.fillColor = {0.0f, 0.0f, 0.0f, 1.0f},
 		.outlineColor = {1.0f ,1.0f, 1.0f, 2.0f},
 		.pos = {0.0f, 0.0f},
@@ -1099,10 +1123,18 @@ text_t* text_new(const unsigned char* string, GLenum usage)
 	glBindBuffer(GL_ARRAY_BUFFER, text->vbo);
 
 	// specify the layout of the data
-	glVertexAttribPointer(POS_LOCATION, 2, GL_FLOAT, GL_FALSE,
-	                      4 * sizeof(GLfloat), 0);
-	glVertexAttribPointer(TEX_LOCATION, 2, GL_FLOAT, GL_FALSE,
-	                      4 * sizeof(GLfloat), (void*)(2 * sizeof(GLfloat)));
+	glVertexAttribPointer(POS_LOCATION,
+	                      2,
+	                      GL_FLOAT,
+	                      GL_FALSE,
+	                      4 * sizeof(GLfloat),
+	                      0);
+	glVertexAttribPointer(TEX_LOCATION,
+	                      2,
+	                      GL_FLOAT,
+	                      GL_FALSE,
+	                      4 * sizeof(GLfloat),
+	                      (void*)(2 * sizeof(GLfloat)));
 	glEnableVertexAttribArray(POS_LOCATION);
 	glEnableVertexAttribArray(TEX_LOCATION);
 
@@ -1119,9 +1151,13 @@ text_t* text_new(const unsigned char* string, GLenum usage)
 
 		// text->string = string;
 
-		text->vboLen = fill_text_data(text->data, string, text->dataCapacity);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 24 * text->vboLen,
-		             text->data, usage);
+		text->vboLen = fill_text_data(text->data,
+		                              string,
+		                              text->dataCapacity);
+		glBufferData(GL_ARRAY_BUFFER,
+		             sizeof(GLfloat) * 24 * text->vboLen,
+		             text->data,
+		             usage);
 		text->vboCapacity = text->vboLen;
 	}
 	else {
@@ -1138,7 +1174,7 @@ text_t* text_new(const unsigned char* string, GLenum usage)
 }
 
 
-void text_delete(text_t* text)
+void bov_text_delete(bov_text_t* text)
 {
 	glDeleteBuffers(1, &text->vbo);
 	glDeleteVertexArrays(1, &text->vao);
@@ -1147,7 +1183,7 @@ void text_delete(text_t* text)
 }
 
 
-text_t* text_update(text_t* text, const unsigned char* string)
+bov_text_t* bov_text_update(bov_text_t* text, const unsigned char* string)
 {
 	// see if the length is not longer than the original string
 	GLsizei newLen = (GLsizei) strlen((const char*)string);
@@ -1165,12 +1201,16 @@ text_t* text_update(text_t* text, const unsigned char* string)
 
 	glBindBuffer(GL_ARRAY_BUFFER, text->vbo);
 	if(text->vboLen > text->vboCapacity) {
-		glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 24 * text->vboLen,
-		             text->data, GL_DYNAMIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER,
+		             sizeof(GLfloat) * 24 * text->vboLen,
+		             text->data,
+		             GL_DYNAMIC_DRAW);
 		text->vboCapacity = text->vboLen;
 	}
 	else{
-		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(GLfloat) * 24 * text->vboLen,
+		glBufferSubData(GL_ARRAY_BUFFER,
+		                0,
+		                sizeof(GLfloat) * 24 * text->vboLen,
 		                text->data);
 	}
 
@@ -1178,7 +1218,7 @@ text_t* text_update(text_t* text, const unsigned char* string)
 }
 
 
-void text_draw(window_t* window, const text_t* text)
+void bov_text_draw(bov_window_t* window, const bov_text_t* text)
 {
 	if(text->vboLen==0)
 		return;
@@ -1190,7 +1230,10 @@ void text_draw(window_t* window, const text_t* text)
 
 	// update the object ubo
 	glBindBuffer(GL_UNIFORM_BUFFER, window->ubo[1]);
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(text_param_t), &text->param);
+	glBufferSubData(GL_UNIFORM_BUFFER,
+	                0,
+	                sizeof(bov_text_param_t),
+	                &text->param);
 	// glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 	glUniform1i(window->texture_sloc, 0);
@@ -1203,14 +1246,16 @@ void text_draw(window_t* window, const text_t* text)
 /*%%%%%%%%%%%%%%%%%%%%%%%%%
  %  Points Object
  %%%%%%%%%%%%%%%%%%%%%%%%%*/
-points_t* points_new(const GLfloat coords[][2], GLsizei n, GLenum usage)
+bov_points_t* bov_points_new(const GLfloat coords[][2],
+                             GLsizei n,
+                             GLenum usage)
 {
-	points_t* points = malloc(sizeof(points_t));
+	bov_points_t* points = malloc(sizeof(bov_points_t));
 	CHECK_MALLOC(points);
 
 	points->vboLen = coords==NULL ? 0 : n;
 
-	points->param = (points_param_t) {
+	points->param = (bov_points_param_t) {
 		.fillColor = {0.0f, 0.0f, 0.0f, 1.0f}, // color
 		.outlineColor = {1.0f ,1.0f, 1.0f, 1.0f}, // outlineColor
 		.pos = {0.0f ,0.0f},           // other
@@ -1243,7 +1288,9 @@ points_t* points_new(const GLfloat coords[][2], GLsizei n, GLenum usage)
 }
 
 
-points_t* points_update(points_t* points, const GLfloat coords[][2], GLsizei n)
+bov_points_t* bov_points_update(bov_points_t* points,
+                                const GLfloat coords[][2],
+                                GLsizei n)
 {
 	points->vboLen = coords==NULL ? 0 : n;
 
@@ -1254,7 +1301,10 @@ points_t* points_update(points_t* points, const GLfloat coords[][2], GLsizei n)
 		points->vboCapacity = n;
 	}
 	else if(coords!=NULL) {
-		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(GLfloat) * 2 * n, coords);
+		glBufferSubData(GL_ARRAY_BUFFER,
+		                0,
+		                sizeof(GLfloat) * 2 * n,
+		                coords);
 	}
 	// glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -1262,12 +1312,16 @@ points_t* points_update(points_t* points, const GLfloat coords[][2], GLsizei n)
 }
 
 
-points_t* points_partial_update(points_t* points, const GLfloat coords[][2],
-                                GLint start, GLsizei count, GLsizei newN)
+bov_points_t* bov_points_partial_update(bov_points_t* points,
+                                        const GLfloat coords[][2],
+                                        GLint start,
+                                        GLsizei count,
+                                        GLsizei newN)
 {
 	if(coords==NULL) {
-		ERROR_LOG(PARAMETER_ERROR, "Cannot do a partial update with a NULL "
-		                            "pointer as array of coordinates");
+		BOV_ERROR_LOG(BOV_PARAMETER_ERROR,
+		              "Cannot do a partial update with a NULL "
+		              "pointer as array of coordinates");
 		return NULL;
 	}
 
@@ -1277,12 +1331,13 @@ points_t* points_partial_update(points_t* points, const GLfloat coords[][2],
 	if(start + count > newN)
 		newN = start + count;
 	if(start + count < count) // detect overflow
-		newN = TILL_END;
+		newN = BOV_TILL_END;
 
 	if(newN > points->vboCapacity) {
-		ERROR_LOG(PARAMETER_ERROR, "Cannot do a partial update when the new "
-		                           "size is bigger than the capacity of the "
-		                           "buffer");
+		BOV_ERROR_LOG(BOV_PARAMETER_ERROR,
+		              "Cannot do a partial update when the new "
+		              "size is bigger than the capacity of the "
+		              "buffer");
 		return NULL;
 	}
 
@@ -1292,14 +1347,17 @@ points_t* points_partial_update(points_t* points, const GLfloat coords[][2],
 		return points;
 
 	glBindBuffer(GL_ARRAY_BUFFER, points->vbo);
-	glBufferSubData(GL_ARRAY_BUFFER, start, sizeof(GLfloat)*2*count, coords);
+	glBufferSubData(GL_ARRAY_BUFFER,
+	                start,
+	                sizeof(GLfloat)*2*count,
+	                coords);
 	// glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	return points;
 }
 
 
-void points_delete(points_t* points)
+void bov_points_delete(bov_points_t* points)
 {
 	glDeleteBuffers(1, &points->vbo);
 	glDeleteVertexArrays(1, &points->vao);
@@ -1307,9 +1365,9 @@ void points_delete(points_t* points)
 }
 
 
-static GLenum switch_rasterizer_with_mode(window_t* window,
-                                          const points_t* points,
-                                          points_drawing_mode_t mode)
+static GLenum switch_rasterizer_with_mode(bov_window_t* window,
+                                          const bov_points_t* points,
+                                          bov_points_drawing_mode_t mode)
 {
 	int program_index;
 	GLenum primitive = 0;
@@ -1380,8 +1438,9 @@ static GLenum switch_rasterizer_with_mode(window_t* window,
 			primitive = GL_TRIANGLE_FAN;
 			break;
 		default:
-			ERROR_LOG(PARAMETER_ERROR, "this function is private but was "
-			                           "given erroneous arguments anyway");
+			BOV_ERROR_LOG(BOV_PARAMETER_ERROR,
+			              "this function is private but was "
+			              "given erroneous arguments anyway");
 			exit(EXIT_FAILURE);
 	}
 
@@ -1392,7 +1451,10 @@ static GLenum switch_rasterizer_with_mode(window_t* window,
 
 	// update the object ubo
 	glBindBuffer(GL_UNIFORM_BUFFER, window->ubo[1]);
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(points_param_t), &points->param);
+	glBufferSubData(GL_UNIFORM_BUFFER,
+	                0,
+	                sizeof(bov_points_param_t),
+	                &points->param);
 	// glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 	glBindVertexArray(points->vao);
@@ -1401,9 +1463,9 @@ static GLenum switch_rasterizer_with_mode(window_t* window,
 }
 
 
-void points_draw_aux(window_t* window,
-					 const points_t* points,
-					 points_drawing_mode_t mode,
+void bov_points_draw_aux(bov_window_t* window,
+					 const bov_points_t* points,
+					 bov_points_drawing_mode_t mode,
 					 GLint start,
 					 GLsizei count)
 {
@@ -1420,14 +1482,14 @@ void points_draw_aux(window_t* window,
 }
 
 
-void points_draw_with_order_aux(window_t* window,
-								const points_t* points,
-								points_drawing_mode_t mode,
-								const order_t* order,
-								GLint start, GLsizei count)
+void bov_points_draw_with_order_aux(bov_window_t* window,
+                                    const bov_points_t* points,
+                                    bov_points_drawing_mode_t mode,
+                                    const bov_order_t* order,
+                                    GLint start, GLsizei count)
 {
 	if(order==NULL)
-		points_draw_aux(window, points, mode, start, count);
+		bov_points_draw_aux(window, points, mode, start, count);
 
 	if(points->vboLen==0 || start>=order->eboLen)
 		return;
@@ -1445,14 +1507,14 @@ void points_draw_with_order_aux(window_t* window,
 }
 
 
-void points_draw_with_indices_aux(window_t* window,
-								  const points_t* points,
-								  points_drawing_mode_t mode,
-								  const GLuint* indices,
-								  GLint start, GLsizei count)
+void bov_points_draw_with_indices_aux(bov_window_t* window,
+                                      const bov_points_t* points,
+                                      bov_points_drawing_mode_t mode,
+                                      const GLuint* indices,
+                                      GLint start, GLsizei count)
 {
 	if(indices==NULL)
-		points_draw_aux(window, points, mode, start, count);
+		bov_points_draw_aux(window, points, mode, start, count);
 
 	if(points->vboLen==0 || start>=count)
 		return;
@@ -1464,7 +1526,8 @@ void points_draw_with_indices_aux(window_t* window,
 }
 
 
-void window_screenshot(const window_t* window, const char* filename)
+void bov_window_screenshot(const bov_window_t* window,
+                           const char* filename)
 {
 	static unsigned char* data = NULL;
 

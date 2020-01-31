@@ -31,16 +31,16 @@
 
 int main(int argc, char* argv[])
 {
-	window_t* window = window_new(0, 0, argv[0]);
-	window_set_color(window, (GLfloat[4]) {0.8, 0.8, 0.8, 1.0});
+	bov_window_t* window = bov_window_new(0, 0, argv[0]);
+	bov_window_set_color(window, (GLfloat[4]) {0.8, 0.8, 0.8, 1.0});
 
 
-	text_t* outline = text_new((unsigned char[]) {
+	bov_text_t* outline = bov_text_new((unsigned char[]) {
 	                           "varying outline width"},
 	                            GL_STATIC_DRAW);
 
 	// putting more than 1 on the alpha component for radiation effect
-	text_param_t parameters = {
+	bov_text_param_t parameters = {
 		.outlineColor = {1.0, 0.0, 0.0, 2.0},
 		.pos = {-1.0, 0.66},
 		.fillColor = {0},// completely transparent
@@ -48,81 +48,81 @@ int main(int argc, char* argv[])
 		.boldness = 0.25,
 		.outlineWidth = 0.5
 	};
-	text_set_param(outline, parameters);
+	bov_text_set_param(outline, parameters);
 
 
-	text_t* width = text_new((unsigned char[]) {
+	bov_text_t* width = bov_text_new((unsigned char[]) {
 	                         "varying width"},
 	                         GL_STATIC_DRAW);
 
-	text_set_param(width, parameters);
-	text_set_outline_width(width, -1.0);
-	text_set_color(width, (GLfloat[4]) {0.2, 0.2, 0.2, 1});
-	text_set_pos(width, (GLfloat[2]) {-1.0, 0.33});
+	bov_text_set_param(width, parameters);
+	bov_text_set_outline_width(width, -1.0);
+	bov_text_set_color(width, (GLfloat[4]) {0.2, 0.2, 0.2, 1});
+	bov_text_set_pos(width, (GLfloat[2]) {-1.0, 0.33});
 
 
-	text_t* shift = text_new((unsigned char[]) {
+	bov_text_t* shift = bov_text_new((unsigned char[]) {
 	                         "varying outline shift"},
 	                         GL_STATIC_DRAW);
-	text_set_param(shift, parameters);
-	text_set_pos(shift, (GLfloat[2]) {-1.0, 0.0});
+	bov_text_set_param(shift, parameters);
+	bov_text_set_pos(shift, (GLfloat[2]) {-1.0, 0.0});
 
-	text_t* fontSize = text_new((unsigned char[]) {
+	bov_text_t* fontSize = bov_text_new((unsigned char[]) {
 	                          "varying size"},
 	                          GL_STATIC_DRAW);
-	text_set_param(fontSize, parameters);
-	text_set_pos(fontSize, (GLfloat[2]) {-1.0, -0.33});
+	bov_text_set_param(fontSize, parameters);
+	bov_text_set_pos(fontSize, (GLfloat[2]) {-1.0, -0.33});
 
 
 
-	text_t* pixel = text_new((unsigned char[]) {
+	bov_text_t* pixel = bov_text_new((unsigned char[]) {
 	                         "This text is unmoovable and unzoomable."
 	                         " Its position and its size"
 	                         " must be given in pixels"},
 	                         GL_STATIC_DRAW);
-	text_set_space_type(pixel, PIXEL_SPACE);
+	bov_text_set_space_type(pixel, PIXEL_SPACE);
 
 
-	text_t* unzoomable = text_new((unsigned char[]) {
+	bov_text_t* unzoomable = bov_text_new((unsigned char[]) {
 	                              ".you can't zoom on this point"},
 	                              GL_STATIC_DRAW);
-	GLfloat pixel64 = 2.0 / window_get_yres(window) * 64.0; //~64 pixels height
-	text_set_pos(unzoomable, (GLfloat[2]) {-1.0, 1 - 1.1 * pixel64});
-	text_set_fontsize(unzoomable, pixel64);
-	text_set_space_type(unzoomable, UNZOOMABLE_SPACE);
+	GLfloat pixel64 = 2.0 / bov_window_get_yres(window) * 64.0; //~64 pixels height
+	bov_text_set_pos(unzoomable, (GLfloat[2]) {-1.0, 1 - 1.1 * pixel64});
+	bov_text_set_fontsize(unzoomable, pixel64);
+	bov_text_set_space_type(unzoomable, UNZOOMABLE_SPACE);
 
 
 
-	while(!window_should_close(window)) {
-		double wtime = window_get_time(window);
+	while(!bov_window_should_close(window)) {
+		double wtime = bov_window_get_time(window);
 
-		text_set_outline_width(outline, 0.6 * sin(wtime) + 0.6);
-		text_draw(window, outline);
+		bov_text_set_outline_width(outline, 0.6 * sin(wtime) + 0.6);
+		bov_text_draw(window, outline);
 
-		text_set_boldness(width, 0.5 * sin(wtime) - 0.1);
-		text_draw(window, width);
+		bov_text_set_boldness(width, 0.5 * sin(wtime) - 0.1);
+		bov_text_draw(window, width);
 
-		text_set_outline_shift(shift, (GLfloat[2]){
+		bov_text_set_outline_shift(shift, (GLfloat[2]){
 		                                sin(3 * wtime),
 		                                cos(3 * wtime)});
-		text_draw(window, shift);
+		bov_text_draw(window, shift);
 
-		text_set_fontsize(fontSize, 0.1 * sin(wtime) + 0.1);
-		text_draw(window, fontSize);
+		bov_text_set_fontsize(fontSize, 0.1 * sin(wtime) + 0.1);
+		bov_text_draw(window, fontSize);
 
-		text_draw(window, pixel);
-		text_draw(window, unzoomable);
+		bov_text_draw(window, pixel);
+		bov_text_draw(window, unzoomable);
 
-		window_update(window);
+		bov_window_update(window);
 	}
 
 	printf("Ended correctly\n");
 
-	text_delete(outline);
-	text_delete(width);
-	text_delete(shift);
+	bov_text_delete(outline);
+	bov_text_delete(width);
+	bov_text_delete(shift);
 
-	window_delete(window);
+	bov_window_delete(window);
 
 	return EXIT_SUCCESS;
 }

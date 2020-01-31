@@ -31,136 +31,137 @@
 
 int main(int argc, char* argv[])
 {
-	window_t* window = window_new(1080,640, argv[0]);
+	bov_window_t* window = bov_window_new(1080,640, argv[0]);
 
-	text_t* common_text = text_new(
+	bov_text_t* common_text = bov_text_new(
 	    (unsigned char[]){"rendering points using"},
 	    GL_STATIC_DRAW);
-	text_set_pos(common_text, (GLfloat[2]) {-1.0, 0.9});
+	bov_text_set_pos(common_text, (GLfloat[2]) {-1.0, 0.9});
 
 	GLfloat textPos[2] = {-1.0 + 23 * 0.025, 0.9};
 
-	text_t* points_draw_label = text_new(
+	bov_text_t* bov_points_draw_label = bov_text_new(
 	    (unsigned char[]){
-	    "points_draw()"},
+	    "bov_points_draw()"},
 	    GL_STATIC_DRAW);
 	// the default size for a character is 0.025 in width and 0.05 in height
-	text_set_pos(points_draw_label, textPos);
+	bov_text_set_pos(bov_points_draw_label, textPos);
 
-	text_t* triangles_draw_label = text_new(
-	    (unsigned char[]) {"triangles_draw()"},
+	bov_text_t* bov_triangles_draw_label = bov_text_new(
+	    (unsigned char[]) {"bov_triangles_draw()"},
 	    GL_STATIC_DRAW);
-	text_set_pos(triangles_draw_label, textPos);
+	bov_text_set_pos(bov_triangles_draw_label, textPos);
 
-	text_t* fast_triangles_draw_label = text_new(
-	    (unsigned char[]) {"fast_triangles_draw()"},
+	bov_text_t* bov_fast_triangles_draw_label = bov_text_new(
+	    (unsigned char[]) {"bov_fast_triangles_draw()"},
 	    GL_STATIC_DRAW);
-	text_set_pos(fast_triangles_draw_label, textPos);
+	bov_text_set_pos(bov_fast_triangles_draw_label, textPos);
 
-	text_t* triangle_strip_draw_label = text_new(
-	    (unsigned char[]) {"triangle_strip_draw()"},
+	bov_text_t* bov_triangle_strip_draw_label = bov_text_new(
+	    (unsigned char[]) {"bov_triangle_strip_draw()"},
 	    GL_STATIC_DRAW);
-	text_set_pos(triangle_strip_draw_label, textPos);
+	bov_text_set_pos(bov_triangle_strip_draw_label, textPos);
 
-	text_t* fast_triangle_strip_draw_label = text_new(
-	    (unsigned char[]) {"fast_triangle_strip_draw()"},
+	bov_text_t* bov_fast_triangle_strip_draw_label = bov_text_new(
+	    (unsigned char[]) {"bov_fast_triangle_strip_draw()"},
 	    GL_STATIC_DRAW);
-	text_set_pos(fast_triangle_strip_draw_label, textPos);
+	bov_text_set_pos(bov_fast_triangle_strip_draw_label, textPos);
 
-	text_t* triangle_fan_draw_label = text_new(
-	    (unsigned char[]) {"triangle_fan_draw()"},
+	bov_text_t* bov_triangle_fan_draw_label = bov_text_new(
+	    (unsigned char[]) {"bov_triangle_fan_draw()"},
 	    GL_STATIC_DRAW);
-	text_set_pos(triangle_fan_draw_label, textPos);
+	bov_text_set_pos(bov_triangle_fan_draw_label, textPos);
 
-	text_t* fast_triangle_fan_draw_label = text_new(
-	    (unsigned char[]) {"fast_triangle_fan_draw()"},
+	bov_text_t* bov_fast_triangle_fan_draw_label = bov_text_new(
+	    (unsigned char[]) {"bov_fast_triangle_fan_draw()"},
 	    GL_STATIC_DRAW);
-	text_set_pos(fast_triangle_fan_draw_label, textPos);
+	bov_text_set_pos(bov_fast_triangle_fan_draw_label, textPos);
 
-	points_t* pointset = points_new((float[10][2]) {
-	                                    {-1.0,  0.0},
-	                                    {-0.8, -0.6},
-	                                    {-0.7,  0.6},
-	                                    {-0.5,  0.0},
-	                                    {-0.2, -0.4},
-	                                    { 0.0,  0.8},
-	                                    { 0.3,  0.0},
-	                                    { 0.5, -0.6},
-	                                    { 0.7,  0.6},
-	                                    { 0.0, -0.9}
-	                                }, 10, GL_STATIC_DRAW);
-	points_set_color(pointset, (float[4]) {0.05, 0.1, 0.2, 0.6});
-	points_set_outline_width(pointset, 0.025);
+	bov_points_t* pointset = bov_points_new(
+	(float[10][2]) {
+	    {-1.0,  0.0},
+	    {-0.8, -0.6},
+	    {-0.7,  0.6},
+	    {-0.5,  0.0},
+	    {-0.2, -0.4},
+	    { 0.0,  0.8},
+	    { 0.3,  0.0},
+	    { 0.5, -0.6},
+	    { 0.7,  0.6},
+	    { 0.0, -0.9}
+	}, 10, GL_STATIC_DRAW);
+	bov_points_set_color(pointset, (float[4]) {0.05, 0.1, 0.2, 0.6});
+	bov_points_set_outline_width(pointset, 0.025);
 
-	order_t* order = order_new((GLuint[10]) {4, 3, 6, 9, 1, 0, 2, 5, 8, 7},
+	bov_order_t* order = bov_order_new((GLuint[10]) {4, 3, 6, 9, 1, 0, 2, 5, 8, 7},
 	                           10, GL_STATIC_DRAW);
 
 	unsigned long frameCount = 0;
-	while(!window_should_close(window)) {
-		double wtime = window_get_time(window);
+	while(!bov_window_should_close(window)) {
+		double wtime = bov_window_get_time(window);
 
-		text_draw(window, common_text);
-		points_set_width(pointset, 0.0);
-		points_set_outline_color(pointset, (GLfloat[4]) {0.3, 0.0, 0.0, 0.5});
+		bov_text_draw(window, common_text);
+		bov_points_set_width(pointset, 0.0);
+		bov_points_set_outline_color(pointset, (GLfloat[4]) {0.3, 0.0, 0.0, 0.5});
 
 		switch( (unsigned) wtime / 4 % 7) {
 		case 0:
-			text_draw(window, points_draw_label);
-			points_draw(window, pointset, 0, TILL_END);
+			bov_text_draw(window, bov_points_draw_label);
+			bov_points_draw(window, pointset, 0, BOV_TILL_END);
 			break;
 		case 1:
-			text_draw(window, triangles_draw_label);
-			triangles_draw(window, pointset, 0, TILL_END);
+			bov_text_draw(window, bov_triangles_draw_label);
+			bov_triangles_draw(window, pointset, 0, BOV_TILL_END);
 			break;
 		case 2:
-			text_draw(window, triangle_strip_draw_label);
-			triangle_strip_draw(window, pointset, 0, TILL_END);
+			bov_text_draw(window, bov_triangle_strip_draw_label);
+			bov_triangle_strip_draw(window, pointset, 0, BOV_TILL_END);
 			break;
 		case 3:
-			text_draw(window, triangle_fan_draw_label);
-			triangle_fan_draw(window, pointset, 0, TILL_END);
+			bov_text_draw(window, bov_triangle_fan_draw_label);
+			bov_triangle_fan_draw(window, pointset, 0, BOV_TILL_END);
 			break;
 		case 4:
-			text_draw(window, fast_triangles_draw_label);
-			fast_triangles_draw(window, pointset, 0, TILL_END);
+			bov_text_draw(window, bov_fast_triangles_draw_label);
+			bov_fast_triangles_draw(window, pointset, 0, BOV_TILL_END);
 			break;
 		case 5:
-			text_draw(window, fast_triangle_strip_draw_label);
-			fast_triangle_strip_draw(window, pointset, 0, TILL_END);
+			bov_text_draw(window, bov_fast_triangle_strip_draw_label);
+			bov_fast_triangle_strip_draw(window, pointset, 0, BOV_TILL_END);
 			break;
 		case 6:
-			text_draw(window, fast_triangle_fan_draw_label);
-			fast_triangle_fan_draw(window, pointset, 0, TILL_END);
+			bov_text_draw(window, bov_fast_triangle_fan_draw_label);
+			bov_fast_triangle_fan_draw(window, pointset, 0, BOV_TILL_END);
 			break;
 		}
 
-		points_set_width(pointset, 0.05);
-		points_set_outline_color(pointset, (GLfloat[4]) {1.0, 0.0, 0.0, 1.0});
-		points_draw(window, pointset, 0, TILL_END);
+		bov_points_set_width(pointset, 0.05);
+		bov_points_set_outline_color(pointset, (GLfloat[4]) {1.0, 0.0, 0.0, 1.0});
+		bov_points_draw(window, pointset, 0, BOV_TILL_END);
 
-		window_update(window);
+		bov_window_update(window);
 
 		frameCount++;
 	}
 
 	printf("Ended correctly - %.2f second, %lu frames, %.2f fps\n",
-	       window_get_time(window),
+	       bov_window_get_time(window),
 	       frameCount,
-	       frameCount / window_get_time(window));
+	       frameCount / bov_window_get_time(window));
 
-	text_delete(points_draw_label);
-	text_delete(triangles_draw_label);
-	text_delete(triangle_strip_draw_label);
-	text_delete(triangle_fan_draw_label);
-	text_delete(fast_triangles_draw_label);
-	text_delete(fast_triangle_strip_draw_label);
-	text_delete(fast_triangle_fan_draw_label);
+	bov_text_delete(bov_points_draw_label);
+	bov_text_delete(bov_triangles_draw_label);
+	bov_text_delete(bov_triangle_strip_draw_label);
+	bov_text_delete(bov_triangle_fan_draw_label);
+	bov_text_delete(bov_fast_triangles_draw_label);
+	bov_text_delete(bov_fast_triangle_strip_draw_label);
+	bov_text_delete(bov_fast_triangle_fan_draw_label);
 
-	points_delete(pointset);
+	bov_points_delete(pointset);
 
-	order_delete(order);
+	bov_order_delete(order);
 
-	window_delete(window);
+	bov_window_delete(window);
 
 	return EXIT_SUCCESS;
 }

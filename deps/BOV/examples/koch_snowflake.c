@@ -9,7 +9,7 @@
 
 /* update the properties (width, outline width & scaling) of the pointset
  * given the proportion of the transition `s` time and the segwidth */
-static void parameters_update(points_t* pointset, GLfloat segWidth, GLfloat s)
+static void parameters_update(bov_points_t* pointset, GLfloat segWidth, GLfloat s)
 {
 
 	/* the width of a segment during a transition
@@ -23,15 +23,15 @@ static void parameters_update(points_t* pointset, GLfloat segWidth, GLfloat s)
 	 *
 	 */
 	GLfloat scale = 1.5 / (1.0 - ORIGINAL_SEGWIDTH + w);
-	points_scale(pointset, (GLfloat[2]) {scale, scale});
+	bov_points_scale(pointset, (GLfloat[2]) {scale, scale});
 
 	/* but the scaling should also scale w, which is not the case
 	 * with the BOV library, only the coordinates of the points
 	 * are scaled
 	 // * thus we must scale the width ourselves */
 	w *= scale;
-	points_set_width(pointset, w);
-	points_set_outline_width(pointset, 0.66 * w);
+	bov_points_set_width(pointset, w);
+	bov_points_set_outline_width(pointset, 0.66 * w);
 }
 
 
@@ -98,8 +98,8 @@ static void indices_update(GLuint* indices, size_t nSegment, size_t maxSegment)
 
 int main(int argc, char *argv[])
 {
-	window_t* window = window_new(1024, 640, argv[0]);
-	window_set_color(window, (GLfloat[4]) {0.3, 0.3, 0.3, 1.0});
+	bov_window_t* window = bov_window_new(1024, 640, argv[0]);
+	bov_window_set_color(window, (GLfloat[4]) {0.3, 0.3, 0.3, 1.0});
 
 	const int maxIters = 5;
 	const size_t maxSegment = 1ULL << (2 * maxIters); // 4^maxIter with bits operations
@@ -108,8 +108,8 @@ int main(int argc, char *argv[])
 	// allocations
 	GLfloat (*coords)[2] = malloc(2 * sizeof(GLfloat) * maxPoints);
 	GLuint* indices = malloc(sizeof(GLuint) * (maxPoints + 2));
-	points_t* pointset = points_new(NULL, maxPoints, GL_STATIC_DRAW); // GPU mirror of coords
-	order_t* order = order_new(NULL, maxPoints + 2, GL_DYNAMIC_DRAW); // GPU mirror of indices
+	bov_points_t* pointset = bov_points_new(NULL, maxPoints, GL_STATIC_DRAW); // GPU mirror of coords
+	bov_order_t* order = bov_order_new(NULL, maxPoints + 2, GL_DYNAMIC_DRAW); // GPU mirror of indices
 
 	// initialization
 	size_t nSegment = 1;                // nPoints = nSegment+1
@@ -124,31 +124,31 @@ int main(int argc, char *argv[])
 	// will be updated during the animation
 	GLfloat fillColor[4] = {1, 1, 1, 1};
 	GLfloat outColor[4] = {0.7, 0.5, 0.0, 2.0};
-	points_set_color(pointset, outColor);
-	points_set_outline_color(pointset, fillColor);
+	bov_points_set_color(pointset, outColor);
+	bov_points_set_outline_color(pointset, fillColor);
 
 	// iterations
 	for(int i=0; i<maxIters-1; i++) {
 		indices_update(indices, 4 * nSegment, maxSegment);
-		order_update(order, indices, 4 * nSegment + 3);
+		bov_order_update(order, indices, 4 * nSegment + 3);
 
 		// animation (here we recompute the points each times)
-		double tbegin = window_get_time(window);
+		double tbegin = bov_window_get_time(window);
 		double tnow = tbegin;
 		while(tnow - tbegin < TRANSITION_TIME) {
 			// interpolation factor
 			GLfloat s = (tnow - tbegin)/TRANSITION_TIME;
 
 			coords_update(coords, indices, nSegment, s);
-			points_update(pointset, coords, maxPoints);
+			bov_points_update(pointset, coords, maxPoints);
 			parameters_update(pointset, segWidth, s);
 
-			curve_draw_with_order(window, pointset, order, 0, TILL_END);
-			window_update(window);
+			bov_curve_draw_with_order(window, pointset, order, 0, BOV_TILL_END);
+			bov_window_update(window);
 
-			tnow = window_get_time(window);
+			tnow = bov_window_get_time(window);
 
-			if(window_should_close(window))
+			if(bov_window_should_close(window))
 				goto end_of_program;
 		}
 
@@ -156,8 +156,8 @@ int main(int argc, char *argv[])
 		segWidth *= 1.0 / 3.0;
 	}
 
-	text_t* end = text_new((unsigned char[]){"Max. iteration level reached"}, GL_STATIC_DRAW);
-	text_set_param(end, (text_param_t) {
+	bov_text_t* end = bov_text_new((unsigned char[]){"Max. iteration level reached"}, GL_STATIC_DRAW);
+	bov_text_set_param(end, (bov_text_param_t) {
 	  .spaceType = PIXEL_SPACE,
 	  .fontSize = 64,
 	  .pos = {64, 64},
@@ -168,23 +168,23 @@ int main(int argc, char *argv[])
 	});
 
 	parameters_update(pointset, segWidth, 0);
-	points_update(pointset, coords, maxPoints);
+	bov_points_update(pointset, coords, maxPoints);
 
-	while(!window_should_close(window)) {
-		curve_draw_with_order(window, pointset, order, 0, TILL_END);
-		text_draw(window, end);
-		window_update_and_wait_events(window);
+	while(!bov_window_should_close(window)) {
+		bov_curve_draw_with_order(window, pointset, order, 0, BOV_TILL_END);
+		bov_text_draw(window, end);
+		bov_window_update_and_wait_events(window);
 	}
 
-	text_delete(end);
+	bov_text_delete(end);
 
 end_of_program:
 
-	order_delete(order);
+	bov_order_delete(order);
 	free(indices);
-	points_delete(pointset);
+	bov_points_delete(pointset);
 	free(coords);
-	window_delete(window);
+	bov_window_delete(window);
 
 	return EXIT_SUCCESS;
 }
