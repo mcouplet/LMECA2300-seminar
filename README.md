@@ -1,5 +1,5 @@
-Numerical Geometry Project
-==========================
+Advanced Numerical Geometry Project
+===================================
 
 This folder is the canvas for your upcoming project.
 It should contain:
@@ -21,5 +21,3 @@ for help on the BOV library functions.
 See [deps/BOV/examples/](deps/BOV/examples/) for more
 examples using the BOV library
 
-See the [wikis](https://git.immc.ucl.ac.be/marotc/ngp/wikis/home)
-for even more information.
