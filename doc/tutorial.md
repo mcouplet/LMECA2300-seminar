@@ -2,8 +2,8 @@ Doing animations in C with `BOV`
 =======================================
 
 This page teaches you how to use the BOV library (contained in
-[deps/BOV/](deps/BOV/)) in order to make a beautiful
-animation for your upcoming project.
+[deps/BOV/](deps/BOV/)) in order to make a beautiful animation
+for your upcoming project.
 
  * [FAQ](#faq)
  * [Tutorial](#tutorial)
@@ -60,10 +60,12 @@ You can now open [src/main.c](src/main.c) and start coding.
 
 ### Creating a window
 
-First, we will create a simple window (an object of type `window_t`)
-via a call to the function
+First, we will create a simple window (an object of type
+`bov_window_t`) via a call to the function
 ```C
-    window_t* window_new(int width, int height, const char* win_name);
+    bov_window_t* bov_window_new(int width,
+                                 int height,
+                                 const char* win_name);
 ```
 where
  * **width** is the width of the window in pixels or 0 for full-screen
@@ -75,10 +77,10 @@ we will wait for 2 seconds using the function `time()` and
 `difftime()` given in
 [`<time.h>`](http://www.cplusplus.com/reference/ctime/)
 
-and close the window (and deleted all structure related to the window)
-with
+and close the window (and deleted all structure related to the
+window) with
 ```C
-    void window_delete(window_t* window);
+    void bov_window_delete(bov_window_t* window);
 ```
 
 
@@ -90,14 +92,14 @@ titled "Tutorial 0", we wait 2 seconds, close the window and return.
 
 int main()
 {
-    window_t* window = window_new(800, 800, "Tutorial 0");
+    bov_window_t* window = bov_window_new(800, 800, "Tutorial 0");
 
     time_t tic = time(NULL);
 
     while(difftime(time(NULL) , tic)< 2)
         ;// do nothing
 
-    window_delete(window);
+    bov_window_delete(window);
 
     return 0;
 }
@@ -107,14 +109,14 @@ int main()
 ### A window has its own time
 
 Before drawing things into a window, we have to understand that the
-window object is actually much more than a window.
-Indeed, when you will draw primitive shapes with `points_draw()`,
-`text_draw()`... you will in fact draw to a texture in the memory of
-your computer which is called a framebuffer. Once you've filled the
-framebuffer with what you want to draw, you can show it in the window
-using:
+window object is actually much more than a window. Indeed, when you
+will draw primitive shapes with `bov_points_draw()`,
+`bov_text_draw()`... you will in fact draw to a texture in the memory
+of your computer which is called a framebuffer. Once you've filled
+the framebuffer with what you want to draw, you can show it in the
+window using:
 ```C
-void window_update(window_t* window)
+void bov_window_update(bov_window_t* window)
 ```
 That function actually does a lot of things:
 
@@ -124,13 +126,13 @@ That function actually does a lot of things:
    depends on the refreshing rate (framerate) of your screen (usually
    60 Hz)
  - it processes events (mouse inputs and keyboard inputs) that
-   happened since the last call to `window_update()`.
+   happened since the last call to `bov_window_update()`.
  - it updates the size of the framebuffer in pixel according to the
    size of the window.
  - **it clears the framebuffer**
  - it changes the render position, change the scaling (zoom), pause
-   the window timer, tell if the window should close etc. according to
-   the event received.
+   the window timer, tell if the window should close etc. according
+   to the event received.
  - it updates its own timer which doesn't increase if the window is
    paused
 
@@ -141,32 +143,32 @@ Now, let's update our previous example using the window timer:
 
 int main()
 {
-    window_t* window = window_new(800, 800, "mY wInDoW");
+    bov_window_t* window = bov_window_new(800, 800, "mY wInDoW");
 
-    while(window_get_time(window) < 2) {
-        window_update(window);
+    while(bov_window_get_time(window) < 2) {
+        bov_window_update(window);
     }
 
-    window_delete(window);
+    bov_window_delete(window);
 
     return EXIT_SUCCESS;
 }
 ```
 
 Because we use the timer of the window, **we can pause the time by
-pressing the space bar**. If you do so before the 2 seconds delay, the
-window won't close because the time will get stuck somewhere in
-between 0 and 2 seconds. Pressing the space bar again will restart the
-timer and the window will close.
+pressing the space bar**. If you do so before the 2 seconds delay,
+the window won't close because the time will get stuck somewhere in
+between 0 and 2 seconds. Pressing the space bar again will restart
+the timer and the window will close.
 
-You might also notice that the background color is now white, which is
-the default color for the background of the framebuffer. In the
+You might also notice that the background color is now white, which
+is the default color for the background of the framebuffer. In the
 previous example, it stayed black because we were never showing the
 content of the framebuffer to the window.
 
 You can change the background color of the window using:
 ```C
-void window_set_color(window_t* window, float rgba[4]);
+void bov_window_set_color(bov_window_t* window, float rgba[4]);
 ```
 
 The color `rgba` is defined by 4 floating-point values `float` in the
@@ -187,20 +189,20 @@ are drawn behind our object.
 Showing a window during 2 second is not very useful. You will
 generally want to display the window until the user clicks the close
 button, press the escape key or ALT+F4. Those events are captured by
-the window when using `window_update()`. You can simply ask the window
-if they happened by calling
+the window when using `bov_window_update()`. You can simply ask the
+window if they happened by calling
 ```C
-int window_should_close(window_t* window)
+int bov_window_should_close(bov_window_t* window)
 ```
 in this manner
 
 ```C
-while(!window_should_close(window)) {
+while(!bov_window_should_close(window)) {
     // draw stuff here
 
     // ...
 
-    window_update(window);
+    bov_window_update(window);
 }
 ```
 
@@ -213,32 +215,31 @@ Time to render our first primitive!
 Let's use the function `text_new()`, which returns a new text
 object:
 ```C
-text_t* text_new(unsigned char* string, GLenum usage);
+bov_text_t* bov_text_new(unsigned char* string, GLenum usage);
 ```
  - **string** is the message that you want to display
  - **usage** is either GL_DYNAMIC_DRAW if you intend to change the
-   content (the text) of the object regularly or GL_STATIC_DRAW if the
-   text won't change.
+   content (the text) of the object regularly or GL_STATIC_DRAW if
+   the text won't change.
 
 Additionally, there are multiple parameters associated to a text
-object that you can change: its position on the screen, its color, its
-width, its outline color, its outline width, its scaling in x and y...
-see
-[deps/BOV/include/BOV.h](deps/BOV/include/BOV.h)
-for more info.
+object that you can change: its position on the screen, its color,
+its width, its outline color, its outline width, its scaling in x and
+y... see [deps/BOV/include/BOV.h](deps/BOV/include/BOV.h) for more
+info.
 
 
 To render our text object into the framebuffer, we have to call
 ```C
-void text_draw(window_t* window, text_t* text);
+void bov_text_draw(bov_window_t* window, bov_text_t* text);
 ```
-Reminder: we will have to do this repeatedly because `window_update()`
-clears the framebuffer.
+Reminder: we will have to do this repeatedly because
+`bov_window_update()` clears the framebuffer.
 
 
 Finally, when we don't need our text object anymore, we will call
 ```C
-void text_delete(text_t* text);
+void bov_text_delete(bov_text_t* text);
 ```
 to destroy it.
 
@@ -262,34 +263,35 @@ void nice_colormap(float color[4], float a)
 
 int main()
 {
-    window_t* window = window_new(800, 800, "Tutorial 1");
-    window_set_color(window, (GLfloat[]) {0.5, 0.5, 0.5, 1.0});
+    bov_window_t* window = bov_window_new(800, 800, "Tutorial 1");
+    bov_window_set_color(window, (GLfloat[]) {0.5, 0.5, 0.5, 1.0});
 
     // hw is prefix for hello world :p
-    text_t* hw_obj = text_new((unsigned char[]) {"Hello World !"},
-                              GL_STATIC_DRAW);
+    bov_text_t* hw_obj = bov_text_new((unsigned char[])
+                                           {"Hello World !"},
+                                      GL_STATIC_DRAW);
 
     float hw_color[4] = {1.0, 1.0, 1.0, 1.0};
-    text_set_fontsize(hw_obj, 0.2);
+    bov_text_set_fontsize(hw_obj, 0.2);
 
     // a character here is 0.1 wide (it is 0.05 with no scaling)
     // centering "Hello World !": 13/2=6.5 characters => 0.65
-    text_set_pos(hw_obj, (GLfloat[2]) {-0.65, 0.0});
-    text_set_boldness(hw_obj, 0.4); // bold
-    text_set_outline_width(hw_obj, 1.0); // big outline
-    text_set_outline_color(hw_obj, (float[4]) {0, 0, 0, 1}); // black
+    bov_text_set_pos(hw_obj, (GLfloat[2]) {-0.65, 0.0});
+    bov_text_set_boldness(hw_obj, 0.4); // bold
+    bov_text_set_outline_width(hw_obj, 1.0); // big outline
+    bov_text_set_outline_color(hw_obj, (float[4]) {0, 0, 0, 1});
 
 
     while(!window_should_close(window)) {
         nice_colormap(hw_color, window_get_time(window));
-        text_set_color(hw_obj, hw_color);
-        text_draw(window, hw_obj);
+        bov_text_set_color(hw_obj, hw_color);
+        bov_text_draw(window, hw_obj);
 
-        window_update(window);
+        bov_window_update(window);
     }
 
-    text_delete(hw_obj);
-    window_delete(window);
+    bov_text_delete(hw_obj);
+    bov_window_delete(window);
 
     return EXIT_SUCCESS;
 }
@@ -303,12 +305,12 @@ progress of an algorithm is far more difficult. Indeed, you are not
 only programming an algorithm for your Numerical Geometry project,
 **you are a video game developer now !**. Indeed, the window must be
 responsive to user inputs, users must be able to move the scene with
-their mouses, zooming in and out instantaneously. To do so, you should
-never do something that last more than a hundredth of a second before
-updating the window. In addition, we want your project to be pretty,
-with nice animations. The speed of your animations should not depend
-on the framerate of your screen. These are constraints that are almost
-only seen in video game development.
+their mouses, zooming in and out instantaneously. To do so, you
+should never do something that last more than a hundredth of a second
+before updating the window. In addition, we want your project to be
+pretty, with nice animations. The speed of your animations should not
+depend on the framerate of your screen. These are constraints that
+are almost only seen in video game development.
 
 ---
 
