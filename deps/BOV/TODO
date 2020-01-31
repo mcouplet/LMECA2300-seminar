@@ -1,7 +1,7 @@
  - triangles
  - quads
  - circles
- - make a README in Draw_tools
+ - make a README in BOV
  - multiple window support
  - arrow key right/left to accelerate/decelerate time
  - simple counter than developper can get with up/down arrows

@@ -1,6 +1,6 @@
  /*************************************************************************
   * Character Table example program. Shows all the possible characters
-  * available using the Draw_tools library, a wrapper around OpenGL and
+  * available using the BOV library, a wrapper around OpenGL and
   * GLFW (www.glfw.org) to draw simple 2D graphics.
   *------------------------------------------------------------------------
   * Copyright (c) 2019-2020 Célestin Marot <marotcelestin@gmail.com>
@@ -26,7 +26,7 @@
   *
   *************************************************************************/
 
-#include "draw_tools.h"
+#include "BOV.h"
 #include <math.h>
 
 

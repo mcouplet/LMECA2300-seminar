@@ -1,5 +1,5 @@
  /*************************************************************************
-  * Draw_tools 0.1
+  * BOV 0.1
   * A wrapper around OpenGL and GLFW (www.glfw.org) to draw simple 2D
   * graphics.
   *------------------------------------------------------------------------
@@ -26,8 +26,8 @@
   *
   *************************************************************************/
 
-#ifndef __DRAW_TOOLS_H__
-#define __DRAW_TOOLS_H__
+#ifndef BOV_H_
+#define BOV_H_
 
 #include <stdio.h>
 #include <stdlib.h>

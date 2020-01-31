@@ -1,5 +1,5 @@
 /*************************************************************************
-	* Draw_tools 0.1
+	* BOV 0.1
 	* A wrapper around OpenGL and GLFW (www.glfw.org) to draw simple 2D
 	* graphics.
 	*------------------------------------------------------------------------
@@ -41,16 +41,34 @@ layout (std140) uniform objectBlock
 	int space_type; // 0: normal sizes, 1: unzoomable, 2: unmodifable pixel size
 };
 
-in vec3 bary;
-flat in float pixelSize;
-
-out vec4 outColor;
-
-void main()
+layout (std140) uniform worldBlock
 {
-	vec2 sdf = vec2(0.0, 0.0 - outlineWidth + step(outlineWidth, 0.0))
-	           + min(bary.x, min(bary.y, bary.z));
-	vec2 alpha = smoothstep(-pixelSize, pixelSize, sdf);
-	outColor = mix(outlineColor, fillColor, alpha.y);
-	outColor.a *= alpha.x;
+	vec2 resolution;
+	vec2 translate;
+	float zoom;
+	// float rotation;
+};
+
+in vec2 pos;
+
+void main() {
+	float minRes = min(resolution.x, resolution.y);
+	vec2 resRatio = minRes / resolution;
+
+	vec2 scaling;
+	vec2 translation;
+	if(space_type==0) {
+		// classical case
+		scaling = resRatio * zoom;
+		translation = resRatio * zoom * (localPos + translate);
+	}
+	else if(space_type==1) {
+		scaling = resRatio;      // same as 0 but no zoom
+		translation = resRatio * (localPos + zoom * translate); // same as 0
+	}
+	else /*if(space_type==2)*/{
+		scaling = 2.0 / resolution;
+		translation = localPos * scaling - 1.0;
+	}
+	gl_Position = vec4(scaling * pos + translation, 0.0, 1.0);
 }

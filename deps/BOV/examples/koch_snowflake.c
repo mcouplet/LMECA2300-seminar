@@ -1,4 +1,4 @@
-#include "draw_tools.h"
+#include "BOV.h"
 #include <math.h>
 
 #define TRANSITION_TIME 1.3
@@ -26,7 +26,7 @@ static void parameters_update(points_t* pointset, GLfloat segWidth, GLfloat s)
 	points_scale(pointset, (GLfloat[2]) {scale, scale});
 
 	/* but the scaling should also scale w, which is not the case
-	 * with the draw_tools library, only the coordinates of the points
+	 * with the BOV library, only the coordinates of the points
 	 * are scaled
 	 // * thus we must scale the width ourselves */
 	w *= scale;

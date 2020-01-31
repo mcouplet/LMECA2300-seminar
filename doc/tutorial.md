@@ -1,8 +1,8 @@
-Doing animations in C with `draw_tools`
+Doing animations in C with `BOV`
 =======================================
 
-This page teaches you how to use the draw_tools library (contained in
-[deps/draw_tools/](deps/draw_tools/)) in order to make a beautiful
+This page teaches you how to use the BOV library (contained in
+[deps/BOV/](deps/BOV/)) in order to make a beautiful
 animation for your upcoming project.
 
  * [FAQ](#faq)
@@ -34,12 +34,12 @@ simplicity give C a clear advantage over languages with fancy (but
 costly) features. Finally, a well-realized C program will be as fast
 as any C++ or Rust, and much faster than any interpreted language.
 
-**What is draw_tools ?**
+**What is BOV ?**
 
 It is a small, simple OpenGL library created by your assistants to
 help you draw lines, text, and other simple shapes. All functions are
 defined and briefly explained in
-[deps/draw_tools/include/draw_tools.h](deps/draw_tools/include/draw_tools.h).
+[deps/BOV/include/BOV.h](deps/BOV/include/BOV.h).
 The most useful ones are described in the tutorial below. We figured
 it would be easier than using something like CSFML or BGFX, and
 lighter than requiring the SDL.
@@ -49,8 +49,8 @@ lighter than requiring the SDL.
 ## Tutorial
 
 First, open
-[deps/draw_tools/include/draw_tools.h](deps/draw_tools/include/draw_tools.h).
-This file contain the prototypes of every function that the draw_tools
+[deps/BOV/include/BOV.h](deps/BOV/include/BOV.h).
+This file contain the prototypes of every function that the BOV
 library defines. If you want to draw a shape, give a color to it, a
 position, a size, you will need to check those prototypes and the
 handy little comments that accompany them.
@@ -85,7 +85,7 @@ with
 Therefore, in the following code, we create a window of size 800x800
 titled "Tutorial 0", we wait 2 seconds, close the window and return.
 ```C
-#include "draw_tools.h"
+#include "BOV.h"
 #include <time.h>
 
 int main()
@@ -137,7 +137,7 @@ That function actually does a lot of things:
 
 Now, let's update our previous example using the window timer:
 ```C
-#include "draw_tools.h"
+#include "BOV.h"
 
 int main()
 {
@@ -224,7 +224,7 @@ Additionally, there are multiple parameters associated to a text
 object that you can change: its position on the screen, its color, its
 width, its outline color, its outline width, its scaling in x and y...
 see
-[deps/draw_tools/include/draw_tools.h](deps/draw_tools/include/draw_tools.h)
+[deps/BOV/include/BOV.h](deps/BOV/include/BOV.h)
 for more info.
 
 
@@ -247,7 +247,7 @@ to destroy it.
 Using all your knowledge, you should be able to display "Hello world"
 with some pretty effects, by varying the text object parameters.
 ```C
-#include "draw_tools.h"
+#include "BOV.h"
 #include <math.h>
 
 #define PI 3.14159265358979323846

@@ -1,17 +1,17 @@
 cmake_minimum_required(VERSION 3.6)
-project(Draw_tools C)
+project(BOV C)
 
-option(DRAW_TOOLS_BUILD_EXAMPLES "Build the Draw_tools example programs" ON)
+option(BOV_BUILD_EXAMPLES "Build the BOV example programs" ON)
 
-add_library(draw_tools src/draw_tools.c)
+add_library(bov src/BOV.c)
 
-set_target_properties(draw_tools PROPERTIES
+set_target_properties(bov PROPERTIES
                       C_STANDARD 99
                       ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib"
                       LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib")
-target_include_directories(draw_tools PUBLIC include)
-target_include_directories(draw_tools PRIVATE src)
-target_include_directories(draw_tools PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/shaderIncludes)
+target_include_directories(bov PUBLIC include)
+target_include_directories(bov PRIVATE src)
+target_include_directories(bov PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/shaderIncludes)
 
 add_subdirectory(deps/glfw)
 add_subdirectory(deps/glad)
@@ -34,15 +34,15 @@ endforeach(fileGLSL)
 add_custom_target(shaderIncludes
                   DEPENDS ${shadersH}
                   SOURCES ${shadersH})
-add_dependencies(draw_tools shaderIncludes)
+add_dependencies(bov shaderIncludes)
 
 # add dependencies: glfw, glad, -lm
-target_link_libraries(draw_tools
+target_link_libraries(bov
                       PUBLIC glad glfw)
 
 
 
-if(DRAW_TOOLS_BUILD_EXAMPLES)
+if(BOV_BUILD_EXAMPLES)
 	add_executable(animation ${CMAKE_CURRENT_SOURCE_DIR}/examples/animation.c)
 	add_executable(character_table ${CMAKE_CURRENT_SOURCE_DIR}/examples/character_table.c)
 	add_executable(hello_world ${CMAKE_CURRENT_SOURCE_DIR}/examples/hello_world.c)
@@ -52,14 +52,14 @@ if(DRAW_TOOLS_BUILD_EXAMPLES)
 	add_executable(text_style ${CMAKE_CURRENT_SOURCE_DIR}/examples/text_style.c)
 	add_executable(triangles ${CMAKE_CURRENT_SOURCE_DIR}/examples/triangles.c)
 
-	target_link_libraries(animation draw_tools)
-	target_link_libraries(character_table draw_tools)
-	target_link_libraries(hello_world draw_tools)
-	target_link_libraries(koch_snowflake draw_tools)
-	target_link_libraries(markers draw_tools)
-	target_link_libraries(points_and_lines draw_tools)
-	target_link_libraries(text_style draw_tools)
-	target_link_libraries(triangles draw_tools)
+	target_link_libraries(animation bov)
+	target_link_libraries(character_table bov)
+	target_link_libraries(hello_world bov)
+	target_link_libraries(koch_snowflake bov)
+	target_link_libraries(markers bov)
+	target_link_libraries(points_and_lines bov)
+	target_link_libraries(text_style bov)
+	target_link_libraries(triangles bov)
 
 	set_target_properties(animation
 	                      character_table
@@ -73,4 +73,4 @@ if(DRAW_TOOLS_BUILD_EXAMPLES)
 	                      C_STANDARD 99
 	                      RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/examples")
 
-endif(DRAW_TOOLS_BUILD_EXAMPLES)
+endif(BOV_BUILD_EXAMPLES)

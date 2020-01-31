@@ -1,5 +1,5 @@
 /*************************************************************************
-	* Draw_tools 0.1
+	* BOV 0.1
 	* A wrapper around OpenGL and GLFW (www.glfw.org) to draw simple 2D
 	* graphics.
 	*------------------------------------------------------------------------
@@ -41,9 +41,16 @@ layout (std140) uniform objectBlock
 	int space_type; // 0: normal sizes, 1: unzoomable, 2: unmodifable pixel size
 };
 
+in vec3 bary;
+flat in float pixelSize;
+
 out vec4 outColor;
 
 void main()
 {
-	outColor = fillColor;
+	vec2 sdf = vec2(0.0, 0.0 - outlineWidth + step(outlineWidth, 0.0))
+	           + min(bary.x, min(bary.y, bary.z));
+	vec2 alpha = smoothstep(-pixelSize, pixelSize, sdf);
+	outColor = mix(outlineColor, fillColor, alpha.y);
+	outColor.a *= alpha.x;
 }

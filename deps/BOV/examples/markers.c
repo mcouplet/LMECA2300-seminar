@@ -1,5 +1,5 @@
  /*************************************************************************
-  * Animation example program using Draw_tools, a wrapper around OpenGL and
+  * Animation example program using BOV, a wrapper around OpenGL and
   * GLFW (www.glfw.org) to draw simple 2D graphics.
   *------------------------------------------------------------------------
   * Copyright (c) 2019-2020 Célestin Marot <marotcelestin@gmail.com>
@@ -25,7 +25,7 @@
   *
   *************************************************************************/
 
-#include "draw_tools.h"
+#include "BOV.h"
 #include <math.h>
 
 // Maybe there will be more marker types available in the future.

@@ -1,5 +1,5 @@
  /*************************************************************************
-  * Draw_tools 0.1
+  * BOV 0.1
   * A wrapper around OpenGL and GLFW (www.glfw.org) to draw simple 2D
   * graphics.
   *------------------------------------------------------------------------
@@ -28,7 +28,7 @@
 
 #define _CRT_SECURE_NO_WARNINGS // for MSVC to be happy
 
-#include "draw_tools.h"
+#include "BOV.h"
 #include <math.h>
 /***************************************
  *   FONT DEFINITION                   *
