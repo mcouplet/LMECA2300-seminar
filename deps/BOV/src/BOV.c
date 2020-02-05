@@ -55,6 +55,10 @@
 
 #define POS_LOCATION 0
 #define TEX_LOCATION 1
+#define PARTICLES_DATA_LOCATION 1
+
+#define FONT_ATLAS_TEXTURE_UNIT 0
+#define FRAMEBUFFER_TEXTURE_UNIT 1
 
 #define TEXT_PROGRAM_INDEX      0
 #define POINTS_PROGRAM_INDEX    1
@@ -62,7 +66,8 @@
 #define CURVE_PROGRAM_INDEX     3
 #define TRIANGLES_PROGRAM_INDEX 4
 #define DEFAULT_PROGRAM_INDEX   5
-// #define QUAD_PROGRAM_INDEX     6
+#define PARTICLES_PROGRAM_INDEX 6
+// #define QUAD_PROGRAM_INDEX     7
 
 
 
@@ -301,10 +306,12 @@ static void text_rasterizer_init(bov_window_t* window)
 		image[index][2] = 0;
 	}
 
-	window->texture = create_texture(font.tex_width, font.tex_height, image,
-	                                 GL_RGB, GL_CLAMP_TO_EDGE);
-	glBindTexture(GL_TEXTURE_2D, window->texture);
-
+	glActiveTexture(GL_TEXTURE0 + FONT_ATLAS_TEXTURE_UNIT);
+	window->font_atlas_texture = create_texture(font.tex_width,
+	                                            font.tex_height,
+	                                            image,
+	                                            GL_RGB,
+	                                            GL_CLAMP_TO_EDGE);
 	free(image);
 
 	GLuint program = window->program[TEXT_PROGRAM_INDEX];
@@ -315,7 +322,10 @@ static void text_rasterizer_init(bov_window_t* window)
 	glUniformBlockBinding(program, worldBlockIndex, 0);
 	glUniformBlockBinding(program, objectBlockIndex, 1);
 
-	window->texture_sloc = glGetUniformLocation(program, "fontTex");
+	// uniform retain their value for the lifetime of a program
+	// see glspec41.core 2.11.7
+	glUniform1i(glGetUniformLocation(program, "fontTex"),
+	                                 FONT_ATLAS_TEXTURE_UNIT);
 }
 
 
@@ -327,6 +337,36 @@ static void points_rasterizer_init(GLuint program)
 	unsigned objectBlockIndex = glGetUniformBlockIndex(program, "objectBlock");
 	glUniformBlockBinding(program, worldBlockIndex, 0);
 	glUniformBlockBinding(program, objectBlockIndex, 1);
+}
+
+static void particles_rasterizer_init(bov_window_t* window, GLfloat res[2])
+{
+	GLuint program = window->program[PARTICLES_PROGRAM_INDEX];
+	points_rasterizer_init(program);
+
+	// empty Framebuffer Object
+    glGenFramebuffers(1, &window->fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, window->fbo);
+
+	// create the framebuffer
+	glActiveTexture(GL_TEXTURE0 + FRAMEBUFFER_TEXTURE_UNIT);
+	window->framebuffer_texture = create_texture(res[0],
+	                                             res[1],
+	                                             NULL,
+	                                             GL_RGBA,
+	                                             GL_CLAMP_TO_EDGE);
+	glFramebufferTexture2D(GL_FRAMEBUFFER,
+	                       GL_COLOR_ATTACHMENT0,
+	                       GL_TEXTURE_2D,
+	                       window->framebuffer_texture,
+	                       0);
+
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE){
+        BOV_ERROR_LOG(BOV_FRAMEBUFFER_ERROR ,"Framebuffer is not complete");
+    }
+
+	glUniform1i(glGetUniformLocation(program, "framebuffer"),
+	                                 FRAMEBUFFER_TEXTURE_UNIT);
 }
 
 
@@ -898,13 +938,16 @@ void bov_window_delete(bov_window_t* window)
 {
 	bov_text_delete(window->help);
 	bov_text_delete(window->indication);
-	glDeleteTextures(1, &window->texture);
+	glDeleteTextures(1, &window->font_atlas_texture);
+	// glDeleteTextures(1, &window->framebuffer_texture);
 	glDeleteProgram(window->program[TEXT_PROGRAM_INDEX]);
 	glDeleteProgram(window->program[POINTS_PROGRAM_INDEX]);
 	glDeleteProgram(window->program[LINES_PROGRAM_INDEX]);
 	glDeleteProgram(window->program[CURVE_PROGRAM_INDEX]);
 	glDeleteProgram(window->program[DEFAULT_PROGRAM_INDEX]);
+	// glDeleteProgram(window->program[PARTICLES_PROGRAM_INDEX]);
 	glDeleteBuffers(2, window->ubo);
+	// glDeleteFramebuffers(1, &window->fbo);
 	glfwDestroyWindow(window->self);
 	glfwTerminate();
 	free(window);
@@ -1239,7 +1282,6 @@ void bov_text_draw(bov_window_t* window, const bov_text_t* text)
 	                &text->param);
 	// glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-	glUniform1i(window->texture_sloc, 0);
 	glBindVertexArray(text->vao);
 	glDrawArrays(GL_TRIANGLES, 0, text->vboLen * 6);
 	// glBindVertexArray(0);
@@ -1352,7 +1394,7 @@ bov_points_t* bov_points_partial_update(bov_points_t* points,
 	glBindBuffer(GL_ARRAY_BUFFER, points->vbo);
 	glBufferSubData(GL_ARRAY_BUFFER,
 	                start,
-	                sizeof(GLfloat)*2*count,
+	                sizeof(GLfloat) * 2 * count,
 	                coords);
 	// glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -1368,6 +1410,133 @@ void bov_points_delete(bov_points_t* points)
 }
 
 
+/*%%%%%%%%%%%%%%%%%%%%%%%%%
+ %  Particle Object
+ %%%%%%%%%%%%%%%%%%%%%%%%%*/
+bov_points_t* bov_particles_new(const GLfloat data[][8],
+                                GLsizei n,
+                                GLenum usage)
+{
+	bov_points_t* particles = malloc(sizeof(bov_points_t));
+	CHECK_MALLOC(particles);
+
+	particles->vboLen = data==NULL ? 0 : n;
+
+	particles->param = (bov_points_param_t) {
+		.fillColor = {0.0f, 0.0f, 0.0f, 1.0f}, // color
+		.outlineColor = {1.0f ,1.0f, 1.0f, 1.0f}, // outlineColor
+		.pos = {0.0f ,0.0f},           // other
+		.scale = {1.0f, 1.0f},           // localPos
+		.width = 0.025f,
+		.marker = 0.0f,
+		.outlineWidth = -1.0f,
+		.spaceType = USUAL_SPACE
+	};
+
+	// Create Vertex Array Object
+	glGenVertexArrays(1, &particles->vao);
+	glBindVertexArray(particles->vao);
+
+	// Vertex Buffer Object
+	glGenBuffers(1, &particles->vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, particles->vbo);
+
+	// specify the layout of the data
+	glVertexAttribPointer(POS_LOCATION,
+	                      2,
+	                      GL_FLOAT,
+	                      GL_FALSE,
+	                      8 * sizeof(GLfloat),
+	                      0);
+	glVertexAttribPointer(PARTICLES_DATA_LOCATION,
+	                      6,
+	                      GL_FLOAT,
+	                      GL_FALSE,
+	                      8 * sizeof(GLfloat),
+	                      (void*)(2 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(POS_LOCATION);
+	glEnableVertexAttribArray(PARTICLES_DATA_LOCATION);
+
+
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 8 * n, data, usage);
+	particles->vboCapacity = n;
+
+	// glBindBuffer(GL_ARRAY_BUFFER, 0);
+	// glBindVertexArray(0);
+
+	return particles;
+}
+
+
+bov_points_t* bov_particles_update(bov_points_t* particles,
+                                   const GLfloat data[][8],
+                                   GLsizei n)
+{
+	particles->vboLen = data==NULL ? 0 : n;
+
+	glBindBuffer(GL_ARRAY_BUFFER, particles->vbo);
+	if(n > particles->vboCapacity) {
+		glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 8 * n, data,
+		             GL_DYNAMIC_DRAW);
+		particles->vboCapacity = n;
+	}
+	else if(data!=NULL) {
+		glBufferSubData(GL_ARRAY_BUFFER,
+		                0,
+		                sizeof(GLfloat) * 8 * n,
+		                data);
+	}
+	// glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	return particles;
+}
+
+
+bov_points_t* bov_particles_partial_update(bov_points_t* particles,
+                                           const GLfloat data[][8],
+                                           GLint start,
+                                           GLsizei count,
+                                           GLsizei newN)
+{
+	if(data==NULL) {
+		BOV_ERROR_LOG(BOV_PARAMETER_ERROR,
+		              "Cannot do a partial update with a NULL "
+		              "pointer as array of coordinates");
+		return NULL;
+	}
+
+	if(newN==0)
+		newN = particles->vboLen;
+
+	if(start + count > newN)
+		newN = start + count;
+	if(start + count < count) // detect overflow
+		newN = BOV_TILL_END;
+
+	if(newN > particles->vboCapacity) {
+		BOV_ERROR_LOG(BOV_PARAMETER_ERROR,
+		              "Cannot do a partial update when the new "
+		              "size is bigger than the capacity of the "
+		              "buffer");
+		return NULL;
+	}
+
+	particles->vboLen = newN;
+
+	if(count==0)
+		return particles;
+
+	glBindBuffer(GL_ARRAY_BUFFER, particles->vbo);
+	glBufferSubData(GL_ARRAY_BUFFER,
+	                start,
+	                sizeof(GLfloat) * 8 * count,
+	                data);
+	// glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	return particles;
+}
+
+
 static GLenum switch_rasterizer_with_mode(bov_window_t* window,
                                           const bov_points_t* points,
                                           bov_points_drawing_mode_t mode)
@@ -1376,6 +1545,7 @@ static GLenum switch_rasterizer_with_mode(bov_window_t* window,
 	GLenum primitive = 0;
 
 	switch(mode) {
+		case PARTICLES_PROGRAM:
 		case POINTS_PROGRAM:
 			program_index = POINTS_PROGRAM_INDEX;
 			primitive = GL_POINTS;

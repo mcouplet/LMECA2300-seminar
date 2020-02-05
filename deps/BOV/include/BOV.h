@@ -175,6 +175,23 @@ bov_points_t* bov_points_partial_update(bov_points_t* points,
                                         GLsizei count,
                                         GLsizei newN);
 
+/* A particle is a point with 8 floats per point, the 2 first being coordinates.
+ * This extra fields allow the 2 functions bov_particles_draw() and
+ * bov_particles_draw_with_order() to draw additional stuffs, like the speed of
+ * the particles
+ */
+bov_points_t* bov_particles_new(const GLfloat data[][8],
+                                GLsizei n,
+                                GLenum usage);
+bov_points_t* bov_particles_update(bov_points_t* particles,
+                                   const GLfloat data[][8],
+                                   GLsizei n);
+bov_points_t* bov_particles_partial_update(bov_points_t* particles,
+                                           const GLfloat data[][8],
+                                           GLint start,
+                                           GLsizei count,
+                                           GLsizei newN);
+
 /* draw points markers to the window
  *
  * `start` is the index of the first point to draw
@@ -529,7 +546,8 @@ static inline void bov_points_set_param(bov_points_t* points,
 /* some error code in addition to those defined by GLFW (www.glfw.org/docs/latest/group__errors.html) */
 #define BOV_PARAMETER_ERROR   (0x00020001)
 #define BOV_SHADER_ERROR      (0x00020002)
-#define BOV_GLAD_ERROR        (0x00020003)
+#define BOV_FRAMEBUFFER_ERROR (0x00020003)
+#define BOV_GLAD_ERROR        (0x00020004)
 
 #define BOV_OUT_OF_MEM_ERROR  (0x00030001)
 #define BOV_IO_ERROR          (0x00030002)
@@ -599,11 +617,12 @@ struct bov_window_struct
 	double wtime;
 
 	GLuint ubo[2]; // 1 ubo for world params, 1 ubo for points and text params
+  GLuint fbo; // a framebuffer for particles
 
 	int last_program;
-	GLuint program[6];
-	GLuint texture;
-	int texture_sloc;
+	GLuint program[7];
+	GLuint font_atlas_texture;
+  GLuint framebuffer_texture;
 
 	int running;
 
@@ -855,6 +874,8 @@ typedef enum {
   FAST_TRIANGLES_PROGRAM,
   FAST_TRIANGLE_STRIP_PROGRAM,
   FAST_TRIANGLE_FAN_PROGRAM,
+
+  PARTICLES_PROGRAM,
 } bov_points_drawing_mode_t;
 
 
@@ -865,18 +886,18 @@ void bov_points_draw_aux(bov_window_t* window,
                          GLsizei count);
 
 void bov_points_draw_with_order_aux(bov_window_t* window,
-                                const bov_points_t* points,
-                                bov_points_drawing_mode_t mode,
-                                const bov_order_t* order,
-                                GLint start,
-                                GLsizei count);
+                                    const bov_points_t* points,
+                                    bov_points_drawing_mode_t mode,
+                                    const bov_order_t* order,
+                                    GLint start,
+                                    GLsizei count);
 
 void bov_points_draw_with_indices_aux(bov_window_t* window,
-                                  const bov_points_t* points,
-                                  bov_points_drawing_mode_t mode,
-                                  const GLuint* indices,
-                                  GLint start,
-                                  GLsizei count) ;
+                                      const bov_points_t* points,
+                                      bov_points_drawing_mode_t mode,
+                                      const GLuint* indices,
+                                      GLint start,
+                                      GLsizei count);
 
 // use cpp to preprocess a file with
 #define BOVCreateDrawingFunctions(primitive, program)\
@@ -899,6 +920,7 @@ BOVCreateDrawingFunctions(triangles, TRIANGLES_PROGRAM)
 BOVCreateDrawingFunctions(triangle_strip, TRIANGLE_STRIP_PROGRAM)
 BOVCreateDrawingFunctions(triangle_fan, TRIANGLE_FAN_PROGRAM)
 // BOVCreateDrawingFunctions(quads, QUADS_PROGRAM)
+BOVCreateDrawingFunctions(particles, PARTICLES_PROGRAM)
 
 // alternative shaders, using default primitive rendering
 // they understand only fillColor and the space_type for the position
