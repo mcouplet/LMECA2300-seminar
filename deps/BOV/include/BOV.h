@@ -301,6 +301,9 @@ static inline void bov_triangle_fan_draw_with_order(bov_window_t* window,
                                                     GLint start,
                                                     GLsizei count);
 
+void bov_particles_draw(bov_window_t* window,
+                        const bov_points_t* points);
+
 /* delete a points object */
 void bov_points_delete(bov_points_t* points);
 
@@ -620,7 +623,7 @@ struct bov_window_struct
   GLuint fbo; // a framebuffer for particles
 
 	int last_program;
-	GLuint program[7];
+	GLuint program[8];
 	GLuint font_atlas_texture;
   GLuint framebuffer_texture;
 
@@ -920,7 +923,6 @@ BOVCreateDrawingFunctions(triangles, TRIANGLES_PROGRAM)
 BOVCreateDrawingFunctions(triangle_strip, TRIANGLE_STRIP_PROGRAM)
 BOVCreateDrawingFunctions(triangle_fan, TRIANGLE_FAN_PROGRAM)
 // BOVCreateDrawingFunctions(quads, QUADS_PROGRAM)
-BOVCreateDrawingFunctions(particles, PARTICLES_PROGRAM)
 
 // alternative shaders, using default primitive rendering
 // they understand only fillColor and the space_type for the position

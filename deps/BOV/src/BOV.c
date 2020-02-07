@@ -50,24 +50,31 @@
 #include "triangles_frag.h"
 #include "text_vert.h"
 #include "text_frag.h"
+#include "particles_vert.h"
+#include "particles_geom.h"
+#include "particles_frag.h"
+#include "fullscreen_vert.h"
+#include "fullscreen_frag.h"
 #include "default_vert.h"
 #include "default_frag.h"
 
 #define POS_LOCATION 0
 #define TEX_LOCATION 1
-#define PARTICLES_DATA_LOCATION 1
+#define SPEED_LOCATION 1
+#define DATA_LOCATION 2
 
 #define FONT_ATLAS_TEXTURE_UNIT 0
 #define FRAMEBUFFER_TEXTURE_UNIT 1
 
-#define TEXT_PROGRAM_INDEX      0
-#define POINTS_PROGRAM_INDEX    1
-#define LINES_PROGRAM_INDEX     2
-#define CURVE_PROGRAM_INDEX     3
-#define TRIANGLES_PROGRAM_INDEX 4
-#define DEFAULT_PROGRAM_INDEX   5
-#define PARTICLES_PROGRAM_INDEX 6
-// #define QUAD_PROGRAM_INDEX     7
+#define TEXT_PROGRAM_INDEX       0
+#define POINTS_PROGRAM_INDEX     1
+#define LINES_PROGRAM_INDEX      2
+#define CURVE_PROGRAM_INDEX      3
+#define TRIANGLES_PROGRAM_INDEX  4
+#define DEFAULT_PROGRAM_INDEX    5
+#define PARTICLES_PROGRAM_INDEX  6
+#define FULLSCREEN_PROGRAM_INDEX 7
+// #define QUAD_PROGRAM_INDEX     8
 
 
 
@@ -339,19 +346,22 @@ static void points_rasterizer_init(GLuint program)
 	glUniformBlockBinding(program, objectBlockIndex, 1);
 }
 
-static void particles_rasterizer_init(bov_window_t* window, GLfloat res[2])
+static void particles_rasterizer_init(bov_window_t* window)
 {
 	GLuint program = window->program[PARTICLES_PROGRAM_INDEX];
 	points_rasterizer_init(program);
 
+	program = window->program[FULLSCREEN_PROGRAM_INDEX];
+	points_rasterizer_init(program);
+
 	// empty Framebuffer Object
-    glGenFramebuffers(1, &window->fbo);
-    glBindFramebuffer(GL_FRAMEBUFFER, window->fbo);
+	glGenFramebuffers(1, &window->fbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, window->fbo);
 
 	// create the framebuffer
 	glActiveTexture(GL_TEXTURE0 + FRAMEBUFFER_TEXTURE_UNIT);
-	window->framebuffer_texture = create_texture(res[0],
-	                                             res[1],
+	window->framebuffer_texture = create_texture(window->param.res[0],
+	                                             window->param.res[1],
 	                                             NULL,
 	                                             GL_RGBA,
 	                                             GL_CLAMP_TO_EDGE);
@@ -367,6 +377,8 @@ static void particles_rasterizer_init(bov_window_t* window, GLfloat res[2])
 
 	glUniform1i(glGetUniformLocation(program, "framebuffer"),
 	                                 FRAMEBUFFER_TEXTURE_UNIT);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 
@@ -514,6 +526,8 @@ static void framebuffer_size_callback(GLFWwindow* self, int width, int height)
 	window->param.res[0] = (GLfloat) width;
 	window->param.res[1] = (GLfloat) height;
 	glViewport(0, 0, width, height);
+
+	// TODO: resize the framebuffer texture
 }
 
 
@@ -580,7 +594,7 @@ static void window_OpenGL_init(bov_window_t* window)
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 	// compile shaders
-	{
+	{ // text
 		GLuint fontVS, fontFS;
 		if((fontVS = LoadShader(1,
 		                        (const GLchar* []) {text_vert},
@@ -612,7 +626,7 @@ static void window_OpenGL_init(bov_window_t* window)
 		glDeleteShader(fontFS);
 	}
 
-	{
+	{ // points
 		GLuint pointsVS, pointsGS, linesGS, curveGS, pointsFS, linesFS,
 		       trianglesGS, trianglesFS, defaultVS, defaultFS;
 
@@ -746,16 +760,79 @@ static void window_OpenGL_init(bov_window_t* window)
 		glDeleteShader(defaultFS);
 	}
 
+	{ // particles
+		GLuint particlesVS, particlesGS, particlesFS,
+		       fullscreenVS, fullscreenFS;
+		if((particlesVS = LoadShader(1,
+		                        (const GLchar* []) {particles_vert},
+		                        (GLint[]){ sizeof(particles_vert) - 1 },
+		                        "particles_vert.glsl",
+		                        GL_VERTEX_SHADER))==0)
+			goto shader_error;
+		if((particlesGS = LoadShader(1,
+		                        (const GLchar* []) {particles_geom},
+		                        (GLint[]){ sizeof(particles_geom) - 1 },
+		                        "particles_geom.glsl",
+		                        GL_GEOMETRY_SHADER))==0)
+			goto shader_error;
+		if((particlesFS = LoadShader(1,
+		                        (const GLchar* []) {particles_frag},
+		                        (GLint[]){ sizeof(particles_frag) - 1 },
+		                        "particles_frag.glsl",
+		                        GL_FRAGMENT_SHADER))==0)
+			goto shader_error;
+		if((fullscreenVS = LoadShader(1,
+		                        (const GLchar* []) {fullscreen_vert},
+		                        (GLint[]){ sizeof(fullscreen_vert) - 1 },
+		                        "fullscreen_vert.glsl",
+		                        GL_VERTEX_SHADER))==0)
+			goto shader_error;
+		if((fullscreenFS = LoadShader(1,
+		                        (const GLchar* []) {fullscreen_frag},
+		                        (GLint[]){ sizeof(fullscreen_frag) - 1 },
+		                        "fullscreen_frag.glsl",
+		                        GL_FRAGMENT_SHADER))==0)
+			goto shader_error;
+
+		window->program[PARTICLES_PROGRAM_INDEX] = glCreateProgram();
+
+		glBindAttribLocation(window->program[PARTICLES_PROGRAM_INDEX],
+		                     POS_LOCATION, "pos");
+		glBindAttribLocation(window->program[PARTICLES_PROGRAM_INDEX],
+		                     SPEED_LOCATION, "speed");
+		glBindAttribLocation(window->program[PARTICLES_PROGRAM_INDEX],
+		                     DATA_LOCATION, "data");
+
+		if(program_init(window, PARTICLES_PROGRAM_INDEX,
+		                3, particlesVS, particlesGS, particlesFS))
+			goto shader_error;
+		glDetachShader(window->program[PARTICLES_PROGRAM_INDEX], particlesVS);
+		glDetachShader(window->program[PARTICLES_PROGRAM_INDEX], particlesGS);
+		glDetachShader(window->program[PARTICLES_PROGRAM_INDEX], particlesFS);
+
+		glDeleteShader(particlesVS);
+		glDeleteShader(particlesGS);
+		glDeleteShader(particlesFS);
+
+		window->program[FULLSCREEN_PROGRAM_INDEX] = glCreateProgram();
+
+		if(program_init(window, FULLSCREEN_PROGRAM_INDEX,
+		                2, fullscreenVS, fullscreenFS))
+			goto shader_error;
+		glDetachShader(window->program[FULLSCREEN_PROGRAM_INDEX], fullscreenVS);
+		glDetachShader(window->program[FULLSCREEN_PROGRAM_INDEX], fullscreenFS);
+	}
+
 	// Create all rasterizers
 	text_rasterizer_init(window);
 	points_rasterizer_init(window->program[POINTS_PROGRAM_INDEX]);
 	points_rasterizer_init(window->program[CURVE_PROGRAM_INDEX]);
 	points_rasterizer_init(window->program[TRIANGLES_PROGRAM_INDEX]);
-	points_rasterizer_init(window->program[DEFAULT_PROGRAM_INDEX]);
-
 	points_rasterizer_init(window->program[LINES_PROGRAM_INDEX]);
-	// glUseProgram(window->program[LINES_PROGRAM_INDEX]); // already the last used
-	window->last_program = LINES_PROGRAM_INDEX;
+	particles_rasterizer_init(window);
+
+	points_rasterizer_init(window->program[DEFAULT_PROGRAM_INDEX]);
+	window->last_program = DEFAULT_PROGRAM_INDEX;
 
 	return;
 
@@ -946,6 +1023,7 @@ void bov_window_delete(bov_window_t* window)
 	glDeleteProgram(window->program[CURVE_PROGRAM_INDEX]);
 	glDeleteProgram(window->program[DEFAULT_PROGRAM_INDEX]);
 	// glDeleteProgram(window->program[PARTICLES_PROGRAM_INDEX]);
+	// glDeleteProgram(window->program[FULLSCREEN_PROGRAM_INDEX]);
 	glDeleteBuffers(2, window->ubo);
 	// glDeleteFramebuffers(1, &window->fbo);
 	glfwDestroyWindow(window->self);
@@ -1448,14 +1526,21 @@ bov_points_t* bov_particles_new(const GLfloat data[][8],
 	                      GL_FALSE,
 	                      8 * sizeof(GLfloat),
 	                      0);
-	glVertexAttribPointer(PARTICLES_DATA_LOCATION,
-	                      6,
+	glVertexAttribPointer(SPEED_LOCATION,
+	                      2,
 	                      GL_FLOAT,
 	                      GL_FALSE,
 	                      8 * sizeof(GLfloat),
 	                      (void*)(2 * sizeof(GLfloat)));
+	glVertexAttribPointer(DATA_LOCATION,
+	                      4,
+	                      GL_FLOAT,
+	                      GL_FALSE,
+	                      8 * sizeof(GLfloat),
+	                      (void*)(4 * sizeof(GLfloat)));
 	glEnableVertexAttribArray(POS_LOCATION);
-	glEnableVertexAttribArray(PARTICLES_DATA_LOCATION);
+	glEnableVertexAttribArray(SPEED_LOCATION);
+	glEnableVertexAttribArray(DATA_LOCATION);
 
 
 	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 8 * n, data, usage);
@@ -1545,7 +1630,6 @@ static GLenum switch_rasterizer_with_mode(bov_window_t* window,
 	GLenum primitive = 0;
 
 	switch(mode) {
-		case PARTICLES_PROGRAM:
 		case POINTS_PROGRAM:
 			program_index = POINTS_PROGRAM_INDEX;
 			primitive = GL_POINTS;
@@ -1637,10 +1721,10 @@ static GLenum switch_rasterizer_with_mode(bov_window_t* window,
 
 
 void bov_points_draw_aux(bov_window_t* window,
-					 const bov_points_t* points,
-					 bov_points_drawing_mode_t mode,
-					 GLint start,
-					 GLsizei count)
+					     const bov_points_t* points,
+					     bov_points_drawing_mode_t mode,
+					     GLint start,
+					     GLsizei count)
 {
 	if(start>=points->vboLen)
 		return;
@@ -1696,6 +1780,34 @@ void bov_points_draw_with_indices_aux(bov_window_t* window,
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); // no vbo must be bound
 	glDrawElements(primitive, count, GL_UNSIGNED_INT, indices+start);
+}
+
+
+void bov_particles_draw(bov_window_t* window,
+					    const bov_points_t* points)
+{
+	glBindFramebuffer(GL_FRAMEBUFFER, window->fbo);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	glUseProgram(window->program[PARTICLES_PROGRAM_INDEX]);
+
+	glBindBuffer(GL_UNIFORM_BUFFER, window->ubo[1]);
+	glBufferSubData(GL_UNIFORM_BUFFER,
+	                0,
+	                sizeof(bov_points_param_t),
+	                &points->param);
+	// glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+	glBindVertexArray(points->vao);
+
+	glDrawArrays(GL_POINTS, 0, points->vboLen);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	glUseProgram(window->program[FULLSCREEN_PROGRAM_INDEX]);
+	window->last_program = FULLSCREEN_PROGRAM_INDEX;
+
+	glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
 
