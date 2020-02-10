@@ -70,7 +70,7 @@ int main(int argc, char* argv[])
 
 		for(int j=0; j<9; j++) {
 			for(int i=0; i<BOV_NMARKERS; i++) {
-				sprintf(string+cur, " %6.3f ", i + j * 0.12493f);
+				sprintf(string+cur, " %6.3f ", i + j * 0.12493);
 				cur += 8;
 			}
 

@@ -37,7 +37,7 @@ static void fillData(GLfloat (*data)[8])
 
 int main()
 {
-	bov_window_t* window = bov_window_new(800, 800, "Tutorial 1");
+	bov_window_t* window = bov_window_new(800, 800, "ANM Project: SPH");
 	bov_window_set_color(window, (GLfloat[]){0.9f, 0.85f, 0.8f, 0.0f});
 
 	GLfloat (*data)[8] = malloc(sizeof(data[0])*NPOINTS);
