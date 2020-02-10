@@ -130,8 +130,6 @@ int main(int argc, char* argv[])
 		bov_window_update(window);
 	}
 
-	printf("Ended correctly");
-
 	bov_points_delete(points);
 	bov_text_delete(marker_text);
 	bov_window_delete(window);
