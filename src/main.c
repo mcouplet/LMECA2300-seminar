@@ -68,7 +68,7 @@ int main()
 
 		bov_text_draw(window, msg);
 
-		bov_window_update_and_wait_events(window);
+		bov_window_update(window);
 	}
 
 	bov_text_delete(msg);

@@ -72,7 +72,7 @@ int main()
 
 	while(!bov_window_should_close(window)){
 		bov_text_draw(window, character_table);
-		bov_window_update(window);
+		bov_window_update_and_wait_events(window);
 	}
 
 	printf("Ended correctly - %.2f second\n", bov_window_get_time(window));
