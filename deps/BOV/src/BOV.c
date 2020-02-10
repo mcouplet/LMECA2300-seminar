@@ -911,6 +911,13 @@ bov_window_t* bov_window_new(int width, int height, const char* win_name)
 	window->backgroundColor[2] = 1.0;
 	window->backgroundColor[3] = 0.0;
 
+	// framebuffer default blending mode
+	window->blending.mode = GL_FUNC_ADD;
+	window->blending.srcRGB = GL_SRC_ALPHA;
+	window->blending.dstRGB = GL_ONE_MINUS_SRC_ALPHA;
+	window->blending.srcAlpha = GL_SRC_ALPHA;
+	window->blending.dstAlpha = GL_ONE_MINUS_SRC_ALPHA;
+
 	// glfwSetWindowCloseCallback(window->self,close_callback);
 	glfwSetKeyCallback(window->self, key_callback);
 	glfwSetFramebufferSizeCallback(window->self, framebuffer_size_callback);
@@ -1802,6 +1809,12 @@ void bov_particles_draw(bov_window_t* window,
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
+	glBlendEquation(window->blending.mode);
+	glBlendFuncSeparate(window->blending.srcRGB,
+	                    window->blending.dstRGB,
+	                    window->blending.srcAlpha,
+	                    window->blending.dstAlpha);
+
 	glUseProgram(window->program[PARTICLES_PROGRAM_INDEX]);
 
 	glBindBuffer(GL_UNIFORM_BUFFER, window->ubo[1]);
@@ -1816,6 +1829,9 @@ void bov_particles_draw(bov_window_t* window,
 	glDrawArrays(GL_POINTS, 0, points->vboLen);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	glBlendEquation(GL_FUNC_ADD);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glUseProgram(window->program[FULLSCREEN_PROGRAM_INDEX]);
 	window->last_program = FULLSCREEN_PROGRAM_INDEX;

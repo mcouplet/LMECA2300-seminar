@@ -637,6 +637,33 @@ static inline void bov_points_set_param(bov_points_t* points,
                                         bov_points_param_t parameters);
 
 
+
+/*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ %  blending mode for particles framebuffer
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+/* 
+ * The particles are firstly drawn into a framebuffer, using the default
+ * blending equations, which are:
+ *  - glBlendEquation( GL_FUNC_ADD );
+ *  - glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+ *
+ * but, a user that supplied his own shaders (via the BOV_PARTICLES_SHADERS
+ * CMake variable) might want to change the blending equation using this
+ * function.
+ *  - `mode` is the mode given to `glBlendEquationi(framebuffer, mode);`
+ *  - `srcRGB`, `dstRGB`, `srcAlpha` and `dstAlpha` are the paramters given to
+ *    glBlendFuncSeparatei(framebuffer, srcRGB, dstRGB, srcAlpha, dstAlpha);
+ */
+static inline void bov_particles_blending(bov_window_t* window,
+                                          GLenum mode,
+                                          GLenum srcRGB,
+                                          GLenum dstRGB,
+                                          GLenum srcAlpha,
+                                          GLenum dstAlpha);
+
+
+
+
 /*%%%%%%%%%%%%%%%%%%%%%%%%%
  %      error_log
  %%%%%%%%%%%%%%%%%%%%%%%%%*/
@@ -680,19 +707,68 @@ static inline void bov_points_set_param(bov_points_t* points,
 
 
 
-/*
- *      _____   _____   _____ __      __    _______  ______
+
+/*       __| | ___  _ __ |/| |_  | | ___   ___ | | __ | |__   ___| | _____      __
+ *      / _` |/ _ \| '_ \  | __| | |/ _ \ / _ \| |/ / | '_ \ / _ \ |/ _ \ \ /\ / /
+ *     | (_| | (_) | | | | | |_  | | (_) | (_) |   <  | |_) |  __/ | (_) \ V  V /
+ *      \__,_|\___/|_| |_|  \__| |_|\___/ \___/|_|\_\ |_.__/ \___|_|\___/ \_/\_/
+ */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*      _____   _____   _____ __      __    _______  ______
  *     |  __ \ |  __ \ |_   _|\ \    / //\ |__   __||  ____|
  *     | |__) || |__) |  | |   \ \  / //  \   | |   | |__
  *     |  ___/ |  _  /   | |    \ \/ // /\ \  | |   |  __|
  *     | |     | | \ \  _| |_    \  // ____ \ | |   | |____
  *     |_|     |_|  \_\|_____|    \//_/    \_\|_|   |______|
- *
- *
- *       __| | ___  _ __ |/| |_  | | ___   ___ | | __ | |__   ___| | _____      __
- *      / _` |/ _ \| '_ \  | __| | |/ _ \ / _ \| |/ / | '_ \ / _ \ |/ _ \ \ /\ / /
- *     | (_| | (_) | | | | | |_  | | (_) | (_) |   <  | |_) |  __/ | (_) \ V  V /
- *      \__,_|\___/|_| |_|  \__| |_|\___/ \___/|_|\_\ |_.__/ \___|_|\___/ \_/\_/
  */
 
 typedef struct {
@@ -716,6 +792,15 @@ struct bov_window_struct
 
 	GLuint ubo[2]; // 1 ubo for world params, 1 ubo for points and text params
   GLuint fbo; // a framebuffer for particles
+
+  // blending equation for the framebuffer
+  struct {
+    GLenum mode;
+    GLenum srcRGB;
+    GLenum dstRGB;
+    GLenum srcAlpha;
+    GLenum dstAlpha;
+  } blending;
 
 	int last_program;
 	GLuint program[8];
@@ -950,6 +1035,20 @@ static inline void bov_points_set_param(bov_points_t* points,
                                         bov_points_param_t parameters)
 {
 	points->param = parameters;
+}
+
+
+static inline void bov_particles_blending(bov_window_t* window,
+                                          GLenum mode,
+                                          GLenum srcRGB,
+                                          GLenum dstRGB,
+                                          GLenum srcAlpha,
+                                          GLenum dstAlpha) {
+  window->blending.mode = mode;
+  window->blending.srcRGB = srcRGB;
+  window->blending.dstRGB = dstRGB;
+  window->blending.srcAlpha = srcAlpha;
+  window->blending.dstAlpha = dstAlpha;
 }
 
 

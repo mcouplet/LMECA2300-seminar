@@ -38,7 +38,7 @@ layout (std140) uniform objectBlock
 	float marker;      // set by bov_poitns_set_markers()
 	float outlineWidth;// set by bov_points_set_outline_width()
 	int space_type;    // set by bov_points_set_space_type()
-                     // 0: normal sizes, 1: unzoomable, 2: unmodifable pixel size
+	                   // 0: normal sizes, 1: unzoomable, 2: unmodifable pixel size
 };
 
 in vec2 posGeom;
@@ -48,24 +48,10 @@ flat in float pixelSize;
 
 out vec4 outColor;
 
-
-// #define PI 3.14159265358979323846
-
-// float lucyQuarticKernel(float q)
-// {
-// 	float h = width;
-// 	float alpha = 5.0 / (PI* h*h);
-// 	float opp = 1.0 - q;
-// 	return max(0, alpha * (1.0 + 3.0*q) * (opp*opp*opp));
-// }
-
 void main()
 {
-	// float q = length(posGeom);
-	// float k = lucyQuarticKernel(q);
-
-  float sdf = length(posGeom) - width;
+	float sdf = length(posGeom) - width;
 	vec2 alpha = smoothstep(-pixelSize, pixelSize, -sdf - vec2(0.0f, outlineWidth));
-  outColor = mix(outlineColor, dataGeom, alpha.y);
-  outColor.a *= alpha.x;
+	outColor = mix(outlineColor, dataGeom, alpha.y);
+	outColor.a *= alpha.x;
 }
