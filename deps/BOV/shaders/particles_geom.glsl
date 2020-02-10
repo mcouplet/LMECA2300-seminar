@@ -52,7 +52,13 @@ layout (std140) uniform worldBlock
 layout(points) in;
 layout(triangle_strip, max_vertices = 4) out;
 
-out vec2 pSquare;
+in vec2 speedVert[1];
+in vec4 dataVert[1];
+
+out vec2 posGeom;
+flat out vec2 speedGeom;
+flat out vec4 dataGeom;
+flat out float pixelSize;
 
 void main()
 {
@@ -62,12 +68,15 @@ void main()
 	// for particles, space_type has no effect
 	vec2 scaling = resRatio * zoom;
 	vec2 translation = resRatio * zoom * (localPos + translate);
+	pixelSize = 2.0 / (minRes * zoom);
+
+	float w = width + pixelSize;
 
 	vec2 p = gl_in[0].gl_Position.xy * localScale;
 
 	vec2 center = p * scaling + translation;
-	vec2 upRight = center + width * scaling;
-	vec2 downLeft = center - width * scaling;
+	vec2 upRight = center + w * scaling;
+	vec2 downLeft = center - w * scaling;
 
 	// a bit of culling
 	if(any(lessThanEqual(upRight, -vec2(1.0))) ||
@@ -77,16 +86,19 @@ void main()
 	vec2 upLeft = vec2(downLeft.x, upRight.y);
 	vec2 downRight = vec2(upRight.x, downLeft.y);
 
-	pSquare = vec2(-width, width);
+	speedGeom = speedVert[0];
+	dataGeom = dataVert[0];
+
+	posGeom = vec2(-w, w);
 	gl_Position = vec4(upLeft, 0.0, 1.0);
 	EmitVertex();
-	pSquare = vec2(-width);
+	posGeom = vec2(-w);
 	gl_Position = vec4(downLeft, 0.0, 1.0);
 	EmitVertex();
-	pSquare = vec2(width);
+	posGeom = vec2(w);
 	gl_Position = vec4(upRight, 0.0, 1.0);
 	EmitVertex();
-	pSquare = vec2(width, -width);
+	posGeom = vec2(w, -w);
 	gl_Position = vec4(downRight, 0.0, 1.0);
 	EmitVertex();
 	EndPrimitive();

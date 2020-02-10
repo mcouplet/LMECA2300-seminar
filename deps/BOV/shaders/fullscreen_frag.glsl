@@ -33,21 +33,14 @@ layout (std140) uniform worldBlock
 	vec2 resolution;
 	vec2 translate;
 	float zoom;
-	// float rotation;
 };
 
 uniform sampler2D framebuffer;
 
 out vec4 outColor;
 
-/* for arrows shader, see:
- * https://www.shadertoy.com/view/4s23DG
- * https://www.shadertoy.com/view/4tfSRj
- * https://www.shadertoy.com/view/ldlSWj
- */
-
 void main()
 {
-	outColor = texture(framebuffer, gl_FragCoord.xy/resolution).rgba;
+	outColor = texture(framebuffer, gl_FragCoord.xy/resolution).rgba; // directly show frambuffer
 }
 

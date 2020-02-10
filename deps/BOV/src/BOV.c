@@ -998,6 +998,10 @@ void bov_window_update(bov_window_t* window)
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(bov_world_param_t), &window->param);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
+	glClearColor(window->backgroundColor[0],
+	             window->backgroundColor[1],
+	             window->backgroundColor[2],
+	             window->backgroundColor[3]);
 	glClear(GL_COLOR_BUFFER_BIT);
 }
 
@@ -1787,6 +1791,7 @@ void bov_particles_draw(bov_window_t* window,
 					    const bov_points_t* points)
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, window->fbo);
+	// glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	glUseProgram(window->program[PARTICLES_PROGRAM_INDEX]);

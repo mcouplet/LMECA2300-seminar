@@ -613,6 +613,7 @@ struct bov_window_struct
 	GLFWcursor* leftClickCursor;
 
 	bov_world_param_t param;
+  GLfloat backgroundColor[4];
 
 	int size[2];         // size of window (might not be in pixel => !=framebuffer)
 	double cursorPos[2]; // new position of the cursor in screen coordinates
@@ -679,8 +680,9 @@ static inline int bov_window_should_close(const bov_window_t* window)
 static inline void bov_window_set_color(bov_window_t* window,
                                         const GLfloat rgba[4])
 {
-	(void) window; // unused at the moment
-	glClearColor(rgba[0], rgba[1], rgba[2], rgba[3]);
+  for(int i=0; i<4; i++) {
+    window->backgroundColor[i] = rgba[i];
+  }
 }
 
 static inline void bov_window_translate(bov_window_t* window,
