@@ -6,8 +6,9 @@
 #define str(s) #s
 #define NPOINTS 10000
 
-
-void colormap(float v, float color[3])
+/* for v, a floating point value between 0 and 1, this function fills color with
+ * the improved jet colormap color corresponding to v */
+static void colormap(float v, float color[3])
 {
 	float v1 = 3.5*(v-0.7);
 	float v2 = 1.25*v;
@@ -19,13 +20,8 @@ void colormap(float v, float color[3])
 }
 
 
-int main()
+static void fillData(GLfloat (*data)[8])
 {
-	bov_window_t* window = bov_window_new(800, 800, "Tutorial 1");
-	bov_window_set_color(window, (GLfloat[]){0.9f, 0.85f, 0.8f, 0.0f});
-
-	GLfloat (*data)[8] = malloc(sizeof(data[0])*NPOINTS);
-
 	float rmax = 100.0*sqrtf(2.0f);
 	for(int i=0; i<NPOINTS; i++) {
 		data[i][0] = rand() * 200.0 / RAND_MAX - 100.0; // x (rand between -100 and 100)
@@ -36,8 +32,20 @@ int main()
 		colormap(r/rmax, &data[i][4]); // fill color
 		data[i][7] = 0.8f; // transparency
 	}
+}
 
+
+int main()
+{
+	bov_window_t* window = bov_window_new(800, 800, "Tutorial 1");
+	bov_window_set_color(window, (GLfloat[]){0.9f, 0.85f, 0.8f, 0.0f});
+
+	GLfloat (*data)[8] = malloc(sizeof(data[0])*NPOINTS);
+	fillData(data);
+
+	// send data to GPU, and receive reference to those data in a points object
 	bov_points_t *particles = bov_particles_new(data, NPOINTS, GL_STATIC_DRAW);
+
 	// setting particles appearance
 	bov_points_set_width(particles, 0.02);
 	bov_points_set_outline_width(particles, 0.0025);
@@ -60,7 +68,7 @@ int main()
 
 		bov_text_draw(window, msg);
 
-		bov_window_update(window);
+		bov_window_update_and_wait_events(window);
 	}
 
 	bov_text_delete(msg);

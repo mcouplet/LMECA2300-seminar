@@ -30,6 +30,7 @@
 
 #include "BOV.h"
 #include <math.h>
+#include <float.h>
 /***************************************
  *   FONT DEFINITION                   *
  ***************************************/
@@ -903,7 +904,7 @@ bov_window_t* bov_window_new(int width, int height, const char* win_name)
 	glfwGetFramebufferSize(window->self, &width, &height);
 	framebuffer_size_callback(window->self, width, height);
 	window->param.translate[0] = window->param.translate[1] = 0.0;
-	window->wtime = 0.0;
+	window->wtime = DBL_MIN;
 
 	// white background color
 	window->backgroundColor[0] = 1.0;
@@ -942,7 +943,7 @@ bov_window_t* bov_window_new(int width, int height, const char* win_name)
 	glPointSize(5); // 10 pixels for a point
 	glEnable( GL_LINE_SMOOTH );
 
-	glfwSetTime(0.0); // set the time to 0
+	glfwSetTime(DBL_MIN); // set the time to 0
 
 	{
 		double cursorX = 0.0, cursorY = 0.0;
