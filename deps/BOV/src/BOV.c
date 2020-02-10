@@ -1396,6 +1396,7 @@ bov_points_t* bov_points_new(const GLfloat coords[][2],
 	bov_points_t* points = malloc(sizeof(bov_points_t));
 	CHECK_MALLOC(points);
 
+	points->isParticle= 0;
 	points->vboLen = coords==NULL ? 0 : n;
 
 	points->param = (bov_points_param_t) {
@@ -1435,6 +1436,12 @@ bov_points_t* bov_points_update(bov_points_t* points,
                                 const GLfloat coords[][2],
                                 GLsizei n)
 {
+	if(points->isParticle) {
+		BOV_ERROR_LOG(BOV_PARAMETER_ERROR,
+		              "You cannot update particles with this function"
+		              "Use bov_particles_update() instead");
+		return NULL;
+	}
 	points->vboLen = coords==NULL ? 0 : n;
 
 	glBindBuffer(GL_ARRAY_BUFFER, points->vbo);
@@ -1461,6 +1468,14 @@ bov_points_t* bov_points_partial_update(bov_points_t* points,
                                         GLsizei count,
                                         GLsizei newN)
 {
+	if(points->isParticle) {
+		BOV_ERROR_LOG(BOV_PARAMETER_ERROR,
+		              "You cannot partially update particles with this function"
+		              "Use bov_particles_partial_update() instead");
+		return NULL;
+	}
+
+
 	if(coords==NULL) {
 		BOV_ERROR_LOG(BOV_PARAMETER_ERROR,
 		              "Cannot do a partial update with a NULL "
@@ -1518,6 +1533,7 @@ bov_points_t* bov_particles_new(const GLfloat data[][8],
 	bov_points_t* particles = malloc(sizeof(bov_points_t));
 	CHECK_MALLOC(particles);
 
+	particles->isParticle = 1;
 	particles->vboLen = data==NULL ? 0 : n;
 
 	particles->param = (bov_points_param_t) {
@@ -1577,6 +1593,12 @@ bov_points_t* bov_particles_update(bov_points_t* particles,
                                    const GLfloat data[][8],
                                    GLsizei n)
 {
+	if(particles->isParticle==0) {
+		BOV_ERROR_LOG(BOV_PARAMETER_ERROR,
+		              "You cannot update points with this function"
+		              "Use bov_points_update() instead");
+		return NULL;
+	}
 	particles->vboLen = data==NULL ? 0 : n;
 
 	glBindBuffer(GL_ARRAY_BUFFER, particles->vbo);
@@ -1603,6 +1625,12 @@ bov_points_t* bov_particles_partial_update(bov_points_t* particles,
                                            GLsizei count,
                                            GLsizei newN)
 {
+	if(particles->isParticle==0) {
+		BOV_ERROR_LOG(BOV_PARAMETER_ERROR,
+		              "You cannot partially update points with this function"
+		              "Use bov_points_partial_update() instead");
+		return NULL;
+	}
 	if(data==NULL) {
 		BOV_ERROR_LOG(BOV_PARAMETER_ERROR,
 		              "Cannot do a partial update with a NULL "
@@ -1804,8 +1832,15 @@ void bov_points_draw_with_indices_aux(bov_window_t* window,
 
 
 void bov_particles_draw(bov_window_t* window,
-					    const bov_points_t* points)
+					    const bov_points_t* particles)
 {
+	if(particles->isParticle==0) {
+		BOV_ERROR_LOG(BOV_PARAMETER_ERROR,
+		              "You cannot draw points as if they were particles."
+		              "Only the opposite is allowed."
+		              "Use bov_points_draw() instead.");
+		return;
+	}
 	glBindFramebuffer(GL_FRAMEBUFFER, window->fbo);
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -1822,12 +1857,12 @@ void bov_particles_draw(bov_window_t* window,
 	glBufferSubData(GL_UNIFORM_BUFFER,
 	                0,
 	                sizeof(bov_points_param_t),
-	                &points->param);
+	                &particles->param);
 	// glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-	glBindVertexArray(points->vao);
+	glBindVertexArray(particles->vao);
 
-	glDrawArrays(GL_POINTS, 0, points->vboLen);
+	glDrawArrays(GL_POINTS, 0, particles->vboLen);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 

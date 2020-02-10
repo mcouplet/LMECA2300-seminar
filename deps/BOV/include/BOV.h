@@ -827,6 +827,7 @@ struct bov_text_struct {
 };
 
 struct bov_points_struct{
+  int isParticle;
 	GLuint vao;
 	GLuint vbo;
 	GLsizei vboCapacity;
