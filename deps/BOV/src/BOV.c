@@ -248,7 +248,6 @@ static GLuint create_texture(GLsizei width,
  %%%%%%%%%%%%%%%%%%%%%%%%%*/
 static void text_rasterizer_init(bov_window_t* window)
 {
-	// TODO: make it a 3 component texture with integrated derivatives
 	unsigned char (*image)[3] = malloc(sizeof(char) * 3 *
 									   font.tex_width * font.tex_height);
 	CHECK_MALLOC(image);
@@ -527,7 +526,8 @@ static void framebuffer_size_callback(GLFWwindow* self, int width, int height)
 	window->param.res[1] = (GLfloat) height;
 	glViewport(0, 0, width, height);
 
-	// TODO: resize the framebuffer texture
+	glBindTexture(GL_TEXTURE_2D, window->framebuffer_texture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 }
 
 
@@ -905,6 +905,12 @@ bov_window_t* bov_window_new(int width, int height, const char* win_name)
 	window->param.translate[0] = window->param.translate[1] = 0.0;
 	window->wtime = 0.0;
 
+	// white background color
+	window->backgroundColor[0] = 1.0;
+	window->backgroundColor[1] = 1.0;
+	window->backgroundColor[2] = 1.0;
+	window->backgroundColor[3] = 0.0;
+
 	// glfwSetWindowCloseCallback(window->self,close_callback);
 	glfwSetKeyCallback(window->self, key_callback);
 	glfwSetFramebufferSizeCallback(window->self, framebuffer_size_callback);
@@ -917,8 +923,10 @@ bov_window_t* bov_window_new(int width, int height, const char* win_name)
 
 
 	glfwSwapInterval(1); // vsync
-	// clear screen to white
-	glClearColor(1.f,1.f,1.f,1.00);
+	glClearColor(window->backgroundColor[0],
+	             window->backgroundColor[1],
+	             window->backgroundColor[2],
+	             window->backgroundColor[3]);
 	glEnable(GL_MULTISAMPLE);
 	glEnable(GL_CULL_FACE); // cull face that are not counterclockwise
 	glEnable( GL_BLEND );
@@ -1791,7 +1799,7 @@ void bov_particles_draw(bov_window_t* window,
 					    const bov_points_t* points)
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, window->fbo);
-	// glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	glUseProgram(window->program[PARTICLES_PROGRAM_INDEX]);

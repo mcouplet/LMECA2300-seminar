@@ -1,6 +1,11 @@
 #include "BOV.h"
 #include <math.h>
 
+// see stringification process
+#define xstr(s) str(s)
+#define str(s) #s
+#define NPOINTS 10000
+
 
 void colormap(float v, float color[3])
 {
@@ -17,34 +22,48 @@ void colormap(float v, float color[3])
 int main()
 {
 	bov_window_t* window = bov_window_new(800, 800, "Tutorial 1");
-	bov_window_set_color(window, (GLfloat[]){0.9f, 0.85f, 0.8f, 1.0f});
+	bov_window_set_color(window, (GLfloat[]){0.9f, 0.85f, 0.8f, 0.0f});
 
-	const GLsizei nPoints = 10000;
-	GLfloat (*data)[8] = malloc(sizeof(data[0])*nPoints);
+	GLfloat (*data)[8] = malloc(sizeof(data[0])*NPOINTS);
 
-	float rmax = sqrtf(2.0f);
-	for(int i=0; i<nPoints; i++) {
-		data[i][0] = rand() * 2.0 / RAND_MAX - 1.0; // x
-		data[i][1] = rand() * 2.0 / RAND_MAX - 1.0; // y
+	float rmax = 100.0*sqrtf(2.0f);
+	for(int i=0; i<NPOINTS; i++) {
+		data[i][0] = rand() * 200.0 / RAND_MAX - 100.0; // x (rand between -100 and 100)
+		data[i][1] = rand() * 200.0 / RAND_MAX - 100.0; // y (rand between -100 and 100)
 		data[i][2] = 0; // speed x (not used by default visualization)
 		data[i][3] = 0; // speed y (not used by default visualization)
 		float r = sqrt(data[i][0]*data[i][0] + data[i][1]*data[i][1]);
 		colormap(r/rmax, &data[i][4]); // fill color
 		data[i][7] = 0.8f; // transparency
-
 	}
 
-	bov_points_t *particles = bov_particles_new(data, nPoints, GL_STATIC_DRAW);
-	bov_points_set_width(particles, 0.01);
+	bov_points_t *particles = bov_particles_new(data, NPOINTS, GL_STATIC_DRAW);
+	// setting particles appearance
+	bov_points_set_width(particles, 0.02);
 	bov_points_set_outline_width(particles, 0.0025);
+
+	// fit particles in a [-0.8 0.8]x[-0.8 0.8] square
+	bov_points_scale(particles, (GLfloat[2]) {0.008, 0.008});
+	bov_points_set_pos(particles, (GLfloat[2]) {0.0, -0.1});
+
+	// we got 0.2 at the top to write something
+	bov_text_t* msg =  bov_text_new((unsigned char[]){
+			"Rendering " xstr(NPOINTS) " particles"
+		},
+	    GL_STATIC_DRAW);
+	bov_text_set_pos(msg, (GLfloat[2]){-0.95, 0.82});
+	bov_text_set_fontsize(msg, 0.1);
 
 	while(!bov_window_should_close(window)){
 		bov_particles_draw(window, particles);
 		// bov_points_draw(window, particles, 0, BOV_TILL_END);
 
+		bov_text_draw(window, msg);
+
 		bov_window_update(window);
 	}
 
+	bov_text_delete(msg);
 	bov_points_delete(particles);
 	free(data);
 	bov_window_delete(window);

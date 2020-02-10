@@ -14,6 +14,13 @@ set_target_properties(anm PROPERTIES
 
 # add dependency to BOV
 # set(BOV_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE) #do not build examples
+set(BOV_PARTICLES_SHADERS
+	"${CMAKE_CURRENT_SOURCE_DIR}/shaders/particles_vert.glsl"
+	"${CMAKE_CURRENT_SOURCE_DIR}/shaders/particles_geom.glsl"
+	"${CMAKE_CURRENT_SOURCE_DIR}/shaders/particles_frag.glsl"
+	"${CMAKE_CURRENT_SOURCE_DIR}/shaders/fullscreen_vert.glsl"
+	"${CMAKE_CURRENT_SOURCE_DIR}/shaders/fullscreen_frag.glsl"
+	CACHE STRING "" FORCE)
 add_subdirectory(deps/BOV)
 target_link_libraries(anm bov)
 

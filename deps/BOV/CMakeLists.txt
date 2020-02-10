@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.6)
 project(BOV C)
 
 option(BOV_BUILD_EXAMPLES "Build the BOV example programs" ON)
+option(BOV_CUSTOM_PARTICLES_SHADER "Use custom")
 
 add_library(bov src/BOV.c)
 
@@ -16,8 +17,32 @@ target_include_directories(bov PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/shaderInclude
 add_subdirectory(deps/glfw)
 add_subdirectory(deps/glad)
 
+set(BOV_PARTICLES_SHADERS
+	"${CMAKE_CURRENT_SOURCE_DIR}/shaders/particles_vert.glsl"
+	"${CMAKE_CURRENT_SOURCE_DIR}/shaders/particles_geom.glsl"
+	"${CMAKE_CURRENT_SOURCE_DIR}/shaders/particles_frag.glsl"
+	"${CMAKE_CURRENT_SOURCE_DIR}/shaders/fullscreen_vert.glsl"
+	"${CMAKE_CURRENT_SOURCE_DIR}/shaders/fullscreen_frag.glsl"
+	CACHE STRING "shaders for rendering particles")
+
+set(shadersGLSL
+	"${CMAKE_CURRENT_SOURCE_DIR}/shaders/points_vert.glsl"
+	"${CMAKE_CURRENT_SOURCE_DIR}/shaders/points_geom.glsl"
+	"${CMAKE_CURRENT_SOURCE_DIR}/shaders/points_frag.glsl"
+	"${CMAKE_CURRENT_SOURCE_DIR}/shaders/lines_geom.glsl"
+	"${CMAKE_CURRENT_SOURCE_DIR}/shaders/lines_frag.glsl"
+	"${CMAKE_CURRENT_SOURCE_DIR}/shaders/curve_geom.glsl"
+	"${CMAKE_CURRENT_SOURCE_DIR}/shaders/triangles_geom.glsl"
+	"${CMAKE_CURRENT_SOURCE_DIR}/shaders/triangles_frag.glsl"
+	"${CMAKE_CURRENT_SOURCE_DIR}/shaders/text_vert.glsl"
+	"${CMAKE_CURRENT_SOURCE_DIR}/shaders/text_frag.glsl"
+	"${CMAKE_CURRENT_SOURCE_DIR}/shaders/default_vert.glsl"
+	"${CMAKE_CURRENT_SOURCE_DIR}/shaders/default_frag.glsl"
+	${BOV_PARTICLES_SHADERS}
+	)
+
 # transform shaders in a valid C string contained in a C header file
-file(GLOB_RECURSE shadersGLSL ${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.glsl)
+# file(GLOB_RECURSE shadersGLSL ${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.glsl)
 foreach(fileGLSL ${shadersGLSL})
 	get_filename_component(basename ${fileGLSL} NAME_WE)
 	set(fileH "${CMAKE_CURRENT_BINARY_DIR}/shaderIncludes/${basename}.h")

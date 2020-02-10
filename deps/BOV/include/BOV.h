@@ -178,11 +178,15 @@ bov_points_t* bov_points_partial_update(bov_points_t* points,
 /* A particle is a point with 8 floats per point, the 2 first being coordinates.
  * This extra fields allow the 2 functions bov_particles_draw() and
  * bov_particles_draw_with_order() to draw additional stuffs, like the speed of
- * the particles
+ * the particles.*
+ *
+ * => a particle can use every point drawing function (listed below)
+ * but a point is not a particle !
  */
 bov_points_t* bov_particles_new(const GLfloat data[][8],
                                 GLsizei n,
                                 GLenum usage);
+
 bov_points_t* bov_particles_update(bov_points_t* particles,
                                    const GLfloat data[][8],
                                    GLsizei n);
@@ -228,6 +232,22 @@ static inline void bov_lines_draw_with_order(bov_window_t* window,
                                              GLint start,
                                              GLsizei count);
 
+/* same as bov_lines_draw(with_order)() using default shaders => 
+ * the default shaders are pretty basic, they just display thin lines of the
+ * selected color, without outline, without anti-aliasing, without taking the
+ * width into account.
+ */
+static inline void bov_fast_lines_draw(bov_window_t* window,
+                                      const bov_points_t* pts,
+                                      GLint start,
+                                      GLsizei count);
+
+static inline void bov_fast_lines_draw_with_order(bov_window_t* window,
+                                                  const bov_points_t* pts,
+                                                  const bov_order_t* order,
+                                                  GLint start,
+                                                  GLsizei count);
+
 /* draw lines that connect each points p1->p2->p3->p4->p5->p6...->pn */
 static inline void bov_line_strip_draw(bov_window_t* window,
                                        const bov_points_t* pts,
@@ -239,6 +259,19 @@ static inline void bov_line_strip_draw_with_order(bov_window_t* window,
                                                   const bov_order_t* order,
                                                   GLint start,
                                                   GLsizei count);
+
+/* same as bov_line_strip_draw(with_order) using default shaders.
+ * see bov_fast_lines_draw() for what the default shaders is missing. */
+static inline void bov_fast_line_strip_draw(bov_window_t* window,
+                                            const bov_points_t* pts,
+                                            GLint start,
+                                            GLsizei count);
+
+static inline void bov_fast_line_strip_draw_with_order(bov_window_t* window,
+                                                       const bov_points_t* pts,
+                                                       const bov_order_t* order,
+                                                       GLint start,
+                                                       GLsizei count);
 
 
 /* draw lines that connect each points and end with the first
@@ -253,6 +286,19 @@ static inline void bov_line_loop_draw_with_order(bov_window_t* window,
                                                  const bov_order_t* order,
                                                  GLint start,
                                                  GLsizei count);
+
+/* same as bov_line_loop_draw(with_order) using default shaders.
+ * see bov_fast_lines_draw() for what the default shaders is missing. */
+static inline void bov_fast_line_loop_draw(bov_window_t* window,
+                                           const bov_points_t* pts,
+                                           GLint start,
+                                           GLsizei count);
+
+static inline void bov_fast_line_loop_draw_with_order(bov_window_t* window,
+                                                      const bov_points_t* pts,
+                                                      const bov_order_t* order,
+                                                      GLint start,
+                                                      GLsizei count);
 
 /* draw a single line that connect each points p1->p2->p3->p4->p5->p6...->pn
  * The difference with line_strip_draw can really be seen with an outline or
@@ -279,6 +325,23 @@ static inline void bov_triangles_draw_with_order(bov_window_t* window,
                                              GLint start,
                                              GLsizei count);
 
+/* same as bov_triangles_draw(with_order) using default shaders.
+ * the default shaders are pretty basic, they just display thin triangles of the
+ * selected color, without outline, without anti-aliasing, without taking the
+ * width into account.
+ */
+static inline void bov_fast_triangles_draw(bov_window_t* window,
+                                           const bov_points_t* pts,
+                                           GLint start,
+                                           GLsizei count);
+
+static inline void bov_fast_triangles_draw_with_order(bov_window_t* window,
+                                                      const bov_points_t* pts,
+                                                      const bov_order_t* order,
+                                                      GLint start,
+                                                      GLsizei count);
+
+
 static inline void bov_triangle_strip_draw(bov_window_t* window,
                                            const bov_points_t* pts,
                                            GLint start,
@@ -289,6 +352,19 @@ static inline void bov_triangle_strip_draw_with_order(bov_window_t* window,
                                                       const bov_order_t* order,
                                                       GLint start,
                                                       GLsizei count);
+
+/* same as bov_triangle_strip_draw(with_order) using default shaders.
+ * see bov_fast_triangles_draw() for what the default shaders is missing. */
+static inline void bov_fast_triangle_strip_draw(bov_window_t* window,
+                                                const bov_points_t* pts,
+                                                GLint start,
+                                                GLsizei count);
+
+static inline void bov_fast_triangle_strip_draw_with_order(bov_window_t* window,
+                                                           const bov_points_t* pts,
+                                                           const bov_order_t* order,
+                                                           GLint start,
+                                                           GLsizei count);
 
 static inline void bov_triangle_fan_draw(bov_window_t* window,
                                          const bov_points_t* pts,
@@ -301,10 +377,28 @@ static inline void bov_triangle_fan_draw_with_order(bov_window_t* window,
                                                     GLint start,
                                                     GLsizei count);
 
+/* same as bov_triangle_fan_draw(with_order) using default shaders.
+ * see bov_fast_triangles_draw() for what the default shaders is missing. */
+static inline void bov_fast_triangle_fan_draw(bov_window_t* window,
+                                              const bov_points_t* pts,
+                                              GLint start,
+                                              GLsizei count);
+
+static inline void bov_fast_triangle_fan_draw_with_order(bov_window_t* window,
+                                                         const bov_points_t* pts,
+                                                         const bov_order_t* order,
+                                                         GLint start,
+                                                         GLsizei count);
+
+/* Only points created with bov_particles_new() can be drawn using
+ * bov_particles_draw(). A particles has a position, a speed and 4 associated
+ * floats. The particles shader render the particles using these additional
+ * data into account
+ */
 void bov_particles_draw(bov_window_t* window,
                         const bov_points_t* points);
 
-/* delete a points object */
+/* delete a points object or a particle object */
 void bov_points_delete(bov_points_t* points);
 
 
