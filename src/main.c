@@ -37,28 +37,28 @@ static void fillData(GLfloat (*data)[8])
 
 int main()
 {
-	bov_window_t* window = bov_window_new(800, 800, "ANM Project: SPH");
+	bov_window_t* window = bov_window_new(1024, 780, "ANM Project: SPH");
 	bov_window_set_color(window, (GLfloat[]){0.9f, 0.85f, 0.8f, 0.0f});
 
 	GLfloat (*data)[8] = malloc(sizeof(data[0])*NPOINTS);
 	fillData(data);
 
-	// send data to GPU, and receive reference to those data in a points object
+	/* send data to GPU, and receive reference to those data in a points object */
 	bov_points_t *particles = bov_particles_new(data, NPOINTS, GL_STATIC_DRAW);
 
-	// setting particles appearance
+	/* setting particles appearance */
 	bov_points_set_width(particles, 0.02);
 	bov_points_set_outline_width(particles, 0.0025);
 
-	// fit particles in a [-0.8 0.8]x[-0.8 0.8] square
+	/* fit particles in a [-0.8 0.8]x[-0.8 0.8] square */
 	bov_points_scale(particles, (GLfloat[2]) {0.008, 0.008});
 	bov_points_set_pos(particles, (GLfloat[2]) {0.0, -0.1});
 
-	// we got 0.2 at the top to write something
+	/* we got 0.2 at the top to write something */
 	bov_text_t* msg =  bov_text_new((unsigned char[]){
 			"Rendering " xstr(NPOINTS) " particles"
 		},
-	    GL_STATIC_DRAW);
+		GL_STATIC_DRAW);
 	bov_text_set_pos(msg, (GLfloat[2]){-0.95, 0.82});
 	bov_text_set_fontsize(msg, 0.1);
 
