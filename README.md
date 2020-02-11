@@ -1,4 +1,4 @@
-Advanced Numerical Geometry Project
+Advanced Numerical Method Project
 ===================================
 
 This folder is the canvas for your upcoming project.
@@ -8,6 +8,7 @@ It should contain:
  * a **src** directory containing the the source code of your program
  * a **doc** directory containing more documentation
  * a **deps** directory containing the BOV library
+ * a **shaders** directory containing custom particles shaders.
 
 See [doc/COMPILING.md](doc/COMPILING.md) for a step by step tutorial
 on how to build the program.

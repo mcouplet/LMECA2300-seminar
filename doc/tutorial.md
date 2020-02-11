@@ -18,21 +18,17 @@ for your upcoming project.
 
 The first question that you might ask is:
 
-> Why is the Numerical Geometry project in C and not in Python, Java,
+> Why is the Advanced Numerical Project in C and not in Python, Java,
   C++, Rust or Julia ?
 
-You will realize that C is very transparent about memory allocation.
-Every non-constant chunk of memory that you use must be allocated on
-the heap via a `malloc()` call. Therefore, you will realize precisely
-how much memory is consumed by your algorithm, and you will naturally
-avoid unnecessary allocations. In addition, in 2D, it is very easy to
-allocate the right amount of memory right from the beginning. Take a
-Delaunay Triangulation algorithm for example. If you have *n* points,
-you are going to end up with *2\*(n-2)* triangles. You can allocate
-all the space needed right from the beginning. That transparency and
-simplicity give C a clear advantage over languages with fancy (but
-costly) features. Finally, a well-realized C program will be as fast
-as any C++ or Rust, and much faster than any interpreted language.
+You will realize that C is very transparent about memory allocation. Every
+non-constant chunk of memory that you use must be allocated on the heap via a
+`malloc()` call. Therefore, you will realize precisely how much memory is
+consumed by your algorithm, and you will naturally avoid unnecessary
+allocations. That transparency and simplicity give C a clear advantage over
+languages with fancy (but costly) features. Finally, a well-realized C program
+will be as fast as any C++ or Rust, and much faster than any interpreted
+language.
 
 **What is BOV ?**
 
@@ -108,19 +104,21 @@ int main()
 
 ### A window has its own time
 
-Before drawing things into a window, we have to understand that the
-window object is actually much more than a window. Indeed, when you
-will draw primitive shapes with `bov_points_draw()`,
-`bov_text_draw()`... you will in fact draw to a texture in the memory
-of your computer which is called a framebuffer. Once you've filled
-the framebuffer with what you want to draw, you can show it in the
-window using:
+Before drawing things into a window, we have to understand that the window
+object is actually much more than a window. Indeed, when you will draw
+primitive shapes with `bov_points_draw()`, `bov_text_draw()`... you will in
+fact draw to a texture in the memory of your computer which is called a
+framebuffer. More specifically, the framebuffer that is shown on your screen is
+the front buffer and the framebuffer that you are drawing to is called the back
+buffer. Once you've filled the framebuffer with what you want to draw, you can
+show it in the window using:
 ```C
 void bov_window_update(bov_window_t* window)
 ```
 That function actually does a lot of things:
 
- - it swaps the framebuffer with the screen buffer.
+ - it swaps the back buffer (the texture with your drawings) with the front
+   buffer.
  - it waits for a screen refresh if you have VSYNC. A refresh is the
    moment when the screen buffer is actually shown on your screen. It
    depends on the refreshing rate (framerate) of your screen (usually
@@ -129,7 +127,7 @@ That function actually does a lot of things:
    happened since the last call to `bov_window_update()`.
  - it updates the size of the framebuffer in pixel according to the
    size of the window.
- - **it clears the framebuffer**
+ - **it clears the back buffer**
  - it changes the render position, change the scaling (zoom), pause
    the window timer, tell if the window should close etc. according
    to the event received.
@@ -215,7 +213,7 @@ Time to render our first primitive!
 Let's use the function `text_new()`, which returns a new text
 object:
 ```C
-bov_text_t* bov_text_new(unsigned char* string, GLenum usage);
+bov_text_t* bov_text_new(GLubyte* string, GLenum usage);
 ```
  - **string** is the message that you want to display
  - **usage** is either GL_DYNAMIC_DRAW if you intend to change the
@@ -267,8 +265,7 @@ int main()
     bov_window_set_color(window, (GLfloat[]) {0.5, 0.5, 0.5, 1.0});
 
     // hw is prefix for hello world :p
-    bov_text_t* hw_obj = bov_text_new((unsigned char[])
-                                           {"Hello World !"},
+    bov_text_t* hw_obj = bov_text_new((GLubyte[]) {"Hello World !"},
                                       GL_STATIC_DRAW);
 
     float hw_color[4] = {1.0, 1.0, 1.0, 1.0};
@@ -282,7 +279,7 @@ int main()
     bov_text_set_outline_color(hw_obj, (float[4]) {0, 0, 0, 1});
 
 
-    while(!window_should_close(window)) {
+    while(!bov_window_should_close(window)) {
         nice_colormap(hw_color, window_get_time(window));
         bov_text_set_color(hw_obj, hw_color);
         bov_text_draw(window, hw_obj);
@@ -297,21 +294,6 @@ int main()
 }
 ```
 
-
-### Hello real world
-
-It's pretty easy to display simple graphics, but displaying the
-progress of an algorithm is far more difficult. Indeed, you are not
-only programming an algorithm for your Numerical Geometry project,
-**you are a video game developer now !**. Indeed, the window must be
-responsive to user inputs, users must be able to move the scene with
-their mouses, zooming in and out instantaneously. To do so, you
-should never do something that last more than a hundredth of a second
-before updating the window. In addition, we want your project to be
-pretty, with nice animations. The speed of your animations should not
-depend on the framerate of your screen. These are constraints that
-are almost only seen in video game development.
-
 ---
 
-**the next and last part of the tutorial should arrive soon**
+**the next part of the tutorial should arrive soon**

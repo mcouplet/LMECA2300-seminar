@@ -56,11 +56,11 @@ int main()
 		"  f0. \xf0\t f1. \xf1\t f2. \xf2\t f3. \xf3\t f4. \xf4\t f5. \xf5\t f6. \xf6\t f7. \xf7\t f8. \xf8\t f9. \xf9\t fa. \xfa\t fb. \xfb\t fc. \xfc\t fd. \xfd\t fe. \xfe\t ff. \xff \n"
 		"\n---\n\n"
 		"\tFor classical ASCII character, the value corresponding to each character is the usual one.\n"
-		"It means that you can display \"coucou\", simply by using bov_text_new(\"coucou\").\n"
+		"It means that you can display \"coucou\", simply by using bov_text_new(\"coucou\", GL_STATIC_DRAW).\n"
 		"However, for characters with a value greater or equal to 0xff (128), there are no corresponding ASCII characters...\n"
 		"Thus, you will have to use a lesser known feature of C strings: you can insert whatever value you want \n"
 		"in a C string by using \\xV, where V is an hexadecimal value\n"
-		"For example, to insert the smiley \xa1, you have to use bov_text_new(\"\\xa1\")\n"
+		"For example, to insert the smiley \xa1, you have to use bov_text_new(\"\\xa1\", GL_STATIC_DRAW)\n"
 		},
 		GL_STATIC_DRAW);
 
