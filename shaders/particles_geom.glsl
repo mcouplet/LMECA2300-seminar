@@ -46,7 +46,6 @@ layout (std140) uniform worldBlock
 	vec2 resolution;
 	vec2 translate;
 	float zoom;
-	// float rotation;
 };
 
 layout(points) in;
