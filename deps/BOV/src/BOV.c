@@ -510,6 +510,12 @@ static void key_callback(GLFWwindow* self,
 				window->param.translate[0] = 0.0f;
 				window->param.translate[1] = 0.0f;
 				break;
+			case GLFW_KEY_UP:
+				window->counter++;
+				break;
+			case GLFW_KEY_DOWN:
+				window->counter--;
+				break;
 		}
 	}
 	if(key==GLFW_KEY_ESCAPE)

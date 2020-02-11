@@ -456,6 +456,15 @@ void bov_order_delete(bov_order_t* order);
  * The time is stopped if the user press the space bar. */
 static inline double bov_window_get_time(const bov_window_t* window);
 
+
+/* get the value of the counter associated to a window. The counter is set to
+ * 0 at window creation. It is incremented every time the user hit the up
+ * arrow key, and decremented every time the user hit the down arrow key.
+ */
+static inline unsigned bov_window_get_counter(const bov_window_t* window);
+static inline void bov_window_set_counter(bov_window_t* window,
+                                          unsigned counter);
+
 /* get the resolution in pixel of the window */
 static inline GLfloat bov_window_get_xres(const bov_window_t* window);
 static inline GLfloat bov_window_get_yres(const bov_window_t* window);
@@ -647,12 +656,15 @@ static inline void bov_points_set_param(bov_points_t* points,
  *  - glBlendEquation( GL_FUNC_ADD );
  *  - glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
  *
- * but, a user that supplied his own shaders (via the BOV_PARTICLES_SHADERS
- * CMake variable) might want to change the blending equation using this
- * function.
+ * ...but a user that supplied his own particles shaders (via the
+ * BOV_PARTICLES_SHADERS CMake variable) might want to change the blending
+ *  equation using this function.
  *  - `mode` is the mode given to `glBlendEquationi(framebuffer, mode);`
  *  - `srcRGB`, `dstRGB`, `srcAlpha` and `dstAlpha` are the paramters given to
  *    glBlendFuncSeparatei(framebuffer, srcRGB, dstRGB, srcAlpha, dstAlpha);
+ *
+ * The blending equation for rendering directly to the window is kept to its
+ * default value.
  */
 static inline void bov_particles_blending(bov_window_t* window,
                                           GLenum mode,
@@ -789,6 +801,7 @@ struct bov_window_struct
 	double cursorPos[2]; // new position of the cursor in screen coordinates
 	double clickTime[2]; // time of the click (left and right) or -1 if released
 	double wtime;
+  unsigned counter;
 
 	GLuint ubo[2]; // 1 ubo for world params, 1 ubo for points and text params
   GLuint fbo; // a framebuffer for particles
@@ -839,6 +852,17 @@ struct bov_points_struct{
 static inline double bov_window_get_time(const bov_window_t* window)
 {
 	return window->wtime;
+}
+
+static inline unsigned bov_window_get_counter(const bov_window_t* window)
+{
+  return window->counter;
+}
+
+static inline void bov_window_set_counter(bov_window_t* window,
+                                          unsigned counter)
+{
+  window->counter = counter;
 }
 
 static inline GLfloat bov_window_get_xres(const bov_window_t* window)
