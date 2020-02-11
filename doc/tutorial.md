@@ -2,7 +2,7 @@ Doing animations in C with `BOV`
 =======================================
 
 This page teaches you how to use the BOV library (contained in
-[deps/BOV/](deps/BOV/)) in order to make a beautiful animation
+[deps/BOV/](deps/BOV/)) in order to make a beautiful visualization
 for your upcoming project.
 
  * [FAQ](#faq)
@@ -18,17 +18,17 @@ for your upcoming project.
 
 The first question that you might ask is:
 
-> Why is the Advanced Numerical Project in C and not in Python, Java,
-  C++, Rust or Julia ?
+> Why is the Advanced Numerical Method Project in C and not in
+> Python, Java, C++, Rust or Julia ?
 
-You will realize that C is very transparent about memory allocation. Every
-non-constant chunk of memory that you use must be allocated on the heap via a
-`malloc()` call. Therefore, you will realize precisely how much memory is
-consumed by your algorithm, and you will naturally avoid unnecessary
-allocations. That transparency and simplicity give C a clear advantage over
-languages with fancy (but costly) features. Finally, a well-realized C program
-will be as fast as any C++ or Rust, and much faster than any interpreted
-language.
+You will realize that C is very transparent about memory allocation.
+Every non-constant chunk of memory that you use must be allocated on
+the heap via a `malloc()` call. Therefore, you will realize precisely
+how much memory is consumed by your algorithm, and you will naturally
+avoid unnecessary allocations. That transparency and simplicity give
+C a clear advantage over languages with fancy (but costly) features.
+Finally, a well-realized C program will be as fast as any C++ or
+Rust, and much faster than any interpreted language.
 
 **What is BOV ?**
 
@@ -64,7 +64,8 @@ First, we will create a simple window (an object of type
                                  const char* win_name);
 ```
 where
- * **width** is the width of the window in pixels or 0 for full-screen
+ * **width** is the width of the window in pixels or 0 for
+   full-screen
  * **height** is the height of the window in pixels or 0 for
    full-screen
  * **win_name** is a string which will be the name of your window
@@ -104,21 +105,22 @@ int main()
 
 ### A window has its own time
 
-Before drawing things into a window, we have to understand that the window
-object is actually much more than a window. Indeed, when you will draw
-primitive shapes with `bov_points_draw()`, `bov_text_draw()`... you will in
-fact draw to a texture in the memory of your computer which is called a
-framebuffer. More specifically, the framebuffer that is shown on your screen is
-the front buffer and the framebuffer that you are drawing to is called the back
-buffer. Once you've filled the framebuffer with what you want to draw, you can
-show it in the window using:
+Before drawing things into a window, we have to understand that the
+window object is actually much more than a window. Indeed, when you
+will draw primitive shapes with `bov_points_draw()`,
+`bov_text_draw()`... you will in fact draw to a texture in the memory
+of your computer which is called a framebuffer. More specifically,
+the framebuffer that is shown on your screen is the front buffer and
+the framebuffer that you are drawing to is called the back buffer.
+Once you've filled the framebuffer with what you want to draw, you
+can show it in the window using:
 ```C
 void bov_window_update(bov_window_t* window)
 ```
 That function actually does a lot of things:
 
- - it swaps the back buffer (the texture with your drawings) with the front
-   buffer.
+ - it swaps the back buffer (the texture with your drawings) with the
+   front buffer.
  - it waits for a screen refresh if you have VSYNC. A refresh is the
    moment when the screen buffer is actually shown on your screen. It
    depends on the refreshing rate (framerate) of your screen (usually
@@ -293,6 +295,29 @@ int main()
     return EXIT_SUCCESS;
 }
 ```
+
+This basic program is part of the examples included with the BOV
+library. Its source code,
+[deps/BOV/examples/hello_world.c](deps/BOV/examples/hello_world.c),
+is compiled automatically when the library is compiled, which also
+happens automatically when you compile your program.
+The executable should be located in
+```sh
+./build/deps/BOV/examples/hello_world
+```
+
+Among the other examples included with BOV, two are of particular
+interest for drawing text:
+
+ - [deps/BOV/examples/character_table](deps/BOV/examples/character_table.c)
+   shows you all the available characters, as well as how to use the
+   set of non-ASCII characters available.
+ - [deps/BOV/examples/text_style](deps/BOV/examples/text_style.c)
+   shows you how you can affect the text appearance.
+
+
+### Drawing shapes with points_t
+
 
 ---
 
