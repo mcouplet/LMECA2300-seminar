@@ -396,7 +396,15 @@ static inline void bov_fast_triangle_fan_draw_with_order(bov_window_t* window,
  * data into account
  */
 void bov_particles_draw(bov_window_t* window,
-                        const bov_points_t* points);
+                        const bov_points_t* points,
+                        GLint start,
+                        GLsizei count);
+
+void bov_particles_draw_with_order(bov_window_t* window,
+                                   const bov_points_t* points,
+                                   const bov_order_t* order,
+                                   GLint start,
+                                   GLsizei count);
 
 /* delete a points object or a particle object */
 void bov_points_delete(bov_points_t* points);
@@ -1115,12 +1123,12 @@ void bov_points_draw_with_order_aux(bov_window_t* window,
                                     GLint start,
                                     GLsizei count);
 
-void bov_points_draw_with_indices_aux(bov_window_t* window,
-                                      const bov_points_t* points,
-                                      bov_points_drawing_mode_t mode,
-                                      const GLuint* indices,
-                                      GLint start,
-                                      GLsizei count);
+// void bov_points_draw_with_indices_aux(bov_window_t* window,
+//                                       const bov_points_t* points,
+//                                       bov_points_drawing_mode_t mode,
+//                                       const GLuint* indices,
+//                                       GLint start,
+//                                       GLsizei count);
 
 // use cpp to preprocess a file with
 #define BOVCreateDrawingFunctions(primitive, program)\
@@ -1130,9 +1138,9 @@ bov_points_draw_aux(win,pts,program,start,count);}\
 static inline void bov_##primitive##_draw_with_order(\
 bov_window_t* win,const bov_points_t*pts,const bov_order_t*order,GLint start,GLsizei count){\
 bov_points_draw_with_order_aux(win,pts,program,order,start,count);}\
-static inline void bov_##primitive##_draw_with_indices(\
-bov_window_t* win,const bov_points_t*pts,const GLuint*indices,GLint start,GLsizei count){\
-bov_points_draw_with_indices_aux(win,pts,program,indices,start,count);}
+// static inline void bov_##primitive##_draw_with_indices(\
+// bov_window_t* win,const bov_points_t*pts,const GLuint*indices,GLint start,GLsizei count){\
+// bov_points_draw_with_indices_aux(win,pts,program,indices,start,count);}
 
 BOVCreateDrawingFunctions(points, POINTS_PROGRAM)
 BOVCreateDrawingFunctions(lines, LINES_PROGRAM)

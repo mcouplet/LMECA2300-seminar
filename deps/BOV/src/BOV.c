@@ -1775,10 +1775,10 @@ static GLenum switch_rasterizer_with_mode(bov_window_t* window,
 
 
 void bov_points_draw_aux(bov_window_t* window,
-					     const bov_points_t* points,
-					     bov_points_drawing_mode_t mode,
-					     GLint start,
-					     GLsizei count)
+                         const bov_points_t* points,
+                         bov_points_drawing_mode_t mode,
+                         GLint start,
+                         GLsizei count)
 {
 	if(start>=points->vboLen)
 		return;
@@ -1820,29 +1820,31 @@ void bov_points_draw_with_order_aux(bov_window_t* window,
 }
 
 
-void bov_points_draw_with_indices_aux(bov_window_t* window,
-                                      const bov_points_t* points,
-                                      bov_points_drawing_mode_t mode,
-                                      const GLuint* indices,
-                                      GLint start, GLsizei count)
-{
-	if(indices==NULL) {
-		bov_points_draw_aux(window, points, mode, start, count);
-		return;
-	}
+// void bov_points_draw_with_indices_aux(bov_window_t* window,
+//                                       const bov_points_t* points,
+//                                       bov_points_drawing_mode_t mode,
+//                                       const GLuint* indices,
+//                                       GLint start, GLsizei count)
+// {
+// 	if(indices==NULL) {
+// 		bov_points_draw_aux(window, points, mode, start, count);
+// 		return;
+// 	}
 
-	if(points->vboLen==0 || start>=count)
-		return;
+// 	if(points->vboLen==0 || start>=count)
+// 		return;
 
-	GLenum primitive = switch_rasterizer_with_mode(window, points, mode);
+// 	GLenum primitive = switch_rasterizer_with_mode(window, points, mode);
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); // no vbo must be bound
-	glDrawElements(primitive, count, GL_UNSIGNED_INT, indices+start);
-}
+// 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); // no vbo must be bound
+// 	glDrawElements(primitive, count, GL_UNSIGNED_INT, indices+start);
+// }
 
 
 void bov_particles_draw(bov_window_t* window,
-					    const bov_points_t* particles)
+                        const bov_points_t* particles,
+                        GLint start,
+                        GLsizei count)
 {
 	if(particles->isParticle==0) {
 		BOV_ERROR_LOG(BOV_PARAMETER_ERROR,
@@ -1851,6 +1853,14 @@ void bov_particles_draw(bov_window_t* window,
 		              "Use bov_points_draw() instead.");
 		return;
 	}
+
+	if(start>=particles->vboLen)
+		return;
+
+	if(count + start > particles->vboLen || start + count < count) { //< don't forget to detect overflow
+		count = particles->vboLen - start;
+	}
+
 	glBindFramebuffer(GL_FRAMEBUFFER, window->fbo);
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -1872,7 +1882,70 @@ void bov_particles_draw(bov_window_t* window,
 
 	glBindVertexArray(particles->vao);
 
-	glDrawArrays(GL_POINTS, 0, particles->vboLen);
+	glDrawArrays(GL_POINTS, start, count);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	glBlendEquation(GL_FUNC_ADD);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	glUseProgram(window->program[FULLSCREEN_PROGRAM_INDEX]);
+	window->last_program = FULLSCREEN_PROGRAM_INDEX;
+
+	glDrawArrays(GL_TRIANGLES, 0, 3);
+}
+
+
+void bov_particles_draw_with_order(bov_window_t* window,
+                                   const bov_points_t* particles,
+                                   const bov_order_t* order,
+                                   GLint start,
+                                   GLsizei count)
+{
+	if(particles->isParticle==0) {
+		BOV_ERROR_LOG(BOV_PARAMETER_ERROR,
+		              "You cannot draw points as if they were particles."
+		              "Only the opposite is allowed."
+		              "Use bov_points_draw() instead.");
+		return;
+	}
+
+	if (order == NULL) {
+		bov_particles_draw(window, particles, start, count);
+		return;
+	}
+
+	if(particles->vboLen==0 || start>=order->eboLen)
+		return;
+
+	if(count + start > order->eboLen || start + count < count) { //< don't forget to detect overflow
+		count = order->eboLen - start;
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, window->fbo);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	glBlendEquation(window->blending.mode);
+	glBlendFuncSeparate(window->blending.srcRGB,
+	                    window->blending.dstRGB,
+	                    window->blending.srcAlpha,
+	                    window->blending.dstAlpha);
+
+	glUseProgram(window->program[PARTICLES_PROGRAM_INDEX]);
+
+	glBindBuffer(GL_UNIFORM_BUFFER, window->ubo[1]);
+	glBufferSubData(GL_UNIFORM_BUFFER,
+	                0,
+	                sizeof(bov_points_param_t),
+	                &particles->param);
+	// glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+	glBindVertexArray(particles->vao);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, order->ebo);
+	glDrawElements(GL_POINTS, count, GL_UNSIGNED_INT,
+	               (void*) (start * sizeof(GLuint)));
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 

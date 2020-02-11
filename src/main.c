@@ -14,9 +14,9 @@ static void colormap(float v, float color[3])
 	float v2 = 1.25*v;
 	float v3 = fminf(0.5,v)*2.0;
     
-    color[0] = 0.8f*(-v1*v1+1.0f);
-    color[1] = 0.8f*(6.0f*v2*v2*(1.0f-v2));
-    color[2] = 0.8f*(5.5f*v3*(1.0f-v3)*(1.0f-v3));
+	color[0] = 0.8f*(-v1*v1+1.0f);
+	color[1] = 0.8f*(6.0f*v2*v2*(1.0f-v2));
+	color[2] = 0.8f*(5.5f*v3*(1.0f-v3)*(1.0f-v3));
 }
 
 
@@ -54,7 +54,7 @@ int main()
 	bov_points_scale(particles, (GLfloat[2]) {0.008, 0.008});
 	bov_points_set_pos(particles, (GLfloat[2]) {0.0, -0.1});
 
-	/* we got 0.2 at the top to write something */
+	/* we got 0.2 at the top to write something. The screen goes from -1 to 1 */
 	bov_text_t* msg =  bov_text_new((unsigned char[]){
 			"Rendering " xstr(NPOINTS) " particles"
 		},
@@ -63,7 +63,7 @@ int main()
 	bov_text_set_fontsize(msg, 0.1);
 
 	while(!bov_window_should_close(window)){
-		bov_particles_draw(window, particles);
+		bov_particles_draw(window, particles, 0, BOV_TILL_END);
 		// bov_points_draw(window, particles, 0, BOV_TILL_END);
 
 		bov_text_draw(window, msg);
