@@ -360,8 +360,8 @@ static void particles_rasterizer_init(bov_window_t* window)
 
 	// create the framebuffer
 	glActiveTexture(GL_TEXTURE0 + FRAMEBUFFER_TEXTURE_UNIT);
-	window->framebuffer_texture = create_texture(window->param.res[0],
-	                                             window->param.res[1],
+	window->framebuffer_texture = create_texture((GLsizei) window->param.res[0],
+	                                             (GLsizei) window->param.res[1],
 	                                             NULL,
 	                                             GL_RGBA,
 	                                             GL_CLAMP_TO_EDGE);
@@ -977,19 +977,19 @@ bov_window_t* bov_window_new(int width, int height, const char* win_name)
 		"    h k    display/hide keyboard shortcuts\n"
 	}, GL_STATIC_DRAW);
 	bov_text_set_space_type(window->help, PIXEL_SPACE);
-	bov_text_set_fontsize(window->help, 32); // 32 pixel height
-	bov_text_set_pos(window->help, (GLfloat[2]){16.0, 7 * 32 + 64});
-	bov_text_set_boldness(window->help, 0.1);
-	bov_text_set_outline_width(window->help, 0.5);
+	bov_text_set_fontsize(window->help, 32.0f); // 32 pixel height
+	bov_text_set_pos(window->help, (GLfloat[2]){16.0f, 7.0f * 32.0f + 64.0f});
+	bov_text_set_boldness(window->help, 0.1f);
+	bov_text_set_outline_width(window->help, 0.5f);
 
 	window->indication = bov_text_new((unsigned char[]) {
 		"press 'k' for keyboard shortcuts\n"
 	}, GL_STATIC_DRAW);
 	bov_text_set_space_type(window->indication, PIXEL_SPACE);
-	bov_text_set_fontsize(window->indication, 32); // 32 pixel height
-	bov_text_set_pos(window->indication, (GLfloat[2]){16.0, 16.0});
-	bov_text_set_boldness(window->indication, 0.1);
-	bov_text_set_outline_width(window->indication, 0.5);
+	bov_text_set_fontsize(window->indication, 32.0f); // 32 pixel height
+	bov_text_set_pos(window->indication, (GLfloat[2]){16.0f, 16.0f});
+	bov_text_set_boldness(window->indication, 0.1f);
+	bov_text_set_outline_width(window->indication, 0.5f);
 
 	return window;
 }
@@ -1179,7 +1179,7 @@ static GLsizei fill_text_data(GLfloat* data,
 
 	GLsizei num = 0;
 	for(GLsizei i=0; i<len; i++) {
-		texture_glyph_t *glyph = font.glyphs + string[i];
+		const texture_glyph_t *glyph = font.glyphs + string[i];
 
 		switch(glyph->codepoint) {
 			// up, semi-up, semi-down...  x01 - 06, e1 - e6, c0 -df, f0 - ff  could mean something
@@ -1799,8 +1799,10 @@ void bov_points_draw_with_order_aux(bov_window_t* window,
                                     const bov_order_t* order,
                                     GLint start, GLsizei count)
 {
-	if(order==NULL)
+	if (order == NULL) {
 		bov_points_draw_aux(window, points, mode, start, count);
+		return;
+	}
 
 	if(points->vboLen==0 || start>=order->eboLen)
 		return;
@@ -1824,8 +1826,10 @@ void bov_points_draw_with_indices_aux(bov_window_t* window,
                                       const GLuint* indices,
                                       GLint start, GLsizei count)
 {
-	if(indices==NULL)
+	if(indices==NULL) {
 		bov_points_draw_aux(window, points, mode, start, count);
+		return;
+	}
 
 	if(points->vboLen==0 || start>=count)
 		return;
