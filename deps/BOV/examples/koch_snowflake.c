@@ -156,7 +156,7 @@ int main(int argc, char *argv[])
 		segWidth *= 1.0 / 3.0;
 	}
 
-	bov_text_t* end = bov_text_new((unsigned char[]){"Max. iteration level reached"}, GL_STATIC_DRAW);
+	bov_text_t* end = bov_text_new((GLubyte[]){"Max. iteration level reached"}, GL_STATIC_DRAW);
 	bov_text_set_param(end, (bov_text_param_t) {
 	  .spaceType = PIXEL_SPACE,
 	  .fontSize = 64,

@@ -117,12 +117,12 @@ void bov_window_delete(bov_window_t* window);
  *      object (the string of characters)
  *    - GL_DYNAMIC_DRAW if you intend to change it with the text_update function
  */
-bov_text_t* bov_text_new(const unsigned char* string,
+bov_text_t* bov_text_new(const GLubyte* string,
                          GLenum usage);
 
 /* change the content of the text object */
 bov_text_t* bov_text_update(bov_text_t* text,
-                            const unsigned char* string);
+                            const GLubyte* string);
 
 /* draw a text object, using a text rasterizer (note: a text rasterizer can be
  * used to draw multiple text object)*/
@@ -187,9 +187,12 @@ bov_points_t* bov_particles_new(const GLfloat data[][8],
                                 GLsizei n,
                                 GLenum usage);
 
+/* same as bov_points_update() for particles */
 bov_points_t* bov_particles_update(bov_points_t* particles,
                                    const GLfloat data[][8],
                                    GLsizei n);
+
+/* same as bov_points_partial_update() for particles */
 bov_points_t* bov_particles_partial_update(bov_points_t* particles,
                                            const GLfloat data[][8],
                                            GLint start,
@@ -406,7 +409,7 @@ void bov_particles_draw_with_order(bov_window_t* window,
                                    GLint start,
                                    GLsizei count);
 
-/* delete a points object or a particle object */
+/* delete a points object or a particle object      WORKS FOR BOTH ! */
 void bov_points_delete(bov_points_t* points);
 
 
@@ -841,7 +844,7 @@ struct bov_text_struct {
 	GLuint vbo;
 	GLsizei vboCapacity; // capacity of the vbo
 	GLsizei vboLen;      // number of letter in vbo
-	// const unsigned char* string;
+	// const GLubyte* string;
 	GLsizei dataCapacity; // length of the string
 	GLfloat* data;
 	bov_text_param_t param;

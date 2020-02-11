@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.6)
 project(BOV C)
 
 option(BOV_BUILD_EXAMPLES "Build the BOV example programs" ON)
-option(BOV_CUSTOM_PARTICLES_SHADER "Use custom")
 
 add_library(bov src/BOV.c)
 

@@ -35,9 +35,9 @@ int main(int argc, char* argv[])
 	bov_window_set_color(window, (GLfloat[4]) {0.8, 0.8, 0.8, 1.0});
 
 
-	bov_text_t* outline = bov_text_new((unsigned char[]) {
-	                           "varying outline width"},
-	                            GL_STATIC_DRAW);
+	bov_text_t* outline = bov_text_new(
+		(GLubyte[]) {"varying outline width"},
+		GL_STATIC_DRAW);
 
 	// putting more than 1 on the alpha component for radiation effect
 	bov_text_param_t parameters = {
@@ -51,41 +51,40 @@ int main(int argc, char* argv[])
 	bov_text_set_param(outline, parameters);
 
 
-	bov_text_t* width = bov_text_new((unsigned char[]) {
-	                         "varying width"},
-	                         GL_STATIC_DRAW);
-
+	bov_text_t* width = bov_text_new(
+		(GLubyte[]) {"varying width"},
+		GL_STATIC_DRAW);
 	bov_text_set_param(width, parameters);
 	bov_text_set_outline_width(width, -1.0);
 	bov_text_set_color(width, (GLfloat[4]) {0.2, 0.2, 0.2, 1});
 	bov_text_set_pos(width, (GLfloat[2]) {-1.0, 0.33});
 
 
-	bov_text_t* shift = bov_text_new((unsigned char[]) {
-	                         "varying outline shift"},
-	                         GL_STATIC_DRAW);
+	bov_text_t* shift = bov_text_new(
+		(GLubyte[]) {"varying outline shift"},
+		GL_STATIC_DRAW);
 	bov_text_set_param(shift, parameters);
 	bov_text_set_pos(shift, (GLfloat[2]) {-1.0, 0.0});
 
-	bov_text_t* fontSize = bov_text_new((unsigned char[]) {
-	                          "varying size"},
-	                          GL_STATIC_DRAW);
+	bov_text_t* fontSize = bov_text_new(
+		(GLubyte[]) {"varying size"},
+		GL_STATIC_DRAW);
 	bov_text_set_param(fontSize, parameters);
 	bov_text_set_pos(fontSize, (GLfloat[2]) {-1.0, -0.33});
 
 
 
-	bov_text_t* pixel = bov_text_new((unsigned char[]) {
-	                         "This text is unmoovable and unzoomable."
-	                         " Its position and its size"
-	                         " must be given in pixels"},
-	                         GL_STATIC_DRAW);
+	bov_text_t* pixel = bov_text_new(
+		(GLubyte[]) {"This text is unmoovable and unzoomable."
+		             " Its position and its size"
+		             " must be given in pixels"},
+		GL_STATIC_DRAW);
 	bov_text_set_space_type(pixel, PIXEL_SPACE);
 
 
-	bov_text_t* unzoomable = bov_text_new((unsigned char[]) {
-	                              ".you can't zoom on this point"},
-	                              GL_STATIC_DRAW);
+	bov_text_t* unzoomable = bov_text_new(
+		(GLubyte[]) {".you can't zoom on this point"},
+		GL_STATIC_DRAW);
 	GLfloat pixel64 = 2.0 / bov_window_get_yres(window) * 64.0; //~64 pixels height
 	bov_text_set_pos(unzoomable, (GLfloat[2]) {-1.0, 1 - 1.1 * pixel64});
 	bov_text_set_fontsize(unzoomable, pixel64);

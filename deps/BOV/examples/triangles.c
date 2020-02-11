@@ -33,21 +33,21 @@ int main(int argc, char* argv[])
 {
 	bov_window_t* window = bov_window_new(1080,640, argv[0]);
 
-	const unsigned char common_msg[] = "rendering points using";
+	const GLubyte common_msg[] = "rendering points using";
 	bov_text_t* common_label = bov_text_new(common_msg,
 	                                        GL_STATIC_DRAW);
 	bov_text_set_pos(common_label, (GLfloat[2]) {-1.0, 0.9});
 
 	// make an array of message
-	const unsigned char* label_msg[8] = {
-		(unsigned char[]){"bov_points_draw()"},
-		(unsigned char[]){"bov_triangles_draw()"},
-		(unsigned char[]){"bov_triangle_strip_draw()"},
-		(unsigned char[]){"bov_triangle_fan_draw()"},
-		(unsigned char[]){"bov_fast_points_draw()"},
-		(unsigned char[]){"bov_fast_triangles_draw()"},
-		(unsigned char[]){"bov_fast_triangle_strip_draw()"},
-		(unsigned char[]){"bov_fast_triangle_fan_draw()"},
+	const GLubyte* label_msg[8] = {
+		(GLubyte[]){"bov_points_draw()"},
+		(GLubyte[]){"bov_triangles_draw()"},
+		(GLubyte[]){"bov_triangle_strip_draw()"},
+		(GLubyte[]){"bov_triangle_fan_draw()"},
+		(GLubyte[]){"bov_fast_points_draw()"},
+		(GLubyte[]){"bov_fast_triangles_draw()"},
+		(GLubyte[]){"bov_fast_triangle_strip_draw()"},
+		(GLubyte[]){"bov_fast_triangle_fan_draw()"},
 	};
 
 	void (*functions[8])(bov_window_t* window,
@@ -64,15 +64,15 @@ int main(int argc, char* argv[])
 		bov_fast_triangle_fan_draw,
 	};
 
-	const unsigned char* label_msg_with_order[8] = {
-		(unsigned char[]){"bov_points_draw_with_order()"},
-		(unsigned char[]){"bov_triangles_draw_with_order()"},
-		(unsigned char[]){"bov_triangle_strip_draw_with_order()"},
-		(unsigned char[]){"bov_triangle_fan_draw_with_order()"},
-		(unsigned char[]){"bov_fast_points_draw_with_order()"},
-		(unsigned char[]){"bov_fast_triangles_draw_with_order()"},
-		(unsigned char[]){"bov_fast_triangle_strip_draw_with_order()"},
-		(unsigned char[]){"bov_fast_triangle_fan_draw_with_order()"},
+	const GLubyte* label_msg_with_order[8] = {
+		(GLubyte[]){"bov_points_draw_with_order()"},
+		(GLubyte[]){"bov_triangles_draw_with_order()"},
+		(GLubyte[]){"bov_triangle_strip_draw_with_order()"},
+		(GLubyte[]){"bov_triangle_fan_draw_with_order()"},
+		(GLubyte[]){"bov_fast_points_draw_with_order()"},
+		(GLubyte[]){"bov_fast_triangles_draw_with_order()"},
+		(GLubyte[]){"bov_fast_triangle_strip_draw_with_order()"},
+		(GLubyte[]){"bov_fast_triangle_fan_draw_with_order()"},
 	};
 
 	void (*functions_with_order[8])(bov_window_t* window,

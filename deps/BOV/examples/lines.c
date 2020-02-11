@@ -33,22 +33,22 @@ int main(int argc, char* argv[])
 {
 	bov_window_t* window = bov_window_new(1080,640, argv[0]);
 
-	const unsigned char common_msg[] = "rendering points using";
+	const GLubyte common_msg[] = "rendering points using";
 	bov_text_t* common_label = bov_text_new(common_msg,
 	                                        GL_STATIC_DRAW);
 	bov_text_set_pos(common_label, (GLfloat[2]) {-1.0, 0.9});
 
 	// make an array of message
-	const unsigned char* label_msg[9] = {
-		(unsigned char[]){"bov_points_draw()"},
-		(unsigned char[]){"bov_lines_draw()"},
-		(unsigned char[]){"bov_line_strip_draw()"},
-		(unsigned char[]){"bov_line_loop_draw()"},
-		(unsigned char[]){"bov_curve_draw()"},
-		(unsigned char[]){"bov_fast_points_draw()"},
-		(unsigned char[]){"bov_fast_lines_draw()"},
-		(unsigned char[]){"bov_fast_line_strip_draw()"},
-		(unsigned char[]){"bov_fast_line_loop_draw()"},
+	const GLubyte* label_msg[9] = {
+		(GLubyte[]){"bov_points_draw()"},
+		(GLubyte[]){"bov_lines_draw()"},
+		(GLubyte[]){"bov_line_strip_draw()"},
+		(GLubyte[]){"bov_line_loop_draw()"},
+		(GLubyte[]){"bov_curve_draw()"},
+		(GLubyte[]){"bov_fast_points_draw()"},
+		(GLubyte[]){"bov_fast_lines_draw()"},
+		(GLubyte[]){"bov_fast_line_strip_draw()"},
+		(GLubyte[]){"bov_fast_line_loop_draw()"},
 	};
 
 	void (*functions[9])(bov_window_t* window,
@@ -66,16 +66,16 @@ int main(int argc, char* argv[])
 		bov_fast_line_loop_draw,
 	};
 
-	const unsigned char* label_msg_with_order[9] = {
-		(unsigned char[]){"bov_points_draw_with_order()"},
-		(unsigned char[]){"bov_lines_draw_with_order()"},
-		(unsigned char[]){"bov_line_strip_draw_with_order()"},
-		(unsigned char[]){"bov_line_loop_draw_with_order()"},
-		(unsigned char[]){"bov_curve_draw_with_order()"},
-		(unsigned char[]){"bov_fast_points_draw_with_order()"},
-		(unsigned char[]){"bov_fast_lines_draw_with_order()"},
-		(unsigned char[]){"bov_fast_line_strip_draw_with_order()"},
-		(unsigned char[]){"bov_fast_line_loop_draw_with_order()"},
+	const GLubyte* label_msg_with_order[9] = {
+		(GLubyte[]){"bov_points_draw_with_order()"},
+		(GLubyte[]){"bov_lines_draw_with_order()"},
+		(GLubyte[]){"bov_line_strip_draw_with_order()"},
+		(GLubyte[]){"bov_line_loop_draw_with_order()"},
+		(GLubyte[]){"bov_curve_draw_with_order()"},
+		(GLubyte[]){"bov_fast_points_draw_with_order()"},
+		(GLubyte[]){"bov_fast_lines_draw_with_order()"},
+		(GLubyte[]){"bov_fast_line_strip_draw_with_order()"},
+		(GLubyte[]){"bov_fast_line_loop_draw_with_order()"},
 	};
 
 	void (*functions_with_order[9])(bov_window_t* window,

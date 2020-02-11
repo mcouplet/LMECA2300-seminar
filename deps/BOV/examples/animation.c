@@ -69,8 +69,10 @@ int main(int argc, char* argv[])
 	};
 
 	bov_points_t* pointset = bov_points_new(coord, 10, GL_STATIC_DRAW);
-	bov_points_t* diag = bov_points_new((GLfloat[2][2]) {{0.0, 0.0}, {1.0, 1.0}},
-	                            2, GL_STATIC_DRAW);
+	bov_points_t* diag = bov_points_new(
+		(GLfloat[2][2]) {{0.0, 0.0}, {1.0, 1.0}},
+		2,
+		GL_STATIC_DRAW);
 	bov_points_set_param(pointset, lineParams);
 	bov_points_set_param(diag, lineParams);
 

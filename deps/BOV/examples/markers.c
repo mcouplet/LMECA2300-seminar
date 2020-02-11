@@ -53,8 +53,10 @@ int main(int argc, char* argv[])
 
 	const GLfloat pointWidth = 1.0f/BOV_NMARKERS;
 
-	bov_points_t* points = bov_points_new((float[2][2]) {{0.0f, 0.0f}, {1.0f, 0.0f}}, 2,
-	                              GL_STATIC_DRAW);
+	bov_points_t* points = bov_points_new(
+		(float[2][2]) {{0.0f, 0.0f}, {1.0f, 0.0f}},
+		2,
+		GL_STATIC_DRAW);
 	bov_points_set_outline_color(points, (float[4]) {0.3f, 0.3f, 0.3f, 1.0f});
 	bov_points_set_outline_width(points, pointWidth * 0.2f);
 	bov_points_set_width(points, pointWidth);
@@ -80,8 +82,7 @@ int main(int argc, char* argv[])
 		}
 
 
-		marker_text = bov_text_new((unsigned char*) string,
-			                           GL_STATIC_DRAW);
+		marker_text = bov_text_new((GLubyte*) string, GL_STATIC_DRAW);
 		bov_text_set_fontsize(marker_text, pointWidth * 0.5f);
 		bov_text_set_pos(marker_text, (GLfloat[2]) {-1.0f, 1.0f - pointWidth});
 	}

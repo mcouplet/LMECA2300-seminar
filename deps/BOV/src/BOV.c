@@ -249,7 +249,7 @@ static GLuint create_texture(GLsizei width,
  %%%%%%%%%%%%%%%%%%%%%%%%%*/
 static void text_rasterizer_init(bov_window_t* window)
 {
-	unsigned char (*image)[3] = malloc(sizeof(char) * 3 *
+	GLubyte (*image)[3] = malloc(sizeof(char) * 3 *
 									   font.tex_width * font.tex_height);
 	CHECK_MALLOC(image);
 
@@ -281,8 +281,8 @@ static void text_rasterizer_init(bov_window_t* window)
 
 			image[index][0] = font.tex_data[y][x];
 			double ampl = sqrt(gx * gx + gy * gy);
-			image[index][1] = (unsigned char) fmin(255.9, fmax(0.0, gx / ampl * 128. + 128.));
-			image[index][2] = (unsigned char) fmin(255.9, fmax(0.0, gy / ampl * 128. + 128.));
+			image[index][1] = (GLubyte) fmin(255.9, fmax(0.0, gx / ampl * 128. + 128.));
+			image[index][2] = (GLubyte) fmin(255.9, fmax(0.0, gy / ampl * 128. + 128.));
 		}
 	}
 
@@ -967,7 +967,7 @@ bov_window_t* bov_window_new(int width, int height, const char* win_name)
 
 	window_OpenGL_init(window);
 
-	window->help = bov_text_new((unsigned char[]) {
+	window->help = bov_text_new((GLubyte[]) {
 		" Keyboard shortcuts:\n"
 		" -------------------\n\n"
 		"   [esc]   exit\n"
@@ -982,7 +982,7 @@ bov_window_t* bov_window_new(int width, int height, const char* win_name)
 	bov_text_set_boldness(window->help, 0.1f);
 	bov_text_set_outline_width(window->help, 0.5f);
 
-	window->indication = bov_text_new((unsigned char[]) {
+	window->indication = bov_text_new((GLubyte[]) {
 		"press 'k' for keyboard shortcuts\n"
 	}, GL_STATIC_DRAW);
 	bov_text_set_space_type(window->indication, PIXEL_SPACE);
@@ -1170,7 +1170,7 @@ static double_t getMiddlePixelTex(GLfloat* a, GLfloat* b, double n)
  %  Text Object
  %%%%%%%%%%%%%%%%%%%%%%%%%*/
 static GLsizei fill_text_data(GLfloat* data,
-                              const unsigned char* string,
+                              const GLubyte* string,
                               GLsizei len)
 {
 	double pen_x = 0.5; // position in pixel
@@ -1249,7 +1249,7 @@ static GLsizei fill_text_data(GLfloat* data,
 
 
 // size (in characters) to alloc, and usage (either GL_STATIC_DRAW or GL_DYNAMIC_DRAW)
-bov_text_t* bov_text_new(const unsigned char* string, GLenum usage)
+bov_text_t* bov_text_new(const GLubyte* string, GLenum usage)
 {
 	bov_text_t* text = malloc(sizeof(bov_text_t));
 	CHECK_MALLOC(text);
@@ -1333,7 +1333,7 @@ void bov_text_delete(bov_text_t* text)
 }
 
 
-bov_text_t* bov_text_update(bov_text_t* text, const unsigned char* string)
+bov_text_t* bov_text_update(bov_text_t* text, const GLubyte* string)
 {
 	// see if the length is not longer than the original string
 	GLsizei newLen = (GLsizei) strlen((const char*)string);

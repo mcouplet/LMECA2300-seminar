@@ -34,7 +34,8 @@ int main()
 {
 	bov_window_t* window = bov_window_new(-1, 1, "Character Table"); // maximized window
 
-	bov_text_t* character_table = bov_text_new((unsigned char[]){
+	bov_text_t* character_table = bov_text_new(
+		(GLubyte[]){
 		"Here is a complete list of the available characters, with their hexadecimal value\n"
 		"\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\b\xa3\n"
 		"       \t 01. \x01\t 02. \x02\t 03. \x03\t 04. \x04\t 05. \x05\t 06. \x06\t 07. \\a\t 08. \\b\t 09.\t 0a. \\n\t 0b. \\v\t 0c. \\f\t 0d. \\r\t 0e. \x0e\t 0f. \x0f \n"
@@ -60,7 +61,8 @@ int main()
 		"Thus, you will have to use a lesser known feature of C strings: you can insert whatever value you want \n"
 		"in a C string by using \\xV, where V is an hexadecimal value\n"
 		"For example, to insert the smiley \xa1, you have to use bov_text_new(\"\\xa1\")\n"
-		}, GL_STATIC_DRAW);
+		},
+		GL_STATIC_DRAW);
 
 	GLfloat xres = bov_window_get_xres(window);
 	GLfloat yres = bov_window_get_yres(window);
