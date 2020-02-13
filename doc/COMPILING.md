@@ -3,7 +3,7 @@ Compiling and running
 =====================
 
 This project uses CMake to generate the build tools required to compile the code
-into an executable binary file `bin/project`. CMake can create a Makefile or a
+into an executable binary file `bin/anm`. CMake can create a Makefile or a
 project file for you favorite IDE.
 
 We will call CMake in a directory called **build**, where all the compilation
@@ -58,7 +58,7 @@ terminal etc. see [the tutorial on using the terminal](doc/terminal_tutorial.md)
 
  Again, if you are not using an IDE:
 
-    ./bin/project
+    ./bin/anm
 
 
 
@@ -113,7 +113,7 @@ terminal etc. see [the tutorial on using the terminal](doc/terminal_tutorial.md)
 
  Again, if you are not using an IDE:
 
-    ./bin/project
+    ./bin/anm
 
 
 
