@@ -26,7 +26,7 @@ remove everything in the **build** directory and try again !
 #### Learning to use the terminal !
 
 If you don't know how to use a terminal, how to change directories within a
-terminal etc. see [the tutorial on using the terminal](Using the Terminal)
+terminal etc. see [the tutorial on using the terminal](doc/terminal_tutorial.md)
 
 #### Installing dependencies:
 
@@ -70,7 +70,7 @@ terminal etc. see [the tutorial on using the terminal](Using the Terminal)
 #### Learning to use the terminal !
 
 If you don't know how to use a terminal, how to change directories within a
-terminal etc. see [the tutorial on using the terminal](Using the Terminal)
+terminal etc. see [the tutorial on using the terminal](doc/terminal_tutorial.md)
 
 **Installing dependencies:**
 
