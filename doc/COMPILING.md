@@ -30,7 +30,12 @@ terminal etc. see [the tutorial on using the terminal](doc/terminal_tutorial.md)
 
 #### Installing dependencies:
 
+
     sudo apt-get install cmake xorg-dev libglu1-mesa-dev
+
+Optionally, you can also install `cmake-qt-gui` or `cmake-curses-gui` for a
+graphical user interface (GUI) to CMake. You will then use `cmake-gui` or
+`ccmake` instead of `cmake` to use the GUI.
 
 #### Compiling:
 
@@ -44,6 +49,10 @@ terminal etc. see [the tutorial on using the terminal](doc/terminal_tutorial.md)
     project for Visual Studio, XCode, Sublime-Text, CodeBlocks, Eclipse... using
     `cmake -G GENERATOR_NAME ..` .
     [Available generators](https://cmake.org/cmake/help/v3.13/manual/cmake-generators.7.html#cmake-generators-7) are listed with `cmake --help`
+
+    Alternatively, if you installed a CMake GUI, you can also follow
+    [the part of the windows instruction](#creating-a-visual-studio-project-using-cmake)
+    concerning CMake, which basically work the same.
 
  2. Compile the program into an executable (do this every time you changed a file)* :
 
@@ -125,10 +134,15 @@ terminal etc. see [the tutorial on using the terminal](doc/terminal_tutorial.md)
 #### Installing dependencies:
 
  * cmake
-    - 64 bit installer: https://cmake.org/files/v3.13/cmake-3.13.0-rc1-win64-x64.msi
-    - 32 bit installer: https://cmake.org/files/v3.13/cmake-3.13.0-rc1-win32-x86.msi
+    - 64 bit installer: https://github.com/Kitware/CMake/releases/download/v3.16.4/cmake-3.16.4-win64-x64.msi
+    - 32 bit installer: https://github.com/Kitware/CMake/releases/download/v3.16.4/cmake-3.16.4-win32-x86.msi
+
+    **Add CMake to the system PATH for all/current users** !!
+     <p align="center"><img src="cmake_add_path.png" width="503"/></p>
+
+
  * Visual Studio
-    - install link: https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=Community&rel=15 <br>
+    - install link: https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=Community&rel=16 <br>
       and [check the box **Desktop development with C++** :white\_check\_mark:](https://blogs.msdn.microsoft.com/vcblog/2017/04/21/getting-started-with-visual-studio-for-c-and-cpp-development/#Setup)
 
       <p align="center"><img src="https://msdnshared.blob.core.windows.net/media/2017/04/workloads.png" width="1024"/></p>
@@ -149,7 +163,7 @@ terminal etc. see [the tutorial on using the terminal](doc/terminal_tutorial.md)
     - WAIT ! it can take several minutes...
     - Do not worry about the red content.
 
-    <p align="center"><img src=".cmake-gui.jpg" width="1124"/></p>
+    <p align="center"><img src="cmake-gui.png" width="736"/></p>
  6. Click the "Generate" button
  7. Click the "Open Project" button
 
