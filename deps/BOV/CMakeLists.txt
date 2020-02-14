@@ -16,13 +16,18 @@ target_include_directories(bov PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/shaderInclude
 add_subdirectory(deps/glfw)
 add_subdirectory(deps/glad)
 
-set(BOV_PARTICLES_SHADERS
-	"${CMAKE_CURRENT_SOURCE_DIR}/shaders/particles_vert.glsl"
-	"${CMAKE_CURRENT_SOURCE_DIR}/shaders/particles_geom.glsl"
-	"${CMAKE_CURRENT_SOURCE_DIR}/shaders/particles_frag.glsl"
-	"${CMAKE_CURRENT_SOURCE_DIR}/shaders/fullscreen_vert.glsl"
-	"${CMAKE_CURRENT_SOURCE_DIR}/shaders/fullscreen_frag.glsl"
-	CACHE STRING "shaders for rendering particles")
+
+set(BOV_PARTICLES_VERT "${CMAKE_CURRENT_SOURCE_DIR}/shaders/particles_vert.glsl"
+    CACHE STRING "vertex shader for rendering particles")
+
+set(BOV_PARTICLES_GEOM "${CMAKE_CURRENT_SOURCE_DIR}/shaders/particles_geom.glsl"
+    CACHE STRING "geometry shader for rendering particles")
+
+set(BOV_PARTICLES_FRAG "${CMAKE_CURRENT_SOURCE_DIR}/shaders/particles_frag.glsl"
+    CACHE STRING "fragment shader for rendering particles")
+
+set(BOV_PARTICLES_POSTPRO "${CMAKE_CURRENT_SOURCE_DIR}/shaders/fullscreen_frag.glsl"
+    CACHE STRING "fullscreen postprocessing shader for rendering particles")
 
 set(shadersGLSL
 	"${CMAKE_CURRENT_SOURCE_DIR}/shaders/points_vert.glsl"
@@ -37,24 +42,47 @@ set(shadersGLSL
 	"${CMAKE_CURRENT_SOURCE_DIR}/shaders/text_frag.glsl"
 	"${CMAKE_CURRENT_SOURCE_DIR}/shaders/default_vert.glsl"
 	"${CMAKE_CURRENT_SOURCE_DIR}/shaders/default_frag.glsl"
-	${BOV_PARTICLES_SHADERS}
+	"${CMAKE_CURRENT_SOURCE_DIR}/shaders/fullscreen_vert.glsl"
+	${BOV_PARTICLES_VERT}
+	${BOV_PARTICLES_GEOM}
+	${BOV_PARTICLES_FRAG}
+	${BOV_PARTICLES_POSTPRO}
 	)
+set(shadersBasename
+    "points_vert"
+    "points_geom"
+    "points_frag"
+    "lines_geom"
+    "lines_frag"
+    "curve_geom"
+    "triangles_geom"
+    "triangles_frag"
+    "text_vert"
+    "text_frag"
+    "default_vert"
+    "default_frag"
+    "fullscreen_vert"
+    "particles_vert"
+    "particles_geom"
+    "particles_frag"
+    "fullscreen_frag"
+    )
 
 # transform shaders in a valid C string contained in a C header file
 # file(GLOB_RECURSE shadersGLSL ${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.glsl)
-foreach(fileGLSL ${shadersGLSL})
-	get_filename_component(basename ${fileGLSL} NAME_WE)
-	set(fileH "${CMAKE_CURRENT_BINARY_DIR}/shaderIncludes/${basename}.h")
+foreach(iterator RANGE 16)
+	list(GET shadersGLSL ${iterator} fileGLSL)
+	list(GET shadersBasename ${iterator} fileBasename)
+	set(fileH "${CMAKE_CURRENT_BINARY_DIR}/shaderIncludes/${fileBasename}.h")
 	list(APPEND shadersH ${fileH})
-
 	file(RELATIVE_PATH printFileH ${CMAKE_SOURCE_DIR} ${fileH})
 	file(RELATIVE_PATH printFileGLSL ${CMAKE_SOURCE_DIR} ${fileGLSL})
 
 	add_custom_command(OUTPUT ${fileH}
-	                   COMMAND cmake -DIN=${fileGLSL} -DVAR=${basename} -DOUT=${fileH} -P ${CMAKE_CURRENT_SOURCE_DIR}/shaders/shaderToString.cmake
+	                   COMMAND cmake -DIN=${fileGLSL} -DVAR=${fileBasename} -DOUT=${fileH} -P ${CMAKE_CURRENT_SOURCE_DIR}/shaders/shaderToString.cmake
 	                   DEPENDS ${fileGLSL}
 	                   COMMENT "generating ${printFileH} from shader ${printFileGLSL}")
-endforeach(fileGLSL)
+endforeach(iterator)
 add_custom_target(shaderIncludes
                   DEPENDS ${shadersH}
                   SOURCES ${shadersH})

@@ -220,6 +220,7 @@ static int program_init(bov_window_t* window, int program_index, int n, ...)
 static GLuint create_texture(GLsizei width,
                              GLsizei height,
                              const GLvoid* data,
+                             GLenum internalFormat,
                              GLenum format,
                              GLint wrapParam)
 {
@@ -227,7 +228,7 @@ static GLuint create_texture(GLsizei width,
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format,
+	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format,
 	             GL_UNSIGNED_BYTE, data);
 
 	// glGenerateMipmap(GL_TEXTURE_2D);  //Generate mipmaps
@@ -318,6 +319,7 @@ static void text_rasterizer_init(bov_window_t* window)
 	                                            font.tex_height,
 	                                            image,
 	                                            GL_RGB,
+	                                            GL_RGB,
 	                                            GL_CLAMP_TO_EDGE);
 	free(image);
 
@@ -363,6 +365,7 @@ static void particles_rasterizer_init(bov_window_t* window)
 	window->framebuffer_texture = create_texture((GLsizei) window->param.res[0],
 	                                             (GLsizei) window->param.res[1],
 	                                             NULL,
+	                                             GL_RGBA32F,
 	                                             GL_RGBA,
 	                                             GL_CLAMP_TO_EDGE);
 	glFramebufferTexture2D(GL_FRAMEBUFFER,
@@ -919,9 +922,10 @@ bov_window_t* bov_window_new(int width, int height, const char* win_name)
 	window->backgroundColor[3] = 0.0;
 
 	// framebuffer default blending mode
-	window->blending.mode = GL_FUNC_ADD;
+	window->blending.modeRGB = GL_FUNC_ADD;
 	window->blending.srcRGB = GL_SRC_ALPHA;
 	window->blending.dstRGB = GL_ONE_MINUS_SRC_ALPHA;
+	window->blending.modeAlpha = GL_FUNC_ADD;
 	window->blending.srcAlpha = GL_SRC_ALPHA;
 	window->blending.dstAlpha = GL_ONE_MINUS_SRC_ALPHA;
 
@@ -1865,7 +1869,7 @@ void bov_particles_draw(bov_window_t* window,
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	glBlendEquation(window->blending.mode);
+	glBlendEquationSeparate(window->blending.modeRGB, window->blending.modeAlpha);
 	glBlendFuncSeparate(window->blending.srcRGB,
 	                    window->blending.dstRGB,
 	                    window->blending.srcAlpha,
@@ -1926,7 +1930,7 @@ void bov_particles_draw_with_order(bov_window_t* window,
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	glBlendEquation(window->blending.mode);
+	glBlendEquationSeparate(window->blending.modeRGB, window->blending.modeAlpha);
 	glBlendFuncSeparate(window->blending.srcRGB,
 	                    window->blending.dstRGB,
 	                    window->blending.srcAlpha,

@@ -670,17 +670,19 @@ static inline void bov_points_set_param(bov_points_t* points,
  * ...but a user that supplied his own particles shaders (via the
  * BOV_PARTICLES_SHADERS CMake variable) might want to change the blending
  *  equation using this function.
- *  - `mode` is the mode given to `glBlendEquationi(framebuffer, mode);`
- *  - `srcRGB`, `dstRGB`, `srcAlpha` and `dstAlpha` are the paramters given to
- *    glBlendFuncSeparatei(framebuffer, srcRGB, dstRGB, srcAlpha, dstAlpha);
+ *  - `modeRGB` and 'modeAlpha' are the arguments given to
+ *     `glBlendEquationSeparatei(framebuffer, modeRGB, modeAlpha);`
+ *  - `srcRGB`, `dstRGB`, `srcAlpha` and `dstAlpha` are the arguments given to
+ *     `glBlendFuncSeparatei(framebuffer, srcRGB, dstRGB, srcAlpha, dstAlpha);`
  *
  * The blending equation for rendering directly to the window is kept to its
  * default value.
  */
 static inline void bov_particles_blending(bov_window_t* window,
-                                          GLenum mode,
+                                          GLenum modeRGB,
                                           GLenum srcRGB,
                                           GLenum dstRGB,
+                                          GLenum modeAlpha,
                                           GLenum srcAlpha,
                                           GLenum dstAlpha);
 
@@ -819,9 +821,10 @@ struct bov_window_struct
 
   // blending equation for the framebuffer
   struct {
-    GLenum mode;
+    GLenum modeRGB;
     GLenum srcRGB;
     GLenum dstRGB;
+    GLenum modeAlpha;
     GLenum srcAlpha;
     GLenum dstAlpha;
   } blending;
@@ -1075,14 +1078,16 @@ static inline void bov_points_set_param(bov_points_t* points,
 
 
 static inline void bov_particles_blending(bov_window_t* window,
-                                          GLenum mode,
+                                          GLenum modeRGB,
                                           GLenum srcRGB,
                                           GLenum dstRGB,
+                                          GLenum modeAlpha,
                                           GLenum srcAlpha,
                                           GLenum dstAlpha) {
-  window->blending.mode = mode;
+  window->blending.modeRGB = modeRGB;
   window->blending.srcRGB = srcRGB;
   window->blending.dstRGB = dstRGB;
+  window->blending.modeAlpha = modeAlpha;
   window->blending.srcAlpha = srcAlpha;
   window->blending.dstAlpha = dstAlpha;
 }
