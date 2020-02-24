@@ -35,6 +35,7 @@
 #include <stdarg.h>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <pthread.h>
 
 /* opaque structures */
 typedef struct bov_window_struct bov_window_t;

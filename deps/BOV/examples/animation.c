@@ -39,7 +39,6 @@ void transition(bov_points_t* diag, float a[2], float b[2], float x)
 	bov_points_set_pos(diag, a);
 }
 
-
 int main(int argc, char* argv[])
 {
 	bov_window_t* window = bov_window_new(0, 0, argv[0]);
