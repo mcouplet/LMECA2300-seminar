@@ -4,7 +4,6 @@ project(ANM C)
 file(GLOB_RECURSE sources "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c")
 add_executable(anm
                "${CMAKE_CURRENT_SOURCE_DIR}/src/main.c"
-               "${CMAKE_CURRENT_SOURCE_DIR}/src/main_for_mac.c"
                # you can add other source file here !
                )
 
