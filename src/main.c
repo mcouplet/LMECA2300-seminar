@@ -1,4 +1,4 @@
-#include "neighborhood_search_for_mac.h"
+#include "neighborhood_search.h"
 
 int main()
 {
@@ -12,15 +12,15 @@ int main()
 	time_t seed = time(NULL);
 	//printf(" %u \n", seed);
 	srand(seed);
-	fillData_for_mac(data, coord, NPTS);
-	neighborhood_for_mac** nhList = create_neighborhood_for_mac(data, coord, MAX_ITER, 1, NPTS, USE_CELLS, USE_IMPROVED_METHOD, RADIUS_ALGORITHM, USE_VERLET, seed);
+	fillData(data, coord, NPTS);
+	neighborhood_for_mac** nhList = create_neighborhood(data, coord, MAX_ITER, 1, NPTS, USE_CELLS, USE_IMPROVED_METHOD, RADIUS_ALGORITHM, USE_VERLET, seed);
 	for (int i = 0; i < MAX_ITER; i++)
-		neighborhood_delete_for_mac(nhList[i], NPTS);
+		neighborhood_delete(nhList[i], NPTS);
 	free(nhList);
 	free(coord);
 	free(data);
     
-	show_equivalence_of_major_algorithm_combination_for_mac(0);
+	show_equivalence_of_major_algorithm_combination(0);
 
 	return EXIT_SUCCESS;
 }
