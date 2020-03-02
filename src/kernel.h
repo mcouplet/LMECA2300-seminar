@@ -2,14 +2,14 @@
 #define KERNEL_H
 
 
-#include "neighborhood_search_for_mac.h"
+#include "neighborhood_search.h"
 //#include "neighborhood_search.h"
 #include "BOV.h"
 
 #include <time.h>
 #include <math.h>
 
-typedef struct neighborhood_for_mac neighborhood_for_mac;
+typedef struct neighborhood neighborhood;
 
 
 /*
@@ -18,7 +18,7 @@ typedef struct neighborhood_for_mac neighborhood_for_mac;
  Input : table with all informations on every particles and their coordonates, object with each the neigbours of each particle stored as a list and the radius of the neighborhood.
  Output : update the divergente, gradient and laplacien of every nodes.
  */
-void kernel(GLfloat(*data)[14], GLfloat(*coord)[2], neighborhood_for_mac* nh, double kh);
+void kernel(GLfloat(*data)[14], GLfloat(*coord)[2], neighborhood* nh, double kh);
 
 
 /*
