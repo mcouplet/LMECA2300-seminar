@@ -6,7 +6,7 @@
 // Implementation of the kernel cubic function and return the weight regarding the distance and the radius of the circle
 
 
-void kernel(GLfloat(*data)[14], GLfloat(*coord)[2], neighborhood_for_mac* nh, double kh) {
+void kernel(GLfloat(*data)[14], GLfloat(*coord)[2], neighborhood* nh, double kh) {
     for (int i = 0; i < NPTS; i++) {
         double val_node_x = data[i][8];
         double val_node_y = data[i][9];
@@ -16,7 +16,7 @@ void kernel(GLfloat(*data)[14], GLfloat(*coord)[2], neighborhood_for_mac* nh, do
         double val_grad_y = 0;
         double val_lapl = 0;
         double dens2 = pow(DENSITY, 2);
-        neighbours_for_mac* List = nh[i].list;
+        neighbours* List = nh[i].list;
         if (nNeigh > 0) {
             for (int j = 0; j < nNeigh; j++) {
                 int index_node2 = List->index;
