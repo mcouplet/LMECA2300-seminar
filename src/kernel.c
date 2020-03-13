@@ -1,4 +1,5 @@
 #include "kernel.h"
+#include "checkDerivatives.h"
 //#include "neighborhood_search_for_mac.h"
 #include <math.h>
 
@@ -7,6 +8,8 @@
 
 
 void kernel(GLfloat(*data)[14], GLfloat(*coord)[2], neighborhood* nh, double kh) {
+   double DENSITY = 0.0; // WARNING
+   double MASS = 0.0; // WARNING
     for (int i = 0; i < NPTS; i++) {
         double val_node_x = data[i][8];
         double val_node_y = data[i][9];
@@ -62,6 +65,7 @@ void kernel(GLfloat(*data)[14], GLfloat(*coord)[2], neighborhood* nh, double kh)
     }
 }
 
+
 /*
  Implementation of the kernel cubic function and return the weight regarding the distance and the radius of the circle
  */
@@ -79,7 +83,7 @@ double grad_w_cubic(double distance, double kh, double d)
         else {
             if (q > 2) {
                 weight = 0;
-                printf("too big distance ");
+                //printf("too big distance ");
             }
             else {
                 weight = (-0.5 * pow((2 - q), 2) * d) / (pow(h, 2) * q);

@@ -319,6 +319,7 @@ void neighborhood_update(neighborhood_options* options, neighborhood* nh, GLfloa
 				index_i = i;
 			}
 			double distance = sqrt((pow((double)data[index_j][0] - (double)data[index_i][0], 2) + pow((double)data[index_j][1] - (double)data[index_i][1], 2)));
+// 			printf("distance = %2.6f \n", distance);
 			if (distance <= kh && index_i != index_j) {
 				neighbours_new(index_j, nh, index_i, distance, !iterations, 0);
 				if (use_improved_method)
@@ -513,7 +514,7 @@ neighborhood_options* neighborhood_options_init(double timestep, double maxspeed
 	options->use_improved_method = 1;
 	options->use_verlet = 1;
 	options->optimal_verlet_steps = 0;
-	options->kh = compute_kh(radius_algorithm) * 2 * options->half_length;
+	options->kh = compute_kh(radius_algorithm);// * 2 * options->half_length; // WARNING: David's note: give a way too high kh for my tests...
 	options->L = 0.0;
 	options->optimal_verlet_steps = compute_optimal_verlet(timestep, maxspeed, options->kh);
 	if (options->optimal_verlet_steps == -1)
