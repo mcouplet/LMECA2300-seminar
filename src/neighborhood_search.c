@@ -514,7 +514,7 @@ neighborhood_options* neighborhood_options_init(double timestep, double maxspeed
 	options->use_improved_method = 1;
 	options->use_verlet = 1;
 	options->optimal_verlet_steps = 0;
-	options->kh = compute_kh(radius_algorithm);// * 2 * options->half_length; // WARNING: David's note: give a way too high kh for my tests...
+	options->kh = compute_kh(radius_algorithm); //*(x_max - x_min);// * 2 * options->half_length; // WARNING: David's note: give a way too high kh for my tests...
 	options->L = 0.0;
 	options->optimal_verlet_steps = compute_optimal_verlet(timestep, maxspeed, options->kh);
 	if (options->optimal_verlet_steps == -1)

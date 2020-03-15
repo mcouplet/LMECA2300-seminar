@@ -38,6 +38,7 @@ singleParticleDerivatives* initialize_particle_derivatives(int size_values);
 
 // Assign coordinates, values, mass and density to one particle located on a 1-D segment whose limits are in x_lim, with index "index_art". 
 void init1DSegmentWithParticles(double* x_lim, double* coord, double* values, double* mass, double* density, int nb_particles, int index_part, int size_values);
+void initSquareWithParticles(double* x_lim, double* coord, double* values, double* mass, double* density, int nb_particles, int index_x, int index_y, int size_values);
 
 // Function assigning the values of the quantity carried by each particle based on the coordinates
 double myFunctionToDerive(double* x);
