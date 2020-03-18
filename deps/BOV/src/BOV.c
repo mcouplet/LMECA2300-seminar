@@ -1603,15 +1603,18 @@ bov_points_t* bov_particles_update(bov_points_t* particles,
                                    const GLfloat data[][8],
                                    GLsizei n)
 {
-	if(particles->isParticle==0) {
+	printf("YO 1 \n");
+        if(particles->isParticle==0) {
 		BOV_ERROR_LOG(BOV_PARAMETER_ERROR,
 		              "You cannot update points with this function"
 		              "Use bov_points_update() instead");
 		return NULL;
 	}
+	printf("YO 2 \n");
 	particles->vboLen = data==NULL ? 0 : n;
 
 	glBindBuffer(GL_ARRAY_BUFFER, particles->vbo);
+	printf("YO 3 \n");
 	if(n > particles->vboCapacity) {
 		glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 8 * n, data,
 		             GL_DYNAMIC_DRAW);
@@ -1623,6 +1626,7 @@ bov_points_t* bov_particles_update(bov_points_t* particles,
 		                sizeof(GLfloat) * 8 * n,
 		                data);
 	}
+	printf("YO 4 \n");
 	// glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	return particles;

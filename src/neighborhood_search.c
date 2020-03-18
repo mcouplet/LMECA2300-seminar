@@ -1,4 +1,5 @@
 #include "neighborhood_search.h"
+#include "checkDerivatives.h"
 #include <math.h>
 
 
@@ -509,10 +510,10 @@ neighborhood_options* neighborhood_options_init(double timestep, double maxspeed
 
 	int radius_algorithm = 1;
 
-	options->half_length = 100;
-	options->use_cells = 1;
-	options->use_improved_method = 1;
-	options->use_verlet = 1;
+	options->half_length = 1;
+	options->use_cells = 0;
+	options->use_improved_method = 0;
+	options->use_verlet = 0;
 	options->optimal_verlet_steps = 0;
 	options->kh = compute_kh(radius_algorithm); //*(x_max - x_min);// * 2 * options->half_length; // WARNING: David's note: give a way too high kh for my tests...
 	options->L = 0.0;
@@ -553,4 +554,207 @@ int compare_neighborhoods(neighborhood* nh_1, neighborhood* nh_2) {
 		}
 	}
 	return 1;
+}
+
+
+
+
+
+
+// Added
+void neighborhood_update_new(neighborhood_options* options, neighborhood* nh, allParticles* myPart, int iterations) {
+	if (options->use_verlet)
+		iterations = iterations % options->optimal_verlet_steps;
+	else
+		iterations = 0;
+
+	if (options->use_verlet && iterations)
+		neighborhood_new(nh,1);
+	else
+		neighborhood_new(nh,0);
+
+	double kh = options->kh;
+	int use_verlet = options->use_verlet;
+	double L = 0.0;
+	if (use_verlet) {
+		L = options->L;
+	}
+	int use_improved_method = options->use_improved_method;
+	int half_length = options->half_length;
+	int use_cells = options->use_cells && (kh + L) < half_length / 3.0;
+	int size = ceil(half_length / (kh + L));
+	cell* cellArray = NULL;
+	if (use_cells) {
+		cellArray = cell_new(ceil(size) * ceil(size));
+		for (int i = 0; i < NPTS; i++) {
+		        double* coord = myPart->array_of_particles[i].coordinates;
+			int cellNumber = ((int)((coord[1] + half_length) / (2 * half_length) * size) * ceil(size) + (int)((coord[0] + half_length) / (2 * half_length) * size));
+			if (coord[1] == half_length)
+				cellNumber -= size;
+			if (coord[0] == half_length)
+				cellNumber -= 1;
+			node_new(cellArray, cellNumber, i);
+		}
+	}
+	int cellCounter = 0;
+	unsigned long frameCount = 0;
+	int i = 0;
+	int	j = 1;
+	int checking_cell_number = -1;
+	int this_cell_number = -1;
+	int checked_cells = 0;
+	cell checking_cell;
+	node checking_node;
+	neighbours checking_neighbours;
+	cell this_cell;
+	node this_node;
+	int i_check = i - 1;
+	int j_check = j - 1;
+	int are_still_neighbours = 1;
+	while ((((use_verlet && iterations && use_cells) || !use_cells) && i < NPTS) || (use_cells && this_cell_number < size * size)) {
+		if (i != i_check) {
+			int are_still_neighbours = 1;
+			if (use_verlet && iterations) {
+				if (nh[i].potential_list) {
+					checking_neighbours = nh[i].potential_list[0];
+				}
+				else {
+					are_still_neighbours = 0;
+				}
+			}
+			else if (use_cells) {
+				if (i == 0) {
+					this_cell_number = cellCounter;
+					cellCounter++;
+					while (!cellArray[this_cell_number].nResident && this_cell_number < size * size) {
+						this_cell_number = cellCounter;
+						cellCounter++;
+					}
+					if (this_cell_number < size * size) {
+						this_cell = cellArray[this_cell_number];
+						this_node = this_cell.ResidentList[0];
+					}
+				}
+				else {
+					if (this_node.next)
+						this_node = *this_node.next;
+					else {
+						this_cell_number = cellCounter;
+						cellCounter++;
+						while (this_cell_number < size * size && !cellArray[this_cell_number].nResident && !cellArray[this_cell_number].ResidentList) {
+							this_cell_number = cellCounter;
+							cellCounter++;
+						}
+						if (this_cell_number < size * size) {
+							this_cell = cellArray[this_cell_number];
+							this_node = this_cell.ResidentList[0];
+						}
+					}
+				}
+				checked_cells = 0;
+				if (use_improved_method && this_cell_number < size * size) {
+					if (this_node.next) {
+						checking_cell_number = this_cell_number;
+						checking_cell = cellArray[checking_cell_number];
+						checking_node = *this_node.next;
+					}
+					else {
+						checking_cell_number = find_next_cell(this_cell_number, ++checked_cells, size, use_improved_method);
+						while (checking_cell_number != -1 && !cellArray[checking_cell_number].nResident && !cellArray[checking_cell_number].ResidentList)
+							checking_cell_number = find_next_cell(this_cell_number, ++checked_cells, size, use_improved_method);
+						if (checking_cell_number != -1) {
+							checking_cell = cellArray[checking_cell_number];
+							checking_node = checking_cell.ResidentList[0];
+						}
+					}
+				}
+				else if (this_cell_number < size * size) {
+					checking_cell_number = find_next_cell(this_cell_number, checked_cells, size, use_improved_method);
+					while (checking_cell_number != -1 && !cellArray[checking_cell_number].nResident && !cellArray[checking_cell_number].ResidentList)
+						checking_cell_number = find_next_cell(this_cell_number, ++checked_cells, size, use_improved_method);
+					if (checking_cell_number != -1) {
+						checking_cell = cellArray[checking_cell_number];
+						checking_node = checking_cell.ResidentList[0];
+					}
+				}
+			}
+			if (use_improved_method && !(use_verlet && iterations)) {
+				j_check = i;
+				j = i + 1;
+			}
+		}
+		i_check = i;
+		if ((!(use_verlet && iterations) && use_cells && checking_cell_number == -1) || (use_verlet && iterations && !are_still_neighbours)) {
+			i++;
+			j_check = j;
+		}
+		if (j != j_check) {
+			int index_i, index_j;
+			if (use_verlet && iterations) {
+				index_j = checking_neighbours.index;
+				index_i = i;
+			}
+			else if (use_cells) {
+				index_j = checking_node.index;
+				index_i = this_node.index;
+			}
+			else {
+				index_j = j;
+				index_i = i;
+			}
+			double* coord_i = myPart->array_of_particles[index_i].coordinates;
+			double* coord_j = myPart->array_of_particles[index_j].coordinates;
+			double distance = sqrt((pow((double)coord_j[0] - (double)coord_i[0], 2) + pow((double)coord_j[1] - (double)coord_i[1], 2)));
+// 			printf("distance = %2.6f \n", distance);
+			if (distance <= kh && index_i != index_j) {
+				neighbours_new(index_j, nh, index_i, distance, !iterations, 0);
+// 				myPart->array_of_particles[index_i].particle_neighbours->nh = nh;
+				if (use_improved_method)
+					neighbours_new(index_i, nh, index_j, distance, 0, 0);
+// 					myPart->array_of_particles[index_j].particle_neighbours->nh = nh;
+			}
+			else if (use_verlet && !iterations && distance <= (kh + L) && index_i != index_j) {
+				neighbours_new(index_j, nh, index_i, distance, !iterations, 1);
+// 				myPart->array_of_particles[index_i].particle_neighbours->nh = nh;
+				if (use_improved_method)
+					neighbours_new(index_i, nh, index_j, distance, 0, 1);
+// 					myPart->array_of_particles[index_j].particle_neighbours->nh = nh;
+			}
+			if (use_verlet && iterations) {
+				if (checking_neighbours.next) {
+					checking_neighbours = *(checking_neighbours.next);
+				}
+				else
+					i++;
+			}
+			else if (use_cells)
+				if (checking_node.next)
+					checking_node = *(checking_node.next);
+				else {
+					checking_cell_number = find_next_cell(this_cell_number, ++checked_cells, size, use_improved_method);
+					while (checking_cell_number != -1 && !cellArray[checking_cell_number].nResident && !cellArray[checking_cell_number].ResidentList)
+						checking_cell_number = find_next_cell(this_cell_number, ++checked_cells, size, use_improved_method);
+					if (checking_cell_number != -1) {
+						checking_cell = cellArray[checking_cell_number];
+						checking_node = cellArray[checking_cell_number].ResidentList[0];
+					}
+					else
+						i++;
+				}
+			else
+				if (j == NPTS - 1 || (i == NPTS - 1 && (j == NPTS - 2 || use_improved_method))) {
+					i++;
+				}
+			
+		}
+		j_check = j;
+		if (use_improved_method) {
+			j++;
+		}
+		else
+			j = (frameCount) % (NPTS - 1) + (int)(i <= ((frameCount) % (NPTS - 1)));
+		frameCount++;
+	}
+	if (use_cells)
+		cell_delete(cellArray, ceil(size) * ceil(size));
 }

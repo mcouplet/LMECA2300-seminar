@@ -2,10 +2,13 @@
 #define NEIGHBORHOOD_SEARCH_H
 
 #include "BOV.h"
+
+
 #include <time.h>
 #include <math.h>
 
 extern int NPTS;
+
 
 // see stringification process
 #define xstr(s) str(s)
@@ -76,6 +79,7 @@ void printNeighborhood(neighborhood* nh, GLfloat(* data)[8]);
 // function that basically fills the neighborhoods of the particles of one iteration, with the arguments args of type loop_arg
 void neighborhood_update(neighborhood_options* options, neighborhood* nh, GLfloat(* data)[8], int iterations);
 
+
 // function to change the particles velocities randomly and updates the positions based, we assume elastic collisions with boundaries
 // data : table that contains the informations of the particles of the simulation
 // coord : table that contains the positions of the particles of the simulations used to draw
@@ -89,5 +93,6 @@ neighborhood_options* neighborhood_options_init(double timestep, double maxspeed
 void neighborhood_options_delete(neighborhood_options* options, neighborhood* nh);
 
 int compare_neighborhoods(neighborhood* nh_1, neighborhood* nh_2);
+
 
 #endif

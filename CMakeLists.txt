@@ -7,7 +7,8 @@ add_executable(anm
 	       "${CMAKE_CURRENT_SOURCE_DIR}/src/neighborhood_search.c"
 	       "${CMAKE_CURRENT_SOURCE_DIR}/src/kernel.c"
 	       "${CMAKE_CURRENT_SOURCE_DIR}/src/checkDerivatives.c"
-               # you can add other source file here !
+               "${CMAKE_CURRENT_SOURCE_DIR}/src/visualization.c"
+		# you can add other source file here !
                )
 
 target_include_directories(anm PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src")
