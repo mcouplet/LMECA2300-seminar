@@ -2,14 +2,9 @@ cmake_minimum_required(VERSION 3.9)
 project(ANM C)
 
 file(GLOB_RECURSE sources "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c")
-add_executable(anm
-               "${CMAKE_CURRENT_SOURCE_DIR}/src/main.c"
-	       "${CMAKE_CURRENT_SOURCE_DIR}/src/neighborhood_search.c"
-	       "${CMAKE_CURRENT_SOURCE_DIR}/src/kernel.c"
-	       "${CMAKE_CURRENT_SOURCE_DIR}/src/checkDerivatives.c"
-               "${CMAKE_CURRENT_SOURCE_DIR}/src/visualization.c"
-		# you can add other source file here !
-               )
+add_executable(anm ${sources})
+#               "${CMAKE_CURRENT_SOURCE_DIR}/src/main.c"
+#               )
 
 target_include_directories(anm PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set_target_properties(anm PROPERTIES
