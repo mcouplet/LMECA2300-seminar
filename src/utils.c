@@ -39,7 +39,10 @@ xy* xy_new(double x, double y) {
 	return pt;
 }
 
-double rand_interval(double a, double b)
-{
+double rand_interval(double a, double b) {
 	return (rand() / (double)RAND_MAX)*(b - a) + a;
+}
+
+double squared(double x) {
+	return x*x;
 }

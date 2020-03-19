@@ -1,11 +1,11 @@
 #include "print_particules.h"
 
-void fillData(GLfloat(*data)[8], Particle* particles, int N)
+void fillData(GLfloat(*data)[8], Particle** particles, int N)
 {
 	float rmax = 100.0*sqrtf(2.0f);
 	for (int i = 0;i < N;i++)
 	{
-		Particle* p = &particles[i];
+		Particle* p = particles[i];
 		data[i][0] = p->pos->x;
 		data[i][1] = p->pos->y;
 		data[i][2] = p->v->x;
@@ -56,7 +56,7 @@ Animation* Animation_new(int N,double timeout,Grid* grid)
 	GLfloat(*data)[8] = malloc(sizeof(data[0])*N);
 	bov_points_t *particles = bov_particles_new(data, N, GL_STATIC_DRAW);
 	free(data);
-	// setting particles appearance 
+	// setting particles appearance
 	bov_points_set_width(particles, 0.01);
 	bov_points_set_outline_width(particles, 0.0025);
 	bov_points_scale(particles, (GLfloat[2]) { 0.008, 0.008 });
@@ -77,15 +77,15 @@ void Animation_free(Animation* animation)
 	free(animation);
 }
 
-void display_particles(Particle* particles, Animation* animation,bool end)
+void display_particles(Particle** particles, Animation* animation,bool end)
 {
 	int N = animation->N;
 	GLfloat(*data)[8] = malloc(sizeof(data[0])*N);
 	fillData(data, particles, N);
-	colours_neighbors(data, particles, 312);
+	colours_neighbors(data, particles, N / 2);
 	animation->particles = bov_particles_update(animation->particles,data,N);
 	free(data);
-	
+
 	bov_window_t* window = animation->window;
 	double tbegin = bov_window_get_time(window);
 	if (!end){
@@ -139,9 +139,9 @@ void colormap_uni_color(float color[3])
 
 }
 
-void colours_neighbors(GLfloat(*data)[8], Particle* particles, int index)
+void colours_neighbors(GLfloat(*data)[8], Particle** particles, int index)
 {
-	Particle* p = &particles[index];
+	Particle* p = particles[index];
 	ListNode *node = p->neighborhood->head;
 	data[index][4] = 20;data[index][5] = 20;data[index][6] = 20;
 	while (node != NULL) {

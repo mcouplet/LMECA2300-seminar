@@ -34,6 +34,6 @@ void List_free(List*, destructor);
 xy* xy_new(double x, double y);
 double rand_interval(double a, double b);
 
-
+double squared(double x);
 
 #endif
