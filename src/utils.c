@@ -39,6 +39,11 @@ xy* xy_new(double x, double y) {
 	return pt;
 }
 
+void xy_reset(xy *p) {
+	p->x = 0;
+	p->y = 0;
+}
+
 double rand_interval(double a, double b) {
 	return (rand() / (double)RAND_MAX)*(b - a) + a;
 }

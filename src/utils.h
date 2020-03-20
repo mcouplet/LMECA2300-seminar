@@ -32,6 +32,7 @@ void List_append(List *l, void *v);
 void List_free(List*, destructor);
 
 xy* xy_new(double x, double y);
+void xy_reset(xy *p);
 double rand_interval(double a, double b);
 
 double squared(double x);

@@ -11,16 +11,16 @@ int NPTS;
   // ***********************************************************************************************
 
 void deriveAnalyticalFunction() {
-  
+
     // Number of particles
     int nb_particles_domain = 50*50;
     int nb_particles_boundaries = 0;
     int nbBoundaries = 0;
     int total_nb_particles = nb_particles_domain + nbBoundaries*nb_particles_boundaries;
-    NPTS = total_nb_particles; 
-      
+    NPTS = total_nb_particles;
+
     // *** 1 *** ASSIGN POSITIONS, DENSITY, AND MASS TO EVERY PARTICLES (neighbourhoods not yet defined)
-  
+
     // Creation of particles in the domain
     int nbParticles_domain[2] = {(int) sqrt(nb_particles_domain), (int) sqrt(nb_particles_domain)}; // number of particles in each direction (WARNING: same number of particles should be chosen for the moment)
     double dx =  1.0 / ((double)sqrt(nb_particles_domain) - 1.0);
@@ -28,26 +28,26 @@ void deriveAnalyticalFunction() {
     int starting_index_part_in_domain = 0;
     double args_init_function[1] = {0.0}; // value of the temperature to be imposed everywhere in the domain. This argument is passed to the "initFunction" routine which will specify the values of each particle quantity
     int size_values = 1; // scalar temperature field with a single component
-    
+
     allParticles* particles_everywhere = create_particles_in_domain(nbParticles_domain, domain_lim, size_values, args_init_function, myFunctionToDerive, starting_index_part_in_domain);
-    
+
     // *** 2 *** CREATION OF THE NEIGHBOURHOODS OF EACH PARTICLE (in the domain and on the boundaries)
-    
+
     // Creation of neighborhoods
     double timestep = 0.0;
     double maxspeed = 0.0;
     neighborhood_options* options = neighborhood_options_init(timestep, maxspeed);
     neighborhood* nh = options->nh;
     neighborhood_update_new(options, nh, particles_everywhere, 0);
-    
+
     // Associate the computed neighbourhoods to each existing particle
     associate_neighborhood_to_particles(particles_everywhere, nh);
-    
-    
+
+
     // *** 3 *** COMPUTATION OF THE DERIVATIVES OF EVERY PARTICLES
 
     computeDerivativesAllParticles(particles_everywhere, CUBIC);
-    
+
     // Print the values of the derivatives along an horizontal line of particules
     int* index_in_domain = particles_everywhere->index_part_in_domain;
     int nbPart = particles_everywhere->nb_particles_domain;//NPTS_DOMAIN*NPTS_DOMAIN;//sizeof(index_in_domain)/sizeof(index_in_domain[0]);
@@ -58,12 +58,12 @@ void deriveAnalyticalFunction() {
       double* grad = particles_everywhere->array_of_particles[i].particle_derivatives->gradient;
       double* lapl = particles_everywhere->array_of_particles[local_index].particle_derivatives->laplacian;
       double value = particles_everywhere->array_of_particles[i].values[0];
-      // Just print one line of particle along the x-direction 
+      // Just print one line of particle along the x-direction
       if (x[1] > 0.5*domain_lim[1] && x[1] < 0.5*domain_lim[1]+dx) {
 	printf("%d  (%2.3f,%2.3f)		%2.6f        %2.6f		%2.6f		%2.6f\n",i,x[0],x[1],value,grad[0],grad[1],lapl[0]);
       }
     }
-    
+
     // Draw the particles with their values equal to the values of the analytical function we derived
     GLfloat(*data)[8] = malloc(sizeof(data[0]) * NPTS);
     CHECK_MALLOC(data);
@@ -83,21 +83,21 @@ void deriveAnalyticalFunction() {
   // ***********************************************************************************************
   // ************************** HEAT EQUATION IN A SQUARE WITH DIRICHLET B.C. **********************
   // ***********************************************************************************************
-  
+
 void solveHeatEquationInASquare(int problemChoice) {
-  
-    // Number of particles 
+
+    // Number of particles
     int nb_particles_domain = 50*50;
     int nb_particles_boundaries = 100;
     int nbBoundaries = 4;
     int total_nb_particles = nb_particles_domain + nbBoundaries*nb_particles_boundaries;
-    NPTS = total_nb_particles;  
-    
+    NPTS = total_nb_particles;
+
     int problem_choice = problemChoice; // 1: heat equation with a hot boundary, 2: heat equation with a heat source in the center
-  
-  
+
+
     // *** 1 *** ASSIGN POSITIONS, DENSITY, AND MASS TO EVERY PARTICLES (neighbourhoods not yet defined) + BOUNDARY CONDITIONS
-  
+
     // Creation of particles in the domain
     allParticles* particles_in_domain = NULL;
 
@@ -120,7 +120,7 @@ void solveHeatEquationInASquare(int problemChoice) {
       particles_in_domain = create_particles_in_domain(nbParticles_domain, domain_lim, size_values, args_init_function, initFunction_GaussianSource, starting_index_part_in_domain);
       alpha = 1.0;
     }
-    
+
     // Creation of particles on the boundaries
     allParticles* particles_on_boundaries = NULL;
 
@@ -138,30 +138,30 @@ void solveHeatEquationInASquare(int problemChoice) {
       double values_Dirichlet[4] = {0.0, 0.0, 0.0, 0.0}; // Homogeneous Dirichlet B.C.
       particles_on_boundaries = create_particles_on_boundaries(nbParticles_boundaries, (double *)boundaries_lim, size_values, nbBoundaries, values_Dirichlet, starting_index_part_on_bound);
     }
-    
+
     // Assemble the particles in the domain and on the boundaries in a single structure, for the computation of the neighbourhoods just after
     allParticles* particles_everywhere = combine_two_particles_sets(particles_in_domain, particles_on_boundaries, IN_DOMAIN, ON_BOUNDARY);
 
-    
+
     // *** 2 *** CREATION OF THE NEIGHBOURHOODS OF EACH PARTICLE (in the domain and on the boundaries)
-    
+
     // Creation of neighborhoods
     double timestep = 0.0;
     double maxspeed = 0.0;
     neighborhood_options* options = neighborhood_options_init(timestep, maxspeed);
     neighborhood* nh = options->nh;
-    
+
     neighborhood_update_new(options, nh, particles_everywhere, 0);
-      
+
     // Associate the computed neighbourhoods to each existing particle
     associate_neighborhood_to_particles(particles_everywhere, nh);
-    
+
     int index_particle_to_check = nb_particles_domain * 0.5 - (int)(nbParticles_domain[0]*0.5);
 //     display_neighbourhood_one_particle(particles_everywhere, index_particle_to_check, total_nb_particles); // Verification that the neighbourhood of a single chosen particle is well computed
-    
-    
+
+
     // *** 3 *** TIME LOOP TO RESOLVE THE EQUATIONS
-    
+
     // Time stepping scheme parameters
     double time = 0.0;
     int nb_time_step = 0;
@@ -187,7 +187,7 @@ void solveHeatEquationInASquare(int problemChoice) {
 
 //     int size_solution_vector = (int)(nb_time_step_max / print_every_time_step) + 1;
 //     double* solution_vector = malloc(size_values*size_solution_vector*sizeof(double));
-    
+
     print_error_heat_equation(problemChoice, index_particle_to_check, nb_time_step, nb_time_step_max, time, particles_everywhere, args_init_function);
     // Time loop
     while (time < time_max) {
@@ -195,15 +195,15 @@ void solveHeatEquationInASquare(int problemChoice) {
       computeDerivativesAllParticles(particles_everywhere, CUBIC);
       // Update the temperature of every particles with an Euler explicit time integration scheme
       integrate_equation(particles_everywhere, dt, alpha);
-      
+
       time += dt;
       nb_time_step++;
       // Print infos
-      if (nb_time_step%print_every_time_step == 0) 
+      if (nb_time_step%print_every_time_step == 0)
 	print_error_heat_equation(problemChoice, index_particle_to_check, nb_time_step, nb_time_step_max, time, particles_everywhere, args_init_function);
       // NOTE: No need to update the positions of the particles or to update the neighbourhoods since the particles are fixed
     }
-    
+
     // Draw the particles with their values equal to the values of the analytical function we derived
     GLfloat(*data)[8] = malloc(sizeof(data[0]) * total_nb_particles);
     CHECK_MALLOC(data);
@@ -217,7 +217,7 @@ void solveHeatEquationInASquare(int problemChoice) {
     delete_all_particles(particles_on_boundaries);
     delete_all_particles(particles_everywhere);
 //     return EXIT_SUCCESS;
-  
+
 }
 
   // ***********************************************************************************************
@@ -226,11 +226,11 @@ void solveHeatEquationInASquare(int problemChoice) {
 
 int main()
 {
-    
+
 //   deriveAnalyticalFunction();
-  
+
   solveHeatEquationInASquare(2);
-  
+
   return EXIT_SUCCESS;
-   
+
 }

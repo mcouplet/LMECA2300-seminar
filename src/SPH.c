@@ -24,7 +24,9 @@ void simulate(Grid* grid, Particle** particles, int N, Setup* setup, Animation* 
 		if (animation != NULL)
 			display_particles(particles, animation, false);
 
-		random_moves(grid, particles, N, setup->timestep, maxspeed); // move particles randomly
+		
+
+		//random_moves(grid, particles, N, setup->timestep, maxspeed); // move particles randomly
 	}
 	update_cells(grid, particles, N);
 	update_neighborhoods(grid, particles, N, 0, setup->verlet);

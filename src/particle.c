@@ -54,16 +54,52 @@ void Cell_free(Cell* cell) {
 	List_free(cell->particles, NULL);
 }
 
+Particle* Particle_new(int index, double m, xy* pos, xy* v, double density, double Cs) {
+	Particle *particle = malloc(sizeof(Particle));
+	particle->index = index;
+	particle->m = m;
+	particle->pos = pos;
+	particle->v = v;
+	particle->density = density;
+	particle->Cs = Cs;
+	particle->cell = NULL;
+	particle->neighborhood = List_new();
+	particle->potential_neighborhood = List_new();
+	return particle;
+}
+
 void Particle_set(Particle* p, double x, double y, double vx, double vy, double d, double e, int index) {
 	p->index = index;
 	p->pos = xy_new(x,y);
 	p->v = xy_new(vx, vy);
 	p->density = d;
-	p->e = e;
 	p->cell = NULL;
 	p->neighborhood = List_new();
 	p->potential_neighborhood = List_new();
 }
+
+Particle_derivatives* Particle_derivatives_new(int index) {
+	Particle_derivatives *particle_derivatives = malloc(sizeof(Particle_derivatives));
+	particle_derivatives->index = index;
+	particle_derivatives->div_v = 0;
+	particle_derivatives->grad_P = xy_new(0,0);
+	particle_derivatives->lapl_v = xy_new(0,0);
+	particle_derivatives->grad_Cs = xy_new(0,0);
+	particle_derivatives->lapl_Cs = 0;
+	return particle_derivatives;
+}
+
+void Particle_derivatives_reset(Particle_derivatives *particle_derivatives) {
+	particle_derivatives->div_v = 0;
+	xy_reset(particle_derivatives->grad_P);
+	xy_reset(particle_derivatives->lapl_v);
+	xy_reset(particle_derivatives->grad_Cs);
+	particle_derivatives->lapl_Cs = 0;
+}
+
+double Particle_get_P(Particle *particle) {	return particle->P; }
+xy * Particle_get_v(Particle *particle) { return particle->v; }
+double Particle_get_Cs(Particle *particle) { return particle->Cs; }
 
 void free_particles(Particle** particles, int N) {
 	for(int i = 0; i < N; i++) {
@@ -144,7 +180,7 @@ void update_neighborhoods(Grid* grid, Particle** particles, int N, int iter, Ver
 	// Clean the particles before update
 	reset_particles(particles, N, iter, verlet);
 	if(verlet==NULL) {
-		// update_neighborhoods_improved(grid);
+		//update_neighborhoods_improved(grid);
 		for (int i = 0 ; i < N; i++)
 			add_neighbors_from_cells(grid, particles[i]);
 	} else {
@@ -165,32 +201,27 @@ void update_neighborhoods(Grid* grid, Particle** particles, int N, int iter, Ver
 
 //////////////////update neighborhood-IMPROVED algorithm///////////////
 
-//compute the neighbors inside a cell
-void update_neighbors_1(Cell* cell,double r)
-{
+// Compute all neighbors inside a cell
+void update_neighbors_1(Cell* cell,double r) {
 	ListNode *node = cell->particles->head;
 	while (node != NULL) {
 		Particle* p = (Particle*)node->v;
 
 		ListNode *node2 = node->next;
-		while (node2 != NULL)
-		{
+		while (node2 != NULL) {
 			Particle* q = (Particle*)node2->v;
-			if (pow(p->pos->x - q->pos->x, 2) + pow(p->pos->y - q->pos->y, 2) <= pow(r, 2))
-			{
+			if(check_distance(p->pos, q->pos, r)) {
 				List_append(p->neighborhood, q);
 				List_append(q->neighborhood, p);
 			}
 			node2 = node2->next;
 		}
-
 		node = node->next;
 	}
 }
 
-//compute the neighbouring relation between 2 cells
-void neighbors_in_2_cells(Cell* cell1, Cell* cell2, double r)
-{
+//compute all neighbors between 2 cells
+void neighbors_in_2_cells(Cell* cell1, Cell* cell2, double r) {
 	ListNode *node1 = cell1->particles->head;
 	while (node1 != NULL) {
 		Particle* p1 = (Particle*)node1->v;
@@ -198,8 +229,7 @@ void neighbors_in_2_cells(Cell* cell1, Cell* cell2, double r)
 		ListNode *node2 = cell2->particles->head;
 		while (node2 != NULL) {
 			Particle* p2 = (Particle*)node2->v;
-			if (pow(p1->pos->x - p2->pos->x, 2) + pow(p1->pos->y - p2->pos->y, 2) <= pow(r, 2))
-			{
+			if(check_distance(p1->pos, p2->pos, r)) {
 				List_append(p1->neighborhood, p2);
 				List_append(p2->neighborhood, p1);
 			}
@@ -209,21 +239,21 @@ void neighbors_in_2_cells(Cell* cell1, Cell* cell2, double r)
 		node1 = node1->next;
 	}
 }
-//compute the neighbors of particules of cell with the neighboring cells
-void update_neighbors_2(Cell* cell, double r)
-{
+
+// Compute all neighbors from this cell's particles
+//// Compute the neighbors of particules of cell with the neighboring cells
+void update_neighbors_2(Cell* cell, double r) {
 	ListNode *node = cell->neighboring_cells->head;
 	while (node != NULL) {
 		Cell* neighborCell = (Cell*)node->v;
-		if (!neighborCell->visited)
-		{
+		if (!neighborCell->visited) { // if the neighboring cell was not already visited
 			neighbors_in_2_cells(cell, neighborCell, r);
 		}
 		node = node->next;
 	}
 }
-void update_neighborhoods_improved(Grid* grid)
-{
+
+void update_neighborhoods_improved(Grid* grid) {
 	Cell*** cells = grid->cells;
 	for(int i = 0 ;i < grid->nCellx; i++) {
 		for(int j = 0; j < grid->nCelly; j++) {

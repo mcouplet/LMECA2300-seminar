@@ -11,6 +11,7 @@
 typedef struct Cell Cell;
 typedef struct Grid Grid;
 typedef struct Particle Particle;
+typedef struct Particle_derivatives Particle_derivatives;
 typedef struct Verlet Verlet;
 
 struct Cell {
@@ -33,14 +34,25 @@ struct Grid {
 
 struct Particle {
 	int index;
+	double m; // mass
 	xy* pos; // position
 	xy* v; // velocity
 	double density;
-	double e; // ???
+	double P; // pressure
+	double Cs; // color field
 
-	Cell* cell;
-	List* neighborhood;
-	List* potential_neighborhood;
+	Cell* cell; // cell that the particle belongs to
+	List* neighborhood; // list of neighbors
+	List* potential_neighborhood; // list of potential neighbors (for Verlet)
+};
+
+struct Particle_derivatives {
+	int index;
+	double div_v;
+	xy *grad_P;
+	xy *lapl_v;
+	xy *grad_Cs;
+	double lapl_Cs;
 };
 
 struct Verlet {
@@ -55,8 +67,17 @@ void Cell_free(Cell* cell); // Cell destructor
 Grid* Grid_new(double x1, double x2, double y1, double y2, double kh); // Grid constructor
 void Grid_free(Grid* grid); // Grid destructor
 
-//Particle* Particle_new(int index, xy* pos, xy* v, double density, double e)
+Particle* Particle_new(int index, double m, xy* pos, xy* v, double density, double Cs); // Particle constructor
 void Particle_set(Particle* p, double x, double y, double vx, double vy, double d, double e, int index); // Particle setter
+
+// Getter functions
+double Particle_get_P(Particle *particle);
+xy * Particle_get_v(Particle *particle);
+double Particle_get_Cs(Particle *particle);
+
+Particle_derivatives* Particle_derivatives_new(int index);
+void Particle_derivatives_reset(Particle_derivatives *particle_derivatives);
+
 
 void free_particles(Particle** p, int N); // destroy array of particles
 
