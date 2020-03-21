@@ -12,6 +12,7 @@ typedef struct Cell Cell;
 typedef struct Grid Grid;
 typedef struct Particle Particle;
 typedef struct Particle_derivatives Particle_derivatives;
+typedef struct Physical_parameters Physical_parameters;
 typedef struct Verlet Verlet;
 
 struct Cell {
@@ -32,6 +33,13 @@ struct Grid {
 	double bottom;	// y-coordinate of bottom side
 };
 
+struct Physical_parameters {
+        double dynamic_viscosity;
+	double rho_0;
+	double gamma;
+	double sound_speed;
+};
+
 struct Particle {
 	int index;
 	double m; // mass
@@ -40,6 +48,7 @@ struct Particle {
 	double rho;
 	double P; // pressure
 	double Cs; // color field
+	Physical_parameters* param; // physical parameters associated to the particle
 
 	Cell* cell; // cell that the particle belongs to
 	List* neighborhood; // list of neighbors
@@ -55,6 +64,8 @@ struct Particle_derivatives {
 	double lapl_Cs;
 };
 
+
+
 struct Verlet {
 	bool verlet;
 	double kh;
@@ -67,12 +78,14 @@ void Cell_free(Cell* cell); // Cell destructor
 Grid* Grid_new(double x1, double x2, double y1, double y2, double kh); // Grid constructor
 void Grid_free(Grid* grid); // Grid destructor
 
-Particle* Particle_new(int index, double m, xy* pos, xy* v, double rho, double Cs); // Particle constructor
+Particle* Particle_new(int index, double m, xy* pos, xy* v, double rho_0, double Cs, double mu, double c_0, double gamma); // Particle constructor
 void Particle_set(Particle* p, double x, double y, double vx, double vy, double d, double e, int index); // Particle setter
 
 // Getter functions
 double Particle_get_P(Particle *particle);
 xy * Particle_get_v(Particle *particle);
+double Particle_get_v_x(Particle *particle);
+double Particle_get_v_y(Particle *particle);
 double Particle_get_Cs(Particle *particle);
 
 Particle_derivatives* Particle_derivatives_new(int index);

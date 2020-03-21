@@ -9,6 +9,7 @@
 typedef struct List List; // Generic list
 typedef struct ListNode ListNode;
 typedef struct xy xy;
+typedef struct Residual Residual;
 typedef void(*destructor)(void *object);
 
 struct List {
@@ -27,6 +28,12 @@ struct xy {
 	double y;
 };
 
+struct Residual {
+	double mass_eq;
+	double momentum_x_eq;
+	double momentum_y_eq;
+};
+
 List* List_new();
 void List_append(List *l, void *v);
 void List_free(List*, destructor);
@@ -34,6 +41,8 @@ void List_free(List*, destructor);
 xy* xy_new(double x, double y);
 void xy_reset(xy *p);
 double rand_interval(double a, double b);
+
+Residual* residual_new();
 
 double squared(double x);
 

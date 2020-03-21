@@ -59,3 +59,37 @@ void random_moves(Grid* grid, Particle** particles, int N, double timestep, doub
 			p->pos->y = grid->top - s;
 	}
 }
+
+
+// Assemble the residual of the (incompressible) Navier-Stokes equations based on the derivatives available
+void assemble_residual_NS(Particle* particle, Particle_derivatives* particle_derivatives, Residual* residual) {
+  double mu_i = particle->param->dynamic_viscosity;
+  
+  double rho_i = particle->rho;
+  double div_vel_i = particle_derivatives->div_v;
+  xy* grad_P = particle_derivatives->grad_P;
+  xy* lapl_v = particle_derivatives->lapl_v;
+  
+  xy* f_CSF = xy_new(0.0, 0.0); // TODO: compute_CSF_term(particle, particle_derivatives);
+  
+  residual->mass_eq = -rho_i * div_vel_i;
+  residual->momentum_x_eq = (-1.0/rho_i) * grad_P->x + (mu_i/rho_i) * lapl_v->x + f_CSF->x;
+  residual->momentum_y_eq = (-1.0/rho_i) * grad_P->y + (mu_i/rho_i) * lapl_v->y + f_CSF->y;
+  
+}
+
+// Time integrate the Navier-Stokes equations based on the residual already assembled
+void time_integrate(Particle* particle, Residual* residual, double delta_t) {
+ 
+  particle->rho += delta_t * residual->mass_eq;
+  particle->v->x += delta_t * residual->momentum_x_eq;
+  particle->v->y += delta_t * residual->momentum_y_eq;
+  
+}
+
+
+
+
+
+
+

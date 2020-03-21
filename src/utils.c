@@ -44,6 +44,13 @@ void xy_reset(xy *p) {
 	p->y = 0;
 }
 
+Residual* residual_new (){
+  Residual* res = (Residual*)malloc(sizeof(Residual));
+  res->mass_eq = 0.0;
+  res->momentum_x_eq = 0.0;
+  res->momentum_y_eq = 0.0;
+  
+}
 double rand_interval(double a, double b) {
 	return (rand() / (double)RAND_MAX)*(b - a) + a;
 }

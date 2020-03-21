@@ -54,16 +54,23 @@ void Cell_free(Cell* cell) {
 	List_free(cell->particles, NULL);
 }
 
-Particle* Particle_new(int index, double m, xy* pos, xy* v, double rho, double Cs) {
+Particle* Particle_new(int index, double m, xy* pos, xy* v, double rho_0, double Cs, double mu, double c_0, double gamma) {
 	Particle *particle = malloc(sizeof(Particle));
 	particle->index = index;
 	particle->m = m;
 	particle->pos = pos;
+	particle->rho = rho_0;
 	particle->v = v;
-	particle->rho = rho;
 	//particle->P = 0; // assuming that the fluid is at rest!
-	particle->P = (squared(pos->x) + squared(pos->y)) / 2; // sanity check: grad(P) = (x,y)
+	particle->P = (squared(pos->x) + squared(pos->y)) / 2; // sanity check: grad(P) = (x,y) // WARNING: to be changed with Tait's EOS depending on rho_0 and other parameters
 	particle->Cs = Cs;
+	
+	particle->param = malloc(sizeof(Physical_parameters));
+	particle->param->rho_0 = rho_0;
+	particle->param->dynamic_viscosity = mu;
+	particle->param->gamma = gamma;
+	particle->param->sound_speed = c_0;
+	
 	particle->cell = NULL;
 	particle->neighborhood = List_new();
 	particle->potential_neighborhood = List_new();
@@ -101,6 +108,8 @@ void Particle_derivatives_reset(Particle_derivatives *particle_derivatives) {
 
 double Particle_get_P(Particle *particle) {	return particle->P; }
 xy * Particle_get_v(Particle *particle) { return particle->v; }
+double Particle_get_v_x(Particle *particle) { return particle->v->x; }
+double Particle_get_v_y(Particle *particle) { return particle->v->y; }
 double Particle_get_Cs(Particle *particle) { return particle->Cs; }
 
 void free_particles(Particle** particles, int N) {

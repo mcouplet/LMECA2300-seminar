@@ -20,4 +20,8 @@ void simulate(Grid* grid, Particle** particles, int N, Setup* setup, Animation* 
 
 void random_moves(Grid* grid, Particle** particles, int N, double timestep, double maxspeed);
 
+void assemble_residual_NS(Particle* particle, Particle_derivatives* Particle_derivatives, Residual* residual);
+
+void time_integrate(Particle* particle, Residual* residual, double delta_t);
+
 #endif
