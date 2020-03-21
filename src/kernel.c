@@ -1,5 +1,25 @@
 #include "kernel.h"
 
+double eval_Cubic_kernel(double q, double h);
+
+double eval_kernel(xy *p1, xy *p2, double kh, Kernel kernel) {
+    double d = sqrt(squared(p1->x-p2->x) + squared(p1->y-p2->y));
+    double h;
+    //printf("%d\n", kernel);
+    if(kernel == Cubic) {
+        h = kh/2;
+        return eval_Cubic_kernel(d/h, h);
+    }
+    // TODO: other kernels
+}
+
+double eval_Cubic_kernel(double q, double h) {
+    double alpha = 15.0/(7.0*M_PI*pow(h, 2));
+    if(q <= 1) return alpha * (2.0/3 - q*q + q*q*q/2);
+    else if(q <= 2) return alpha * (pow(2-q, 3)/6);
+    else return 0;
+}
+
 // everything here should be double checked because there are still problems with signs
  xy* grad_kernel(xy* p1, xy* p2, double kh, Kernel kernel) {
 	double d = sqrt(pow(p1->x - p2->x, 2) + pow(p1->y - p2->y, 2));

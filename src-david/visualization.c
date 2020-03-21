@@ -45,18 +45,18 @@ void fillData(GLfloat(* data)[8], int nbParticles)
 	  double* values = calloc(2,sizeof(double));
 	    double mass = 1.0;
 	    double density = 1.0;
-	    
+
 // 	    init1DSegmentWithParticles(x_lim, coord, values, &mass, &density, nbParticles, i, 1);
 	    initSquareWithParticles(x_lim, coord, values, &mass, &density, nbPart_x, nbPart_y, ind_x, ind_y, 1);
 	    data[i][0] = coord[0];
 	    data[i][1] = coord[1];
-	    
-	    data[i][2] = 0.0; 
+
+	    data[i][2] = 0.0;
 	    data[i][3] = 0.0;
 	    double r = values[0];//sqrt(values[0] * values[0]+ values[1] * values[1]);
 	    myColormap(r, &data[i][4], 2.0, -2.0); // fill color
 	    data[i][7] = 0.8f; // transparency
-	    
+
 	    i++;
 // 	    printf("(values[0], values[1]) = (%2.6f,%2.6f) \n", values[0], values[1]);
 	}
@@ -102,7 +102,7 @@ void draw_particles(double* x_lim, GLfloat(* data)[8], int nbParticles) {
       while(!bov_window_should_close(window)){
 // 	      fillData(data);
 // 	      bov_particles_update(particles, data, NPTS);
-	      
+
 	      bov_particles_draw(window, particles, 0, BOV_TILL_END);
 	      // bov_points_draw(window, particles, 0, BOV_TILL_END);
 	      // bov_lines_draw(window, particles, 0, BOV_TILL_END);
@@ -114,7 +114,7 @@ void draw_particles(double* x_lim, GLfloat(* data)[8], int nbParticles) {
 	      bov_window_update_and_wait_events(window);
 // 	      bov_window_update(window);
       }
-      
+
 
       bov_text_delete(msg);
       bov_points_delete(particles);
@@ -180,7 +180,7 @@ void display_neighbourhood_one_particle(allParticles* allPart, int index_part, i
   int nNeigh = local_part->particle_neighbours->nh->nNeighbours;
   neighbours* List = local_part->particle_neighbours->nh->list;
   double kh = local_part->particle_neighbours->kh;
-  
+
   local_part->values[0] = 1.0;
   for (int j = 0; j < nNeigh; j++) {
       int index_j = List->index;
@@ -211,6 +211,5 @@ void print_error_heat_equation(int problemChoice, int index_particle_to_check, i
     double relative_error = (fabs(T_SPH-T_exact)/T_exact) * 100;
     printf("||error|| = %2.10f percent \n", relative_error);
   }
-  
-}
 
+}

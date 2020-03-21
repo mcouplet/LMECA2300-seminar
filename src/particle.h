@@ -34,10 +34,11 @@ struct Grid {
 };
 
 struct Physical_parameters {
-        double dynamic_viscosity;
+    double dynamic_viscosity;
 	double rho_0;
 	double gamma;
 	double sound_speed;
+	double sigma;
 };
 
 struct Particle {
@@ -78,7 +79,7 @@ void Cell_free(Cell* cell); // Cell destructor
 Grid* Grid_new(double x1, double x2, double y1, double y2, double kh); // Grid constructor
 void Grid_free(Grid* grid); // Grid destructor
 
-Particle* Particle_new(int index, double m, xy* pos, xy* v, double rho_0, double Cs, double mu, double c_0, double gamma); // Particle constructor
+Particle* Particle_new(int index, double m, xy* pos, xy* v, double rho_0, double mu, double c_0, double gamma, double sigma); // Particle constructor
 void Particle_set(Particle* p, double x, double y, double vx, double vy, double d, double e, int index); // Particle setter
 
 // Getter functions

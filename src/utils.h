@@ -45,5 +45,6 @@ double rand_interval(double a, double b);
 Residual* residual_new();
 
 double squared(double x);
+double norm(xy *v);
 
 #endif

@@ -1,10 +1,9 @@
 #include "print_particules.h"
 
-void fillData(GLfloat(*data)[8], Particle** particles, int N)
-{
+// Fills data with particle data
+void fillData(GLfloat(*data)[8], Particle** particles, int N) {
 	float rmax = 100.0*sqrtf(2.0f);
-	for (int i = 0;i < N;i++)
-	{
+	for (int i = 0; i < N; i++) {
 		Particle* p = particles[i];
 		data[i][0] = p->pos->x;
 		data[i][1] = p->pos->y;
@@ -43,7 +42,7 @@ bov_points_t * load_Grid(Grid* grid)
 	return points;
 }
 
-Animation* Animation_new(int N,double timeout,Grid* grid)
+Animation* Animation_new(int N, double timeout,Grid* grid)
 {
 	Animation* animation = (Animation*)malloc(sizeof(Animation));
 	animation->window = bov_window_new(1024, 780, "ANM Project: SPH");
@@ -107,15 +106,13 @@ void display_particles(Particle** particles, Animation* animation,bool end)
 	}
 }
 
-void colormap_cell(Particle* p, float color[3])
-{
-	if (p->cell == NULL)
-	{
+// Fills color with the color to use for particle p
+void colormap_cell(Particle* p, float color[3]) {
+	if (p->cell == NULL) {
 		color[0] = 0;color[1] = 0;color[2] = 0;
 	}
 	else {
-		if (p->cell->i % 2 == 0)
-		{
+		if (p->cell->i % 2 == 0) {
 			color[0] = 20;
 			if (p->cell->j % 2 == 0)
 				color[1] = 20;

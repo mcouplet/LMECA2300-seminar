@@ -24,4 +24,6 @@ void assemble_residual_NS(Particle* particle, Particle_derivatives* Particle_der
 
 void time_integrate(Particle* particle, Residual* residual, double delta_t);
 
+void compute_Cs(Particle *particle, Kernel kernel, double kh);
+
 #endif

@@ -49,7 +49,7 @@ Residual* residual_new (){
   res->mass_eq = 0.0;
   res->momentum_x_eq = 0.0;
   res->momentum_y_eq = 0.0;
-  
+
 }
 double rand_interval(double a, double b) {
 	return (rand() / (double)RAND_MAX)*(b - a) + a;
@@ -57,4 +57,8 @@ double rand_interval(double a, double b) {
 
 double squared(double x) {
 	return x*x;
+}
+
+double norm(xy *v) {
+	return hypot(v->x, v->y);
 }
