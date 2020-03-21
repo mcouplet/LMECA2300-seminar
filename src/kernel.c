@@ -1,7 +1,7 @@
 #include "kernel.h"
 
- xy* grad_kernel(xy* p1, xy* p2,double kh, Kernel kernel)
-{
+// everything here should be double checked because there are still problems with signs
+ xy* grad_kernel(xy* p1, xy* p2, double kh, Kernel kernel) {
 	double d = sqrt(pow(p1->x - p2->x, 2) + pow(p1->y - p2->y, 2));
 	// double d_x = fabs(p1->x-p2->x); // wrong! grad_kernel is not symmetric
 	// double d_y = fabs(p1->y-p2->y);

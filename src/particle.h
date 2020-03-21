@@ -37,7 +37,7 @@ struct Particle {
 	double m; // mass
 	xy* pos; // position
 	xy* v; // velocity
-	double density;
+	double rho;
 	double P; // pressure
 	double Cs; // color field
 
@@ -67,7 +67,7 @@ void Cell_free(Cell* cell); // Cell destructor
 Grid* Grid_new(double x1, double x2, double y1, double y2, double kh); // Grid constructor
 void Grid_free(Grid* grid); // Grid destructor
 
-Particle* Particle_new(int index, double m, xy* pos, xy* v, double density, double Cs); // Particle constructor
+Particle* Particle_new(int index, double m, xy* pos, xy* v, double rho, double Cs); // Particle constructor
 void Particle_set(Particle* p, double x, double y, double vx, double vy, double d, double e, int index); // Particle setter
 
 // Getter functions

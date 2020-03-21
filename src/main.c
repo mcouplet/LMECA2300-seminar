@@ -23,7 +23,7 @@ void script_csf() {
 	double L = 100; // size of the domain: [-L,L] x [-L,L]
 	double l = 50; // size of the square: [-l,l] x [-l,l]
 	int n_per_dim = 51; // number of particles per dimension
-	double density = 1; // initial (physical) density
+	double rho_0 = 1; // initial (physical) density
 	double Cs = 1; // color field (1 = fluid, 0 = void)
 	double kh = 30; // kernel width
 	double dt = 1; // physical time step
@@ -35,7 +35,7 @@ void script_csf() {
 	// Initialize particles on a square
 	int n_p = squared(n_per_dim); // total number of particles
 	double h = 2*l / (n_per_dim-1); // step between neighboring particles
-	double m = density * h*h;
+	double m = rho_0 * h*h;
 	Particle** particles = (Particle**) malloc(n_p*sizeof(Particle*));
 	Particle_derivatives** particles_derivatives = malloc(n_p * sizeof(Particle_derivatives*));
 	for(int i = 0; i < n_per_dim; i++) {
@@ -43,7 +43,7 @@ void script_csf() {
 			int index = i*n_per_dim + j;
 			xy *pos = xy_new(-l+i*h, -l+j*h);
 			xy *v = xy_new(pos->x, pos->y); // initial velocity = 0
-			particles[index] = Particle_new(index, m, pos, v, density, Cs);
+			particles[index] = Particle_new(index, m, pos, v, rho_0, Cs);
 			particles_derivatives[index] = Particle_derivatives_new(index);
 		}
 	}
@@ -64,11 +64,18 @@ void script_csf() {
 		if (animation != NULL)
 			display_particles(particles, animation, false);
 
-		// Reset derivatives
+		// Compute derivatives
 		for(int i = 0; i < n_p; i++) {
-			Particle_derivatives_reset(particles_derivatives[i]);
+			// Particle_derivatives_reset(particles_derivatives[i]);
 			particles_derivatives[i]->div_v = compute_div(particles[i], Particle_get_v, kernel, grid->h);
-			printf("pos = (%lf,%lf), div_v = %lf\n", particles[i]->pos->x, particles[i]->pos->y, particles_derivatives[i]->div_v);
+			particles_derivatives[i]->grad_P = compute_grad(particles[i], Particle_get_P, kernel, grid->h);
+			double lapl_P = compute_lapl(particles[i], Particle_get_P, kernel, grid->h);
+			printf("pos = (%lf,%lf), div_v = %lf, grad_P = (%lf,%lf), lapl_P = %lf\n",
+				particles[i]->pos->x, particles[i]->pos->y,
+				particles_derivatives[i]->div_v,
+				particles_derivatives[i]->grad_P->x, particles_derivatives[i]->grad_P->y,
+				lapl_P
+			);
 		}
 
 		// integrate :-)

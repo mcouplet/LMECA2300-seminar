@@ -54,13 +54,15 @@ void Cell_free(Cell* cell) {
 	List_free(cell->particles, NULL);
 }
 
-Particle* Particle_new(int index, double m, xy* pos, xy* v, double density, double Cs) {
+Particle* Particle_new(int index, double m, xy* pos, xy* v, double rho, double Cs) {
 	Particle *particle = malloc(sizeof(Particle));
 	particle->index = index;
 	particle->m = m;
 	particle->pos = pos;
 	particle->v = v;
-	particle->density = density;
+	particle->rho = rho;
+	//particle->P = 0; // assuming that the fluid is at rest!
+	particle->P = (squared(pos->x) + squared(pos->y)) / 2; // sanity check: grad(P) = (x,y)
 	particle->Cs = Cs;
 	particle->cell = NULL;
 	particle->neighborhood = List_new();
@@ -72,7 +74,7 @@ void Particle_set(Particle* p, double x, double y, double vx, double vy, double 
 	p->index = index;
 	p->pos = xy_new(x,y);
 	p->v = xy_new(vx, vy);
-	p->density = d;
+	p->rho = d;
 	p->cell = NULL;
 	p->neighborhood = List_new();
 	p->potential_neighborhood = List_new();
@@ -268,7 +270,7 @@ void update_neighborhoods_improved(Grid* grid) {
 ////////////////////////////////////////////////////
 
 // Generate N particles randomly located on [-L,L] x [-L,L]
-// Velocity, density and e are zero.
+// Velocity, rho and e are zero.
 Particle** build_particles(int N, double L) {
 	Particle** particles = (Particle**) malloc(N*sizeof(Particle*));
 	for (int i = 0; i < N; i++) {
