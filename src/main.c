@@ -8,14 +8,16 @@
 void script_csf();
 void script_csf_circle();
 void script_circle_to_ellipse();
+void script_csf_circle_paper();
 void script1();
 void script2();
 
 int main() {
 	// _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF); // comment if on Linux
-// 	script_csf();
-// 	script_csf_circle();
 	script_csf();
+	// 	script_csf_circle();
+	// 	script_circle_to_ellipse();
+	// script_csf_circle_paper();
 
 	return EXIT_SUCCESS;
 }
@@ -27,8 +29,8 @@ void script_csf() {
 	double L = 2; // size of the domain: [-L,L] x [-L,L]
 	double l = 1; // size of the square: [-l,l] x [-l,l]
 	double dt = 0.001; // physical time step
-	// double T = 1; // duration of simulation
-	double T = dt; // duration of simulation
+	double T = 1; // duration of simulation
+	// double T = dt; // duration of simulation
 
 	// Physical parameters
 	double rho_0 = 998.0; // initial (physical) density of water at 20°C (in kg/m^3)
@@ -359,6 +361,131 @@ void script_circle_to_ellipse() {
 
 	// Free stuff
 	free_particles(particles, n_p);
+	Grid_free(grid);
+	Setup_free(setup);
+	Animation_free(animation);
+
+}
+
+// Evolution of a 2D circle : test case based on "Modelling surface tension of two-dimensional droplet using
+// Smoothed Particle Hydrodynamics", Nowoghomwenma, 2018
+
+void script_csf_circle_paper() {
+
+	// Computational Parameters
+	double l = 1e-3; // radius of the circle
+	double L = 2.0*l; // size of the domain: [-L,L] x [-L,L]
+
+	int N_c = 21; // number of circonferences on which points are placed
+	int N_p = 6; // number of points on the first circonference (doubled for every circonference)
+	int N_tot = 1; // total number of points
+	for (int i=1; i < N_c; i++) {
+	  N_tot += i*N_p;
+	}
+	printf("N_tot = %d \n", N_tot);
+
+
+
+	double kh = 0.3*l; // kernel width
+	double dt = 0.0001; // physical time step
+	double dt_anim = 0.001; // time step for animation
+	int n_iter = 100; // number of iterations to perform
+	Verlet *verlet = NULL; // don't use Verlet (for now)
+	Kernel kernel = Cubic; // kernel choice
+	double interface_threshold = 2154.9; // If ||n_i|| > threshold => particle i belongs to interface (first detection approach)
+
+	// Physical parameters
+	double rho_0 = 1000.0; // initial (physical) density of water at 20°C (in kg/m^3)
+	double mu = 0.01; // dynamic viscosity of water at 20°C (in N.s/m^2)
+	double gamma = 7.0; // typical value for liquid (dimensionless)
+	double c_0 = 5.0;//1481; // sound speed in water at 20°C (in m/s)
+	double sigma = 0.00000001; // surface tension of water-air interface at 20°C (in N/m)
+
+	// Initialize particles on a square
+// 	double h = 2*l / (n_per_dim-1); // step between neighboring particles
+	double m = rho_0 * M_PI * l * l / N_tot;
+
+	Particle** particles = (Particle**) malloc(N_tot*sizeof(Particle*));
+	Particle_derivatives** particles_derivatives = malloc(N_tot * sizeof(Particle_derivatives*));
+	double b, delta_s, k, theta;
+	delta_s = l / ((double)N_c - 1.0);
+	theta = (2*M_PI) / ((double)N_p);
+	int index = 0;
+	for(int i = 0; i < N_c; i++) {
+	  b = i;
+	  if (b==0) {
+	    xy *pos = xy_new(0.0, 0.0);
+	    xy *v = xy_new(0.0, 0.0);
+	    particles[index] = Particle_new(index, m, pos, v, interface_threshold, rho_0, mu, c_0, gamma, sigma);
+	    particles_derivatives[index] = Particle_derivatives_new(index);
+	    index++;
+	  }
+	  else {
+	    for (int j = 0; j < i*N_p; j++) {
+			k = (double) j/b;
+			xy *pos = xy_new(b*delta_s*cos(k*theta), b*delta_s*sin(k*theta));
+			xy *v = xy_new(0.0, 0.0);
+			particles[index] = Particle_new(index, m, pos, v, interface_threshold, rho_0, mu, c_0, gamma, sigma);
+			particles_derivatives[index] = Particle_derivatives_new(index);
+			index++;
+	    }
+	  }
+
+	}
+
+
+	// Setup grid
+	Grid *grid = Grid_new(-L, L, -L, L, kh);
+	// Setup animation
+	Animation *animation = Animation_new(N_tot, dt_anim, grid);
+	//Animation *animation = NULL;
+	// Setup setup (lol)
+	Setup *setup = Setup_new(n_iter, dt, verlet, kernel);
+
+	Residual* residual = residual_new();
+	// Start simulation
+	for(int iter = 0; iter < setup->itermax; iter++) {
+		printf("----------------------------------------\nITERATION %d\n", iter);
+		update_cells(grid, particles, N_tot);
+		update_neighborhoods(grid, particles, N_tot, iter, setup->verlet);
+		if (animation != NULL)
+			display_particles(particles, animation, false);
+
+		// Compute Cs
+		for(int i = 0; i < N_tot; i++) {
+			compute_Cs(particles[i], kernel, grid->h);
+// 			printf("pos = (%lf, %lf), Cs = %lf\n", particles[i]->pos->x, particles[i]->pos->y, particles[i]->Cs);
+		}
+
+		// Compute derivatives
+		for(int i = 0; i < N_tot; i++) {
+			//printf("%lf %lf\n", particles[i]->v->x, particles[i]->v->y);
+			// Compute all useful derivatives
+			particles_derivatives[i]->div_v = compute_div(particles[i], Particle_get_v, kernel, grid->h);
+			particles_derivatives[i]->lapl_v->x = compute_lapl(particles[i], Particle_get_v_x, kernel, grid->h);
+			particles_derivatives[i]->lapl_v->y = compute_lapl(particles[i], Particle_get_v_y, kernel, grid->h);
+			particles_derivatives[i]->grad_P = compute_grad(particles[i], Particle_get_P, kernel, grid->h);
+			particles_derivatives[i]->grad_Cs = compute_grad(particles[i], Particle_get_Cs, kernel, grid->h);
+			particles_derivatives[i]->lapl_Cs = compute_lapl(particles[i], Particle_get_Cs, kernel, grid->h);
+
+		}
+
+		// Compute residuals and integrate!
+		for(int i = 0; i < N_tot; i++) {
+			// Residual (i.e. RHS term of the Navier-Stokes eqs) at time t (explicit time integration)
+			assemble_residual_NS(particles[i], particles_derivatives[i], residual);
+			// New values (i.e. density, velocities) at time t+1
+			time_integrate(particles[i], residual, dt);
+		}
+
+	}
+	update_cells(grid, particles, N_tot);
+	update_neighborhoods(grid, particles, N_tot, 0, setup->verlet);
+	if (animation != NULL)
+		display_particles(particles, animation, true);
+
+	// Free stuff
+	free_particles(particles, N_tot);
 	Grid_free(grid);
 	Setup_free(setup);
 	Animation_free(animation);

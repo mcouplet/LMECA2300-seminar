@@ -76,6 +76,7 @@ void assemble_residual_NS(Particle* particle, Particle_derivatives* particle_der
 	double lapl_Cs = particle_derivatives->lapl_Cs;
 	double kappa = - lapl_Cs / norm_n; // curvature
 	xy *fs = xy_new(0.0, 0.0);
+	// Apply surface tension only on particles in the vicinity the interface
 	if (norm_n > particle->interface_threshold) {
 
 	    particle->on_free_surface = true;
@@ -88,14 +89,15 @@ void assemble_residual_NS(Particle* particle, Particle_derivatives* particle_der
 	// Exact values of normal and curvature for a circle centered in (0,0)
 	xy* n_exact = xy_new(particle->pos->x, particle->pos->y);
 	double norm_n_exact = norm(n_exact);
-	double circle_radius = 50.0;
-	double epsilon = 0.2;
+	double circle_radius = 1e-3;
+	double epsilon = 1e-5;
 	double kappa_exact = 1.0 / circle_radius;
 
 	// To print quantities on the surface of the circle
-// 	if (pow(particle->pos->x,2) + pow(particle->pos->y,2) < pow(circle_radius+epsilon,2) &&  pow(particle->pos->x,2) + pow(particle->pos->y,2) > pow(circle_radius-epsilon,2)) {
-// 	  printf("pos = (%lf, %lf), n_exact = (%lf, %lf), n = (%lf, %lf), ||n|| = %lf, fs = (%lf, %lf), kappa_exact = %2.3f, kappa = %2.6f \n", particle->pos->x, particle->pos->y,-n_exact->x / norm_n_exact, -n_exact->y / norm_n_exact, n->x / norm_n, n->y / norm_n, norm_n, fs->x, fs->y, kappa_exact, kappa);
-// 	}
+	if (pow(particle->pos->x,2) + pow(particle->pos->y,2) <= pow(circle_radius+epsilon,2) &&  pow(particle->pos->x,2) + pow(particle->pos->y,2) >= pow(circle_radius-epsilon,2)) {
+	  printf("pos = (%lf, %lf), n_exact = (%lf, %lf), n = (%lf, %lf), ||n|| = %lf, fs = (%lf, %lf), kappa_exact = %2.3f, kappa = %2.6f \n", particle->pos->x, particle->pos->y,-n_exact->x / norm_n_exact, -n_exact->y / norm_n_exact, n->x / norm_n, n->y / norm_n, norm_n, fs->x, fs->y, kappa_exact, kappa);
+	}
+
 	// To print quantities on the surface of the square
 // 	double x_pos = particle->pos->x, y_pos = particle->pos->y;
 // 	if (x_pos == 50.0 || x_pos == -50.0 || y_pos == 50.0 || y_pos == -50.0) {
@@ -103,8 +105,8 @@ void assemble_residual_NS(Particle* particle, Particle_derivatives* particle_der
 // 	}
 
 	residual->mass_eq = -rho_i * div_vel_i;
-	residual->momentum_x_eq = (-1.0/rho_i) * grad_P->x + (mu_i/rho_i) * lapl_v->x + fs->x;
-	residual->momentum_y_eq = (-1.0/rho_i) * grad_P->y + (mu_i/rho_i) * lapl_v->y + fs->y;
+	residual->momentum_x_eq = (-1.0/rho_i) * grad_P->x + (mu_i/rho_i) * lapl_v->x + (1.0/rho_i)*fs->x;
+	residual->momentum_y_eq = (-1.0/rho_i) * grad_P->y + (mu_i/rho_i) * lapl_v->y + (1.0/rho_i)*fs->y;
 
 	free(fs);
 }
