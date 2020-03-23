@@ -63,7 +63,7 @@ Animation* Animation_new(int N, double timeout,Grid* grid)
 	// setting particles appearance
 	bov_points_set_width(particles, 0.01);
 	bov_points_set_outline_width(particles, 0.0025);
-	bov_points_scale(particles, (GLfloat[2]){0.008, 0.008 });//{ 0.008, 0.008 });
+	bov_points_scale(particles, (GLfloat[2]){0.4, 0.4 });//{ 0.008, 0.008 });
 	animation->particles = particles;
 	////set-up grid////
 	if (grid != NULL)
