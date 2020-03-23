@@ -54,14 +54,16 @@ void Cell_free(Cell* cell) {
 	List_free(cell->particles, NULL);
 }
 
-Particle* Particle_new(int index, double m, xy* pos, xy* v, double rho_0, double mu, double c_0, double gamma, double sigma) {
+Particle* Particle_new(int index, double m, xy* pos, xy* v, double threshold, double rho_0, double mu, double c_0, double gamma, double sigma) {
 	Particle *particle = malloc(sizeof(Particle));
 	particle->index = index;
 	particle->m = m;
 	particle->pos = pos;
 	particle->rho = rho_0;
 	particle->v = v;
-	particle->P = 0; // assuming that the fluid is at rest!
+	particle->P = 0; // assuming that the fluid is at rest (P is the dynamic pressure and not the absolute one!)
+	particle->interface_threshold = threshold;
+	particle->on_free_surface = false;
 
 	particle->param = malloc(sizeof(Physical_parameters));
 	particle->param->rho_0 = rho_0;

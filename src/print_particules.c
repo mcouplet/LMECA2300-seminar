@@ -2,15 +2,20 @@
 
 // Fills data with particle data
 void fillData(GLfloat(*data)[8], Particle** particles, int N) {
-	float rmax = 100.0*sqrtf(2.0f);
+// 	float rmax = 100.0*sqrtf(2.0f);
 	for (int i = 0; i < N; i++) {
 		Particle* p = particles[i];
 		data[i][0] = p->pos->x;
 		data[i][1] = p->pos->y;
 		data[i][2] = p->v->x;
 		data[i][3] = p->v->y;
-		colormap_cell(p, &data[i][4]); // fill color
-		//colormap_uni_color(&data[i][4]);
+// 		colormap_cell(p, &data[i][4]); // fill color
+		if (p->on_free_surface) {
+		  colormap_uni_color_2(&data[i][4]);
+		}
+		else {
+		  colormap_uni_color(&data[i][4]);
+		}
 		data[i][7] = 0.8f; // transparency
 	}
 }
@@ -58,7 +63,7 @@ Animation* Animation_new(int N, double timeout,Grid* grid)
 	// setting particles appearance
 	bov_points_set_width(particles, 0.01);
 	bov_points_set_outline_width(particles, 0.0025);
-	bov_points_scale(particles, (GLfloat[2]) { 0.008, 0.008 });
+	bov_points_scale(particles, (GLfloat[2]){0.008, 0.008 });//{ 0.008, 0.008 });
 	animation->particles = particles;
 	////set-up grid////
 	if (grid != NULL)
@@ -81,7 +86,7 @@ void display_particles(Particle** particles, Animation* animation,bool end)
 	int N = animation->N;
 	GLfloat(*data)[8] = malloc(sizeof(data[0])*N);
 	fillData(data, particles, N);
-	colours_neighbors(data, particles, N / 2);
+// 	colours_neighbors(data, particles, N / 2);
 	animation->particles = bov_particles_update(animation->particles,data,N);
 	free(data);
 
@@ -133,6 +138,12 @@ void colormap_cell(Particle* p, float color[3]) {
 void colormap_uni_color(float color[3])
 {
 	color[0] = 20;color[1] = 0;color[2] = 0;
+
+}
+
+void colormap_uni_color_2(float color[3])
+{
+	color[0] = 0;color[1] = 0;color[2] = 20;
 
 }
 

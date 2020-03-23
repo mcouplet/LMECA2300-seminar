@@ -47,4 +47,7 @@ Residual* residual_new();
 double squared(double x);
 double norm(xy *v);
 
+xy* map_to_circle(xy* pos_square);
+xy* generate_circle(int k, int n, int nb, double radius);
+
 #endif

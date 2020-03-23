@@ -15,8 +15,8 @@ double eval_kernel(xy *p1, xy *p2, double kh, Kernel kernel) {
 
 double eval_Cubic_kernel(double q, double h) {
     double alpha = 15.0/(7.0*M_PI*pow(h, 2));
-    if(q <= 1) return alpha * (2.0/3 - q*q + q*q*q/2);
-    else if(q <= 2) return alpha * (pow(2-q, 3)/6);
+    if(q >= 0 && q <= 1) return alpha * (2.0/3 - q*q + q*q*q/2);
+    else if(q > 1 && q <= 2) return alpha * (pow(2-q, 3)/6);
     else return 0;
 }
 
