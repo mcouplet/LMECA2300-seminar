@@ -1,5 +1,7 @@
 #include "print_particules.h"
 
+void colormap_Cs(Particle *p, float color[3]);
+
 // Fills data with particle data
 void fillData(GLfloat(*data)[8], Particle** particles, int N) {
 // 	float rmax = 100.0*sqrtf(2.0f);
@@ -9,13 +11,14 @@ void fillData(GLfloat(*data)[8], Particle** particles, int N) {
 		data[i][1] = p->pos->y;
 		data[i][2] = p->v->x;
 		data[i][3] = p->v->y;
-// 		colormap_cell(p, &data[i][4]); // fill color
-		if (p->on_free_surface) {
-		  colormap_uni_color_2(&data[i][4]);
-		}
-		else {
-		  colormap_uni_color(&data[i][4]);
-		}
+		// colormap_cell(p, &data[i][4]); // fill color
+		colormap_Cs(p, &data[i][4]); // fill color
+		// if (p->on_free_surface) {
+		//   colormap_uni_color_2(&data[i][4]);
+		// }
+		// else {
+		//   colormap_uni_color(&data[i][4]);
+		// }
 		data[i][7] = 0.8f; // transparency
 	}
 }
@@ -42,7 +45,8 @@ bov_points_t * load_Grid(Grid* grid)
 	}
 	bov_points_t *points = bov_points_new(data, 2 * nLines, GL_STATIC_DRAW);
 	bov_points_set_width(points, 0.005);
-	bov_points_scale(points, (GLfloat[2]) { 0.008, 0.008 });
+	bov_points_scale(points, (GLfloat[2]){0.8, 0.8 });
+	//bov_points_scale(points, (GLfloat[2]) { 0.008, 0.008 });
 	free(data);
 	return points;
 }
@@ -63,7 +67,8 @@ Animation* Animation_new(int N, double timeout,Grid* grid)
 	// setting particles appearance
 	bov_points_set_width(particles, 0.01);
 	bov_points_set_outline_width(particles, 0.0025);
-	bov_points_scale(particles, (GLfloat[2]){0.4, 0.4 });//{ 0.008, 0.008 });
+	bov_points_scale(particles, (GLfloat[2]){0.8, 0.8 });
+	//bov_points_scale(particles, (GLfloat[2]){ 0.008, 0.008 });
 	animation->particles = particles;
 	////set-up grid////
 	if (grid != NULL)
@@ -141,10 +146,14 @@ void colormap_uni_color(float color[3])
 
 }
 
-void colormap_uni_color_2(float color[3])
-{
+void colormap_uni_color_2(float color[3]) {
 	color[0] = 0;color[1] = 0;color[2] = 20;
+}
 
+void colormap_Cs(Particle *p, float color[3]) {
+	color[0] = 20*squared(p->Cs);
+	color[1] = 0;
+	color[2] = 20*squared(1.0-p->Cs);
 }
 
 void colours_neighbors(GLfloat(*data)[8], Particle** particles, int index)

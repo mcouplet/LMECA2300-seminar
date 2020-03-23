@@ -74,25 +74,24 @@ void assemble_residual_NS(Particle* particle, Particle_derivatives* particle_der
 	xy *n = particle_derivatives->grad_Cs; // surface normal
 	double norm_n = norm(n); // norm of n
 	double lapl_Cs = particle_derivatives->lapl_Cs;
-// 	xy *fs = xy_new(
-// 		- particle->param->sigma * lapl_Cs * n->x / norm_n,
-// 		- particle->param->sigma * lapl_Cs * n->y / norm_n
-// 	); // tension surface force
+	double kappa = - lapl_Cs / norm_n; // curvature
 	xy *fs = xy_new(0.0, 0.0);
 	if (norm_n > particle->interface_threshold) {
+
 	    particle->on_free_surface = true;
 	    fs->x = - particle->param->sigma * lapl_Cs * n->x / norm_n;
 	    fs->y = - particle->param->sigma * lapl_Cs * n->y / norm_n;
+		printf("pos = (%lf, %lf), n = (%lf, %lf), fs = (%lf, %lf), lapl_Cs = %lf\n", particle->pos->x, particle->pos->y, n->x, n->y, fs->x, fs->y, lapl_Cs);
+
 	}
 
-	double kappa = - lapl_Cs / norm_n; // curvature
 	// Exact values of normal and curvature for a circle centered in (0,0)
 	xy* n_exact = xy_new(particle->pos->x, particle->pos->y);
 	double norm_n_exact = norm(n_exact);
 	double circle_radius = 50.0;
 	double epsilon = 0.2;
 	double kappa_exact = 1.0 / circle_radius;
-	
+
 	// To print quantities on the surface of the circle
 // 	if (pow(particle->pos->x,2) + pow(particle->pos->y,2) < pow(circle_radius+epsilon,2) &&  pow(particle->pos->x,2) + pow(particle->pos->y,2) > pow(circle_radius-epsilon,2)) {
 // 	  printf("pos = (%lf, %lf), n_exact = (%lf, %lf), n = (%lf, %lf), ||n|| = %lf, fs = (%lf, %lf), kappa_exact = %2.3f, kappa = %2.6f \n", particle->pos->x, particle->pos->y,-n_exact->x / norm_n_exact, -n_exact->y / norm_n_exact, n->x / norm_n, n->y / norm_n, norm_n, fs->x, fs->y, kappa_exact, kappa);
@@ -113,18 +112,20 @@ void assemble_residual_NS(Particle* particle, Particle_derivatives* particle_der
 // Time integrate the Navier-Stokes equations based on the residual already assembled
 void time_integrate(Particle* particle, Residual* residual, double delta_t) {
 
+	// Update pressure
+	double B = squared(particle->param->sound_speed) * particle->param->rho_0 / particle->param->gamma;
+	particle->P = B * (pow(particle->rho / particle->param->rho_0, particle->param->gamma) - 1);
+
 	// Update position
 	particle->pos->x += delta_t * particle->v->x;
 	particle->pos->y += delta_t * particle->v->y;
+
 
 	// Update density and velocity
 	particle->rho += delta_t * residual->mass_eq;
 	particle->v->x += delta_t * residual->momentum_x_eq;
 	particle->v->y += delta_t * residual->momentum_y_eq;
 
-	// Update pressure
-	double B = squared(particle->param->sound_speed) * particle->param->rho_0 / particle->param->gamma;
-	particle->P = B * (pow(particle->rho / particle->param->rho_0, particle->param->gamma) - 1);
 }
 
 void compute_Cs(Particle *particle, Kernel kernel, double kh) {
@@ -137,4 +138,5 @@ void compute_Cs(Particle *particle, Kernel kernel, double kh) {
 		//printf("%lf\n", pj->m);
 		node = node->next;
 	}
+	//printf("pos = (%lf, %lf), Cs = %lf\n", particle->pos->x, particle->pos->y, particle->Cs);
 }

@@ -4,6 +4,7 @@
 #include "BOV.h"
 #include <math.h>
 #include "particle.h"
+#include "utils.h"
 
 typedef struct Animation Animation;
 
