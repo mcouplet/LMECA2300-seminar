@@ -54,7 +54,7 @@ void Cell_free(Cell* cell) {
 	List_free(cell->particles, NULL);
 }
 
-Particle* Particle_new(int index, double m, xy* pos, xy* v, double threshold, double rho_0, double mu, double c_0, double gamma, double sigma) {
+Particle* Particle_new(int index, double m, xy* pos, xy* v, double threshold, double XSPH_epsilon, double rho_0, double mu, double c_0, double gamma, double sigma) {
 	Particle *particle = malloc(sizeof(Particle));
 	particle->index = index;
 	particle->m = m;
@@ -62,7 +62,10 @@ Particle* Particle_new(int index, double m, xy* pos, xy* v, double threshold, do
 	particle->rho = rho_0;
 	particle->v = v;
 	particle->P = 0; // assuming that the fluid is at rest (P is the dynamic pressure and not the absolute one!)
+	
+	particle->XSPH_correction = xy_new(0.0,0.0);
 	particle->interface_threshold = threshold;
+	particle->XSPH_epsilon = XSPH_epsilon;
 	particle->on_free_surface = false;
 
 	particle->param = malloc(sizeof(Physical_parameters));
@@ -96,6 +99,7 @@ Particle_derivatives* Particle_derivatives_new(int index) {
 	particle_derivatives->lapl_v = xy_new(0,0);
 	particle_derivatives->grad_Cs = xy_new(0,0);
 	particle_derivatives->lapl_Cs = 0;
+	particle_derivatives->div_pos = 0;
 	return particle_derivatives;
 }
 
@@ -109,6 +113,7 @@ void Particle_derivatives_reset(Particle_derivatives *particle_derivatives) {
 
 double Particle_get_P(Particle *particle) {	return particle->P; }
 xy * Particle_get_v(Particle *particle) { return particle->v; }
+xy * Particle_get_pos(Particle *particle) { return particle->pos; }
 double Particle_get_v_x(Particle *particle) { return particle->v->x; }
 double Particle_get_v_y(Particle *particle) { return particle->v->y; }
 double Particle_get_Cs(Particle *particle) { return particle->Cs; }

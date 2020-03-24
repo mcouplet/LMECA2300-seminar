@@ -62,7 +62,7 @@ void random_moves(Grid* grid, Particle** particles, int N, double timestep, doub
 
 
 // Assemble the residual of the (incompressible) Navier-Stokes equations based on the derivatives available
-void assemble_residual_NS(Particle* particle, Particle_derivatives* particle_derivatives, Residual* residual) {
+void assemble_residual_NS(Particle* particle, Particle_derivatives* particle_derivatives, Residual* residual, Free_surface_detection detection) {
 	double mu_i = particle->param->dynamic_viscosity;
 
 	double rho_i = particle->rho;
@@ -77,15 +77,21 @@ void assemble_residual_NS(Particle* particle, Particle_derivatives* particle_der
 	double kappa = - lapl_Cs / norm_n; // curvature
 	xy *fs = xy_new(0.0, 0.0);
 	// Apply surface tension only on particles in the vicinity the interface
-	if (norm_n > particle->interface_threshold) {
-
-	    particle->on_free_surface = true;
-	    fs->x = - particle->param->sigma * lapl_Cs * n->x / norm_n;
-	    fs->y = - particle->param->sigma * lapl_Cs * n->y / norm_n;
-		printf("pos = (%lf, %lf), n = (%lf, %lf), fs = (%lf, %lf), lapl_Cs = %lf\n", particle->pos->x, particle->pos->y, n->x, n->y, fs->x, fs->y, lapl_Cs);
-
+	// Identification based on the norm of the normal
+	if (detection == CSF && norm_n > particle->interface_threshold) {
+	      particle->on_free_surface = true;
+	      fs->x = - particle->param->sigma * lapl_Cs * n->x / norm_n;
+	      fs->y = - particle->param->sigma * lapl_Cs * n->y / norm_n;
+  // 	    printf("pos = (%lf, %lf), n = (%lf, %lf), fs = (%lf, %lf), lapl_Cs = %lf\n", particle->pos->x, particle->pos->y, n->x, n->y, fs->x, fs->y, lapl_Cs);
 	}
-
+	// Identification based on the divergence of the position vector
+	else if(detection == DIVERGENCE && particle_derivatives->div_pos > particle->interface_threshold) {
+	      particle->on_free_surface = true;
+	      fs->x = - particle->param->sigma * lapl_Cs * n->x / norm_n;
+	      fs->y = - particle->param->sigma * lapl_Cs * n->y / norm_n;
+  // 	    printf("pos = (%lf, %lf), n = (%lf, %lf), fs = (%lf, %lf), lapl_Cs = %lf\n", particle->pos->x, particle->pos->y, n->x, n->y, fs->x, fs->y, lapl_Cs);
+	}
+	
 	// Exact values of normal and curvature for a circle centered in (0,0)
 	xy* n_exact = xy_new(particle->pos->x, particle->pos->y);
 	double norm_n_exact = norm(n_exact);
@@ -93,10 +99,75 @@ void assemble_residual_NS(Particle* particle, Particle_derivatives* particle_der
 	double epsilon = 1e-5;
 	double kappa_exact = 1.0 / circle_radius;
 
-	// To print quantities on the surface of the circle
-	if (pow(particle->pos->x,2) + pow(particle->pos->y,2) <= pow(circle_radius+epsilon,2) &&  pow(particle->pos->x,2) + pow(particle->pos->y,2) >= pow(circle_radius-epsilon,2)) {
+
+// 	// To print quantities on the surface of the circle
+// 	if (pow(particle->pos->x,2) + pow(particle->pos->y,2) <= pow(circle_radius+epsilon,2) &&  pow(particle->pos->x,2) + pow(particle->pos->y,2) >= pow(circle_radius-epsilon,2)) {
+// // 	  particle->on_free_surface = true;
+// // 	  fs->x = - particle->param->sigma * kappa_exact * n->x / norm_n;
+// // 	  fs->y = - particle->param->sigma * kappa_exact * n->y / norm_n;
+// 	  printf("pos = (%lf, %lf), n_exact = (%lf, %lf), n = (%lf, %lf), ||n|| = %lf, fs = (%lf, %lf), kappa_exact = %2.3f, kappa = %2.6f \n", particle->pos->x, particle->pos->y,-n_exact->x / norm_n_exact, -n_exact->y / norm_n_exact, n->x / norm_n, n->y / norm_n, norm_n, fs->x, fs->y, kappa_exact, kappa);
+//   
+// 	}
+
+	// To print quantities on the surface of the square
+// 	double x_pos = particle->pos->x, y_pos = particle->pos->y;
+// 	if (x_pos == 50.0 || x_pos == -50.0 || y_pos == 50.0 || y_pos == -50.0) {
+// 	  printf("pos = (%lf, %lf), n = (%lf, %lf), ||n|| = %lf, fs = (%lf, %lf), kappa = %2.6f \n",   particle->pos->x, particle->pos->y, n->x / norm_n, n->y / norm_n, norm_n, fs->x, fs->y, kappa);
+// 	}
+
+	residual->mass_eq = -rho_i * div_vel_i;
+	residual->momentum_x_eq = (-1.0/rho_i) * grad_P->x + (mu_i/rho_i) * lapl_v->x + (1.0/rho_i)*fs->x;
+	residual->momentum_y_eq = (-1.0/rho_i) * grad_P->y + (mu_i/rho_i) * lapl_v->y + (1.0/rho_i)*fs->y;
+
+	free(fs);
+}
+
+// Assemble the residual of the (incompressible) Navier-Stokes equations based on the derivatives available
+void assemble_residual_NS_test(Particle* particle, Particle_derivatives* particle_derivatives, Residual* residual, double radius_circle) {
+	double mu_i = particle->param->dynamic_viscosity;
+
+	double rho_i = particle->rho;
+	double div_vel_i = particle_derivatives->div_v;
+	xy* grad_P = particle_derivatives->grad_P;
+	xy* lapl_v = particle_derivatives->lapl_v;
+
+
+	xy *n = particle_derivatives->grad_Cs; // surface normal
+	double norm_n = norm(n); // norm of n
+	double lapl_Cs = particle_derivatives->lapl_Cs;
+	double kappa = - lapl_Cs / norm_n; // curvature
+	xy *fs = xy_new(0.0, 0.0);
+	// Apply surface tension only on particles in the vicinity the interface
+// 	if (norm_n > particle->interface_threshold) {
+// 	    particle->on_free_surface = true;
+// 	    fs->x = - particle->param->sigma * lapl_Cs * n->x / norm_n;
+// 	    fs->y = - particle->param->sigma * lapl_Cs * n->y / norm_n;
+// // 		printf("pos = (%lf, %lf), n = (%lf, %lf), fs = (%lf, %lf), lapl_Cs = %lf\n", particle->pos->x, particle->pos->y, n->x, n->y, fs->x, fs->y, lapl_Cs);
+// 	}
+	
+
+
+	// Exact values of normal and curvature for a circle centered in (0,0)
+	xy* n_exact = xy_new(particle->pos->x, particle->pos->y);
+	double norm_n_exact = norm(n_exact);
+	double circle_radius = 1e-3;
+	double epsilon = 1e-5;
+	double kappa_exact = 1.0 / radius_circle;
+	
+	if (particle->on_free_surface) {	    
+	    fs->x = - particle->param->sigma * kappa_exact * n->x;// / norm_n;
+	    fs->y = - particle->param->sigma * kappa_exact * n->y;// / norm_n;
 	  printf("pos = (%lf, %lf), n_exact = (%lf, %lf), n = (%lf, %lf), ||n|| = %lf, fs = (%lf, %lf), kappa_exact = %2.3f, kappa = %2.6f \n", particle->pos->x, particle->pos->y,-n_exact->x / norm_n_exact, -n_exact->y / norm_n_exact, n->x / norm_n, n->y / norm_n, norm_n, fs->x, fs->y, kappa_exact, kappa);
 	}
+
+// 	// To print quantities on the surface of the circle
+// 	if (pow(particle->pos->x,2) + pow(particle->pos->y,2) <= pow(circle_radius+epsilon,2) &&  pow(particle->pos->x,2) + pow(particle->pos->y,2) >= pow(circle_radius-epsilon,2)) {
+// // 	  particle->on_free_surface = true;
+// // 	  fs->x = - particle->param->sigma * kappa_exact * n->x / norm_n;
+// // 	  fs->y = - particle->param->sigma * kappa_exact * n->y / norm_n;
+// 	  printf("pos = (%lf, %lf), n_exact = (%lf, %lf), n = (%lf, %lf), ||n|| = %lf, fs = (%lf, %lf), kappa_exact = %2.3f, kappa = %2.6f \n", particle->pos->x, particle->pos->y,-n_exact->x / norm_n_exact, -n_exact->y / norm_n_exact, n->x / norm_n, n->y / norm_n, norm_n, fs->x, fs->y, kappa_exact, kappa);
+//   
+// 	}
 
 	// To print quantities on the surface of the square
 // 	double x_pos = particle->pos->x, y_pos = particle->pos->y;
@@ -114,19 +185,20 @@ void assemble_residual_NS(Particle* particle, Particle_derivatives* particle_der
 // Time integrate the Navier-Stokes equations based on the residual already assembled
 void time_integrate(Particle* particle, Residual* residual, double delta_t) {
 
-	// Update pressure
-	double B = squared(particle->param->sound_speed) * particle->param->rho_0 / particle->param->gamma;
-	particle->P = B * (pow(particle->rho / particle->param->rho_0, particle->param->gamma) - 1);
 
-	// Update position
-	particle->pos->x += delta_t * particle->v->x;
-	particle->pos->y += delta_t * particle->v->y;
+  	// Update position with Euler explicit scheme
+	particle->pos->x += delta_t * particle->v->x - delta_t * particle->XSPH_correction->x;
+	particle->pos->y += delta_t * particle->v->y - delta_t * particle->XSPH_correction->y;
+// 	printf("XSPH = (%lf, %lf) \n",particle->XSPH_correction->x, particle->XSPH_correction->y);
 
-
-	// Update density and velocity
+	// Update density and velocity with Euler explicit scheme
 	particle->rho += delta_t * residual->mass_eq;
 	particle->v->x += delta_t * residual->momentum_x_eq;
 	particle->v->y += delta_t * residual->momentum_y_eq;
+	
+	// Update pressure with Tait's equation of state
+	double B = squared(particle->param->sound_speed) * particle->param->rho_0 / particle->param->gamma;
+	particle->P = B * (pow(particle->rho / particle->param->rho_0, particle->param->gamma) - 1);
 
 }
 
@@ -142,3 +214,21 @@ void compute_Cs(Particle *particle, Kernel kernel, double kh) {
 	}
 	//printf("pos = (%lf, %lf), Cs = %lf\n", particle->pos->x, particle->pos->y, particle->Cs);
 }
+
+void compute_XSPH_correction(Particle *particle, Kernel kernel, double kh) {
+	particle->XSPH_correction = xy_new(0.0,0.0);
+	double epsilon = particle->XSPH_epsilon;
+	Particle *pi = particle;
+	ListNode *node = pi->neighborhood->head;
+	while(node != NULL) {
+		Particle *pj = node->v;
+		particle->XSPH_correction->x += (pj->m / pj->rho) * (pi->v->x - pj->v->x) * eval_kernel(pi->pos, pj->pos, kh, kernel);
+		particle->XSPH_correction->y += (pj->m / pj->rho) * (pi->v->y - pj->v->y) * eval_kernel(pi->pos, pj->pos, kh, kernel);
+		//printf("%lf\n", pj->m);
+		node = node->next;
+	}
+	particle->XSPH_correction->x *= epsilon;
+	particle->XSPH_correction->y *= epsilon;
+	//printf("pos = (%lf, %lf), Cs = %lf\n", particle->pos->x, particle->pos->y, particle->Cs);
+}
+

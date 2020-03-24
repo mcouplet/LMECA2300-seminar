@@ -49,7 +49,10 @@ struct Particle {
 	double rho;
 	double P; // pressure
 	double Cs; // color field
+	xy* XSPH_correction; // Correction on the velocity field when updating the position of the particles
+	
 	double interface_threshold;
+	double XSPH_epsilon;
 	bool on_free_surface;
 	Physical_parameters* param; // physical parameters associated to the particle
 
@@ -65,6 +68,7 @@ struct Particle_derivatives {
 	xy *lapl_v;
 	xy *grad_Cs;
 	double lapl_Cs;
+	double div_pos;
 };
 
 
@@ -81,12 +85,13 @@ void Cell_free(Cell* cell); // Cell destructor
 Grid* Grid_new(double x1, double x2, double y1, double y2, double kh); // Grid constructor
 void Grid_free(Grid* grid); // Grid destructor
 
-Particle* Particle_new(int index, double m, xy* pos, xy* v,  double threshold, double rho_0, double mu, double c_0, double gamma, double sigma); // Particle constructor
+Particle* Particle_new(int index, double m, xy* pos, xy* v,  double threshold, double XSPH_epsilon, double rho_0, double mu, double c_0, double gamma, double sigma); // Particle constructor
 void Particle_set(Particle* p, double x, double y, double vx, double vy, double d, double e, int index); // Particle setter
 
 // Getter functions
 double Particle_get_P(Particle *particle);
 xy * Particle_get_v(Particle *particle);
+xy * Particle_get_pos(Particle *particle);
 double Particle_get_v_x(Particle *particle);
 double Particle_get_v_y(Particle *particle);
 double Particle_get_Cs(Particle *particle);
