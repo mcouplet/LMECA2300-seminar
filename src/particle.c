@@ -68,6 +68,7 @@ Particle* Particle_new(int index, double m, xy* pos, xy* v, double threshold, do
 	particle->interface_threshold = threshold;
 	particle->XSPH_epsilon = XSPH_epsilon;
 	particle->on_free_surface = false;
+	particle->detection_strategy = DIVERGENCE;
 
 	particle->param = malloc(sizeof(Physical_parameters));
 	particle->param->rho_0 = rho_0;
@@ -337,7 +338,7 @@ Particle** build_particles(int N, double L) {
 		double y = rand_interval(-L, L);
 		xy* pos = xy_new(x, y);
 		xy* vel = xy_new(0, 0);
-		particles[i] = Particle_new(i, 0, pos, vel, 0, 0, 0, 0, 0, 0);
+		particles[i] = Particle_new(i, 0, pos, vel, 0, 0, 0, 0, 0, 0, 0);
 	}
 	return particles;
 }

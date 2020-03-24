@@ -16,10 +16,10 @@ void script2();
 int main() {
 	// _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF); // comment if on Linux
 	script_csf();
-	// 	script_csf_circle();
-	// 	script_circle_to_ellipse();
-	// script_csf_circle_paper();
-	// script2();
+// 	script_csf_circle();
+// 	script_circle_to_ellipse();
+// 	script_csf_circle_paper();
+// 	script2();
 
 	return EXIT_SUCCESS;
 }
@@ -46,7 +46,7 @@ void script_csf() {
 	double kh = sqrt(21)*2*l/n_per_dim; // kernel width to ensure 21 particles in the neighborhood
 	int n_iter = (int)(T/dt); // number of iterations to perform
 	Kernel kernel = Cubic; // kernel choice
-	double interface_threshold = 20; // If ||n_i|| > threshold => particle i belongs to interface (first detection approach)
+	double interface_threshold = 1.5;//20; // If ||n_i|| > threshold => particle i belongs to interface (first detection approach)
 	Verlet *verlet = NULL; // don't use Verlet (for now)
 	double XSPH_epsilon = 0.5;
 	Free_surface_detection surface_detection = DIVERGENCE;
@@ -71,9 +71,9 @@ void script_csf() {
 			int index = i*n_per_dim + j;
 			xy *pos = xy_new(-l+i*h, -l+j*h);
 			xy *v = xy_new(0, 0); // initial velocity = 0
-			particles[index] = Particle_new(index, m, pos, v, interface_threshold, rho_0, mu, c_0, gamma, sigma);
+			particles[index] = Particle_new(index, m, pos, v, interface_threshold, XSPH_epsilon, rho_0, mu, c_0, gamma, sigma);
 			particles_derivatives[index] = Particle_derivatives_new(index);
-			residuals[index] = residual_new();
+			residuals[index] = Residual_new();
 		}
 	}
 
@@ -83,6 +83,7 @@ void script_csf() {
 	Setup *setup = Setup_new(n_iter, dt, kh, verlet, kernel);
 	// Setup animation
 	Animation *animation = Animation_new(n_p, dt_anim, grid,1);
+	
 	// Start simulation
 	simulate(grid, particles, particles_derivatives, residuals, n_p, update_positions_seminar_5, setup, animation);
 
@@ -144,7 +145,7 @@ void script_csf_circle() {
 // 			pos->y = pos_circle->y;
 			xy *v = xy_new(0, 0); // initial velocity = 0
 			//xy *v = xy_new(pos->x/10000, pos->y/10000); // initial velocity = 0
-			particles[index] = Particle_new(index, m, pos, v, interface_threshold, rho_0, mu, c_0, gamma, sigma);
+			particles[index] = Particle_new(index, m, pos, v, interface_threshold, XSPH_epsilon, rho_0, mu, c_0, gamma, sigma);
 			particles_derivatives[index] = Particle_derivatives_new(index);
 			residuals[index] = Residual_new();
 			k++;
@@ -192,9 +193,9 @@ void script_circle_to_ellipse() {
 	// SPH parameters
 	Verlet *verlet = NULL; // don't use Verlet (for now)
 	Kernel kernel = Cubic; // kernel choice
-	double interface_threshold = 1000.0; // If ||n_i|| > threshold => particle i belongs to interface (first detection approach)
+	double interface_threshold = 1.5;//1000.0; // If ||n_i|| > threshold => particle i belongs to interface (first detection approach)
 	double XSPH_epsilon = 0.5;
-	Free_surface_detection surface_detection = CSF;
+	Free_surface_detection surface_detection = DIVERGENCE;
 	int N_c = 30; // number of circonferences on which points are placed
 	int N_p = 6; // number of points on the first circonference (doubled for every circonference)
 	int N_tot = 1; // total number of points
@@ -203,7 +204,7 @@ void script_circle_to_ellipse() {
 	}
 	printf("N_tot = %d \n", N_tot);
 	int n_iter = (int)(T/dt); // number of iterations to perform
-	double kh = 0.2*l;// 0.4*l is ideal to reach t = 0.0076; // kernel width
+	double kh = 0.2*l;// is ideal to reach t = 0.0076; // kernel width
 // 	printf("kh_old = %lf \n", kh);
 // 	double target = 21.0 / N_tot;
 // 	double tolerance = 0.0000000001;
@@ -218,7 +219,7 @@ void script_circle_to_ellipse() {
 // 	printf("kh_new = %lf \n", kh);
 	
 	// Animation parameter
-	double T_anim = 10; // duration of animation
+	double T_anim = 0.1; // duration of animation
 	double dt_anim = T_anim / n_iter; // time step of animation
 
 	// Initialize particles in a circle
@@ -241,7 +242,7 @@ void script_circle_to_ellipse() {
 	    xy *v = xy_new(0.0, 0.0);
 	    particles[index] = Particle_new(index, m, pos, v, interface_threshold, XSPH_epsilon, rho_0, mu, c_0, gamma, sigma);
 	    particles_derivatives[index] = Particle_derivatives_new(index);
-	    residuals[index] = residual_new();
+	    residuals[index] = Residual_new();
 	    index++;
 	  }
 	  else {
@@ -251,7 +252,7 @@ void script_circle_to_ellipse() {
 		xy *v = xy_new(-100.0*pos->x, 100.0*pos->y);
 		particles[index] = Particle_new(index, m, pos, v, interface_threshold, XSPH_epsilon, rho_0, mu, c_0, gamma, sigma);
 		particles_derivatives[index] = Particle_derivatives_new(index);
-		residuals[index] = residual_new();
+		residuals[index] = Residual_new();
 		index++;
 	    }
 	  }
@@ -261,17 +262,17 @@ void script_circle_to_ellipse() {
 	// Setup grid
 	Grid *grid = Grid_new(-L, L, -L, L, kh);
 	// Setup animation
-	Animation *animation = Animation_new(n_p, dt_anim, grid,1);
+	Animation *animation = Animation_new(N_tot, dt_anim, grid,1);
 	// Setup setup
 	Setup *setup = Setup_new(n_iter, dt, kh,verlet, kernel);
 
 	// Start simulation
-	simulate(grid, particles, particles_derivatives, residuals, n_p, update_positions_ellipse, setup, animation);
+	simulate(grid, particles, particles_derivatives, residuals, N_tot, update_positions_ellipse, setup, animation);
 
 	// Free stuff
-	free_particles(particles, n_p);
-	free_particles_derivatives(particles_derivatives, n_p);
-	free_Residuals(residuals, n_p);
+	free_particles(particles, N_tot);
+	free_particles_derivatives(particles_derivatives, N_tot);
+	free_Residuals(residuals, N_tot);
 	Grid_free(grid);
 	Setup_free(setup);
 	Animation_free(animation);
@@ -336,7 +337,7 @@ void script_csf_circle_paper() {
 	    xy *v = xy_new(0.0, 0.0);
 	    particles[index] = Particle_new(index, m, pos, v, interface_threshold, XSPH_epsilon, rho_0, mu, c_0, gamma, sigma);
 	    particles_derivatives[index] = Particle_derivatives_new(index);
-	    residuals[index] = residual_new();
+	    residuals[index] = Residual_new();
 	    index++;
 	  }
 	  else {
@@ -346,7 +347,7 @@ void script_csf_circle_paper() {
 		xy *v = xy_new(0.0, 0.0);
 		particles[index] = Particle_new(index, m, pos, v, interface_threshold, XSPH_epsilon, rho_0, mu, c_0, gamma, sigma);
 		particles_derivatives[index] = Particle_derivatives_new(index);
-		residuals[index] = residual_new();
+		residuals[index] = Residual_new();
 		if (b == N_c - 1) particles[index]->on_free_surface = true; // WARNING: to be removed
 		index++;
 	    }
@@ -360,8 +361,9 @@ void script_csf_circle_paper() {
 	// Setup setup 
 	Setup *setup = Setup_new(n_iter, dt, kh, verlet, kernel);
 
-	simulate(grid, particles, particles_derivatives, residuals, N_tot, update_positions_seminar_5, setup, animation);
-
+// 	simulate(grid, particles, particles_derivatives, residuals, N_tot, update_positions_seminar_5, setup, animation);
+	simulate(grid, particles, particles_derivatives, residuals, N_tot, update_positions_test_static_bubble, setup, animation);
+	
 	// Free stuff
 	free_particles(particles, N_tot);
 	free_particles_derivatives(particles_derivatives, N_tot);
