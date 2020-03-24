@@ -43,20 +43,20 @@ struct Physical_parameters {
 
 struct Particle {
 	int index;
-	double m; // mass
-	xy* pos; // position
-	xy* v; // velocity
-	double rho;
-	double P; // pressure
-	double Cs; // color field
-	xy* XSPH_correction; // Correction on the velocity field when updating the position of the particles
-	
-	double interface_threshold;
-	double XSPH_epsilon;
+	double m;     // mass
+	xy* pos;      // position
+	xy* v;        // velocity
+	double rho;   //density
+	double P;     // pressure
+	double Cs;    // color field
+
+	double interface_threshold; // Threshold for the detection of particles on the free surface
+	xy* XSPH_correction; // Correction on the velocity field when updating the position of the particles	
+	double XSPH_epsilon; // Parameter between 0 and 1 multiplying the XSPH correction
 	bool on_free_surface;
 	Physical_parameters* param; // physical parameters associated to the particle
 
-	Cell* cell; // cell that the particle belongs to
+	Cell* cell;    // cell that the particle belongs to
 	List* neighborhood; // list of neighbors
 	List* potential_neighborhood; // list of potential neighbors (for Verlet)
 };
@@ -80,15 +80,17 @@ struct Verlet {
 	int T;
 };
 
+// Grid
 void Cell_free(Cell* cell); // Cell destructor
 
 Grid* Grid_new(double x1, double x2, double y1, double y2, double kh); // Grid constructor
 void Grid_free(Grid* grid); // Grid destructor
 
-Particle* Particle_new(int index, double m, xy* pos, xy* v,  double threshold, double XSPH_epsilon, double rho_0, double mu, double c_0, double gamma, double sigma); // Particle constructor
-void Particle_set(Particle* p, double x, double y, double vx, double vy, double d, double e, int index); // Particle setter
+// Particle
+Particle* Particle_new(int index, double m, xy* pos, xy* v,  double threshold, double rho_0, double mu, double c_0, double gamma, double sigma); // Particle constructor
+void Particle_free(Particle* particle);
+void free_particles(Particle** particles, int N);
 
-// Getter functions
 double Particle_get_P(Particle *particle);
 xy * Particle_get_v(Particle *particle);
 xy * Particle_get_pos(Particle *particle);
@@ -96,11 +98,11 @@ double Particle_get_v_x(Particle *particle);
 double Particle_get_v_y(Particle *particle);
 double Particle_get_Cs(Particle *particle);
 
+// Particle_derivatives
 Particle_derivatives* Particle_derivatives_new(int index);
+void Particle_derivatives_free(Particle_derivatives* particle_derivatives);
 void Particle_derivatives_reset(Particle_derivatives *particle_derivatives);
-
-
-void free_particles(Particle** p, int N); // destroy array of particles
+void free_particles_derivatives(Particle_derivatives** particles_derivatives, int N);
 
 Verlet* Verlet_new(double kh, double L, int T);
 

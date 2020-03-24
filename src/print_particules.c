@@ -23,7 +23,7 @@ void fillData(GLfloat(*data)[8], Particle** particles, int N) {
 	}
 }
 
-bov_points_t * load_Grid(Grid* grid)
+bov_points_t * load_Grid(Grid* grid,double scale)
 {
 	int nLines = (grid->nCellx + 1) + (grid->nCelly + 1);
 	printf("\n%d\n", nLines);
@@ -45,13 +45,14 @@ bov_points_t * load_Grid(Grid* grid)
 	}
 	bov_points_t *points = bov_points_new(data, 2 * nLines, GL_STATIC_DRAW);
 	bov_points_set_width(points, 0.005);
-	bov_points_scale(points, (GLfloat[2]){0.8, 0.8 });
+	double L = grid->h*grid->nCellx;
+	bov_points_scale(points, (GLfloat[2]){0.8/L*scale, 0.8/L*scale});
 	//bov_points_scale(points, (GLfloat[2]) { 0.008, 0.008 });
 	free(data);
 	return points;
 }
 
-Animation* Animation_new(int N, double timeout,Grid* grid)
+Animation* Animation_new(int N, double timeout,Grid* grid,double scale)
 {
 	Animation* animation = (Animation*)malloc(sizeof(Animation));
 	animation->window = bov_window_new(1024, 780, "ANM Project: SPH");
@@ -59,7 +60,7 @@ Animation* Animation_new(int N, double timeout,Grid* grid)
 	bov_window_enable_help(animation->window);
 	animation->N = N;
 	animation->timeout = timeout;
-
+	double L = grid->h*grid->nCellx;
 	////set-up particles////
 	GLfloat(*data)[8] = malloc(sizeof(data[0])*N);
 	bov_points_t *particles = bov_particles_new(data, N, GL_STATIC_DRAW);
@@ -67,12 +68,14 @@ Animation* Animation_new(int N, double timeout,Grid* grid)
 	// setting particles appearance
 	bov_points_set_width(particles, 0.01);
 	bov_points_set_outline_width(particles, 0.0025);
-	bov_points_scale(particles, (GLfloat[2]){0.8, 0.8 });
-// 	bov_points_scale(particles, (GLfloat[2]){ 800.0, 800.0 });
+	
+	double c = 4;
+	bov_points_scale(particles, (GLfloat[2]){0.8*c/L*scale, 0.8*c/L*scale});//0.8
+	//bov_points_scale(particles, (GLfloat[2]){ 0.008, 0.008 });
 	animation->particles = particles;
 	////set-up grid////
 	if (grid != NULL)
-		animation->grid = load_Grid(grid);
+		animation->grid = load_Grid(grid,scale*c);
 	else
 		animation->grid = NULL;
 	return animation;
