@@ -52,6 +52,7 @@ void Grid_free(Grid* grid) {
 void Cell_free(Cell* cell) {
 	List_free(cell->neighboring_cells, NULL);
 	List_free(cell->particles, NULL);
+	free(cell);
 }
 
 Particle* Particle_new(int index, double m, xy* pos, xy* v, double threshold, double rho_0, double mu, double c_0, double gamma, double sigma) {
@@ -78,14 +79,19 @@ Particle* Particle_new(int index, double m, xy* pos, xy* v, double threshold, do
 	return particle;
 }
 
-void Particle_set(Particle* p, double x, double y, double vx, double vy, double d, double e, int index) {
-	p->index = index;
-	p->pos = xy_new(x,y);
-	p->v = xy_new(vx, vy);
-	p->rho = d;
-	p->cell = NULL;
-	p->neighborhood = List_new();
-	p->potential_neighborhood = List_new();
+void Particle_free(Particle* particle) {
+	free(particle->pos);
+	free(particle->v);
+	free(particle->param);
+	List_free(particle->neighborhood, NULL);
+	List_free(particle->potential_neighborhood, NULL);
+	free(particle);
+}
+
+void free_particles(Particle** particles, int N) {
+	for (int i = 0; i < N; i++)
+		Particle_free(particles[i]);
+	free(particles);
 }
 
 Particle_derivatives* Particle_derivatives_new(int index) {
@@ -99,6 +105,12 @@ Particle_derivatives* Particle_derivatives_new(int index) {
 	return particle_derivatives;
 }
 
+void Particle_derivatives_free(Particle_derivatives* particle_derivatives) {
+	free(particle_derivatives->grad_P);
+	free(particle_derivatives->lapl_v);
+	free(particle_derivatives->grad_Cs);
+	free(particle_derivatives);
+}
 void Particle_derivatives_reset(Particle_derivatives *particle_derivatives) {
 	particle_derivatives->div_v = 0;
 	xy_reset(particle_derivatives->grad_P);
@@ -107,22 +119,18 @@ void Particle_derivatives_reset(Particle_derivatives *particle_derivatives) {
 	particle_derivatives->lapl_Cs = 0;
 }
 
+void free_particles_derivatives(Particle_derivatives** particles_derivatives, int N) {
+	for (int i = 0;i < N;i++)
+		Particle_derivatives_free(particles_derivatives[i]);
+	free(particles_derivatives);
+}
+
 double Particle_get_P(Particle *particle) {	return particle->P; }
 xy * Particle_get_v(Particle *particle) { return particle->v; }
 double Particle_get_v_x(Particle *particle) { return particle->v->x; }
 double Particle_get_v_y(Particle *particle) { return particle->v->y; }
 double Particle_get_Cs(Particle *particle) { return particle->Cs; }
 
-void free_particles(Particle** particles, int N) {
-	for(int i = 0; i < N; i++) {
-		free(particles[i]->pos);
-		free(particles[i]->v);
-		List_free(particles[i]->neighborhood, NULL);
-		List_free(particles[i]->potential_neighborhood, NULL);
-		free(particles[i]);
-	}
-	free(particles);
-}
 
 Verlet* Verlet_new(double kh, double L, int T) {
 	Verlet *v = malloc(sizeof *v);
@@ -283,19 +291,6 @@ void update_neighborhoods_improved(Grid* grid) {
 
 ////////////////////////////////////////////////////
 
-// Generate N particles randomly located on [-L,L] x [-L,L]
-// Velocity, rho and e are zero.
-Particle** build_particles(int N, double L) {
-	Particle** particles = (Particle**) malloc(N*sizeof(Particle*));
-	for (int i = 0; i < N; i++) {
-		particles[i] = malloc(sizeof(Particle));
-		double x = rand_interval(-L, L);
-		double y = rand_interval(-L, L);
-		Particle_set(particles[i], x, y, 0, 0, 0, 0, i);
-	}
-	return particles;
-}
-
 // Empty the list of particles inside each Cell
 void reset_grid(Grid* grid) {
 	for(int i = 0; i < grid->nCellx; i++) {
@@ -326,4 +321,18 @@ void reset_particles(Particle** particles, int N, int iter, Verlet* verlet) {
 // Check if |p-q| <= r
 bool check_distance(xy *p, xy *q, double r) {
 	return squared(p->x - q->x) + squared(p->y - q->y) <= squared(r);
+}
+
+// Generate N particles randomly located on [-L,L] x [-L,L]
+// Velocity, rho and e are zero.
+Particle** build_particles(int N, double L) {
+	Particle** particles = (Particle**)malloc(N * sizeof(Particle*));
+	for (int i = 0; i < N; i++) {
+		double x = rand_interval(-L, L);
+		double y = rand_interval(-L, L);
+		xy* pos = xy_new(x, y);
+		xy* vel = xy_new(0, 0);
+		particles[i] = Particle_new(i, 0, pos, vel, 0, 0, 0, 0, 0, 0);
+	}
+	return particles;
 }

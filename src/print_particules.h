@@ -16,11 +16,11 @@ struct Animation {
 	bov_points_t* grid;
 };
 
-Animation* Animation_new(int N, double timeout,Grid* grid);
+Animation* Animation_new(int N, double timeout,Grid* grid,double scale);
 void Animation_free(Animation* animation);
 
 void fillData(GLfloat(*data)[8], Particle** particles, int N);
-bov_points_t * load_Grid(Grid* grid);
+bov_points_t * load_Grid(Grid* grid,double scale);
 void colormap_cell(Particle* p, float color[3]);
 void colormap_uni_color(float color[3]);
 void colormap_uni_color_2(float color[3]);

@@ -17,8 +17,10 @@ double compute_div(Particle * particle, xy_getter get, Kernel kernel, double kh)
     return div;
 }
 
-xy * compute_grad(Particle * particle, scalar_getter get, Kernel kernel, double kh) {
-    xy *grad = xy_new(0,0);
+void compute_grad(Particle * particle, scalar_getter get, Kernel kernel, double kh,xy* grad) {
+
+	double gx = 0;
+	double gy = 0;
     Particle *pi = particle;
     double fi = get(pi);
     ListNode *node = pi->neighborhood->head;
@@ -28,15 +30,14 @@ xy * compute_grad(Particle * particle, scalar_getter get, Kernel kernel, double 
         xy *grad_W = grad_kernel(pi->pos, pj->pos, kh, kernel);
         double fj = get(pj);
         //printf("Position of pj: (%lf, %lf), fj = %lf\n", pj->pos->x, pj->pos->y, fj);
-        grad->x += pi->rho * pj->m * (fi/squared(pi->rho) + fj/squared(pj->rho)) * grad_W->x; // sign is not the same as in the def...
-        grad->y += pi->rho * pj->m * (fi/squared(pi->rho) + fj/squared(pj->rho)) * grad_W->y;
+        gx += pi->rho * pj->m * (fi/squared(pi->rho) + fj/squared(pj->rho)) * grad_W->x; // sign is not the same as in the def...
+        gy += pi->rho * pj->m * (fi/squared(pi->rho) + fj/squared(pj->rho)) * grad_W->y;
         free(grad_W);
         //printf("grad = (%lf, %lf), fj = %lf\n", grad->x, grad->y, fj);
         node = node->next;
     }
-    if(grad->x != grad->x)
-        exit(0);
-    return grad;
+	grad->x = gx;
+	grad->y = gy;
 }
 
 double compute_lapl(Particle *particle, scalar_getter get, Kernel kernel, double kh) {
