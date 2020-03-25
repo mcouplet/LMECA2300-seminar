@@ -55,7 +55,7 @@ bov_points_t * load_Grid(Grid* grid,double scale)
 	bov_points_t *points = bov_points_new(data, 2 * nLines, GL_STATIC_DRAW);
 	bov_points_set_width(points, 0.005);
 	double L = grid->h*grid->nCellx;
-	bov_points_scale(points, (GLfloat[2]){0.4/L*scale, 0.4/L*scale});
+	bov_points_scale(points, (GLfloat[2]){0.8/L*scale, 0.8/L*scale});
 	//bov_points_scale(points, (GLfloat[2]) { 0.008, 0.008 });
 	free(data);
 	return points;
@@ -79,7 +79,7 @@ Animation* Animation_new(int N, double timeout,Grid* grid,double scale)
 	bov_points_set_outline_width(particles, 0.0025);
 	
 	double c = 4;
-	bov_points_scale(particles, (GLfloat[2]){0.4*c/L*scale, 0.4*c/L*scale});//0.8
+	bov_points_scale(particles, (GLfloat[2]){0.8*c/L*scale, 0.8*c/L*scale});//0.8
 	//bov_points_scale(particles, (GLfloat[2]){ 0.008, 0.008 });
 	animation->particles = particles;
 	////set-up grid////
@@ -106,8 +106,7 @@ void display_particles(Particle** particles, Animation* animation,bool end)
 // 	colours_neighbors(data, particles, N / 2);
 	animation->particles = bov_particles_update(animation->particles,data,N);
 	free(data);
-	
-	char screenshot_name[64] = "screenshot";
+
 	bov_window_t* window = animation->window;
 	double tbegin = bov_window_get_time(window);
 	if (!end){
@@ -115,7 +114,6 @@ void display_particles(Particle** particles, Animation* animation,bool end)
 			if(animation->grid != NULL)
 				bov_lines_draw(window,animation->grid,0, BOV_TILL_END);
 			bov_particles_draw(window, animation->particles, 0, BOV_TILL_END);
-// 			bov_window_screenshot(window, screenshot_name);
 			bov_window_update(window);
 		}
 	}

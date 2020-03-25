@@ -55,7 +55,7 @@ void Cell_free(Cell* cell) {
 	free(cell);
 }
 
-Particle* Particle_new(int index, double m, xy* pos, xy* v, double threshold, double XSPH_epsilon, double rho_0, double mu, double c_0, double gamma, double sigma) {
+Particle* Particle_new(int index, double m, xy* pos, xy* v, double rho_0, double mu, double c_0, double gamma, double sigma) {
 	Particle *particle = malloc(sizeof(Particle));
 	particle->index = index;
 	particle->m = m;
@@ -66,10 +66,7 @@ Particle* Particle_new(int index, double m, xy* pos, xy* v, double threshold, do
 	
 	particle->normal = xy_new(0.0,0.0);
 	particle->XSPH_correction = xy_new(0.0,0.0);
-	particle->interface_threshold = threshold;
-	particle->XSPH_epsilon = XSPH_epsilon;
 	particle->on_free_surface = false;
-	particle->detection_strategy = DIVERGENCE;
 
 	particle->param = malloc(sizeof(Physical_parameters));
 	particle->param->rho_0 = rho_0;
@@ -88,6 +85,7 @@ void Particle_free(Particle* particle) {
 	free(particle->pos);
 	free(particle->v);
 	free(particle->param);
+	free(particle->XSPH_correction);
 	List_free(particle->neighborhood, NULL);
 	List_free(particle->potential_neighborhood, NULL);
 	free(particle);
@@ -107,7 +105,6 @@ Particle_derivatives* Particle_derivatives_new(int index) {
 	particle_derivatives->lapl_v = xy_new(0,0);
 	particle_derivatives->grad_Cs = xy_new(0,0);
 	particle_derivatives->lapl_Cs = 0;
-	particle_derivatives->div_pos = 0;
 	return particle_derivatives;
 }
 
@@ -340,7 +337,7 @@ Particle** build_particles(int N, double L) {
 		double y = rand_interval(-L, L);
 		xy* pos = xy_new(x, y);
 		xy* vel = xy_new(0, 0);
-		particles[i] = Particle_new(i, 0, pos, vel, 0, 0, 0, 0, 0, 0, 0);
+		particles[i] = Particle_new(i, 0, pos, vel, 0, 0, 0, 0, 0);
 	}
 	return particles;
 }
