@@ -15,10 +15,10 @@ void script2();
 
 int main() {
 	// _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF); // comment if on Linux
-	script_csf();
+// 	script_csf();
 // 	script_csf_circle();
 // 	script_circle_to_ellipse();
-// 	script_csf_circle_paper();
+	script_csf_circle_paper();
 // 	script2();
 
 	return EXIT_SUCCESS;
@@ -205,18 +205,6 @@ void script_circle_to_ellipse() {
 	printf("N_tot = %d \n", N_tot);
 	int n_iter = (int)(T/dt); // number of iterations to perform
 	double kh = 0.2*l;// is ideal to reach t = 0.0076; // kernel width
-// 	printf("kh_old = %lf \n", kh);
-// 	double target = 21.0 / N_tot;
-// 	double tolerance = 0.0000000001;
-// 	double kh_min = 1.0;
-// 	double kh_max = sqrt(2.0);
-// 	while (fabs(kh_max - kh_min) >= tolerance) {
-// 		kh_max = kh_min;
-// 		kh_min = sqrt((target - sin(acos(1.0 / kh_min)) * kh_min) / ((M_PI / 4 - acos(1.0 / kh_min))));
-// 		printf("kh_new = %lf \n", kh_min);
-// 	}
-// 	kh = kh_min;
-// 	printf("kh_new = %lf \n", kh);
 	
 	// Animation parameter
 	double T_anim = 0.1; // duration of animation
@@ -282,27 +270,41 @@ void script_circle_to_ellipse() {
 // Smoothed Particle Hydrodynamics", Nowoghomwenma, 2018
 
 void script_csf_circle_paper() {
-
-	// Parameters of the problem
-	double l = 1e-3; // radius of the circle
+//	// Nowoghomwenma's paper
+// 	// Parameters of the problem
+// 	double l = 1e-3; // radius of the circle
+// 	double L = 2.0*l; // size of the domain: [-L,L] x [-L,L]
+// 	double dt = 0.000001; // physical time step
+// 	double T = 0.01; // duration of simulation
+// 	
+// 	// Physical parameters
+// 	double rho_0 = 1000.0; // initial (physical) density of water at 20°C (in kg/m^3)
+// 	double mu = 0.01; // dynamic viscosity of water at 20°C (in N.s/m^2)
+// 	double gamma = 7.0; // typical value for liquid (dimensionless)
+// 	double c_0 = 5.0;//5.0;//1481; // sound speed in water at 20°C (in m/s)
+// 	double sigma = 1.0; // surface tension of water-air interface at 20°C (in N/m)
+	
+	// Brackbill's paper
+  	// Parameters of the problem
+	double l = 2e-2; // radius of the circle
 	double L = 2.0*l; // size of the domain: [-L,L] x [-L,L]
-	double dt = 0.00001; // physical time step
-	double T = 0.05; // duration of simulation
+	double dt = 0.001; // physical time step
+	double T = 1.0; // duration of simulation
 	
 	// Physical parameters
 	double rho_0 = 1000.0; // initial (physical) density of water at 20°C (in kg/m^3)
-	double mu = 0.01; // dynamic viscosity of water at 20°C (in N.s/m^2)
+	double mu = 0.01;//0.01; // dynamic viscosity of water at 20°C (in N.s/m^2)
 	double gamma = 7.0; // typical value for liquid (dimensionless)
-	double c_0 = 5.0;//5.0;//1481; // sound speed in water at 20°C (in m/s)
-	double sigma = 1.0; // surface tension of water-air interface at 20°C (in N/m)
+	double c_0 = 10.0;//5.0;//1481; // sound speed in water at 20°C (in m/s)
+	double sigma = 23.61e-3; // surface tension of water-air interface at 20°C (in N/m)
 
 	// SPH parameters
 	Verlet *verlet = NULL; // don't use Verlet (for now)
 	Kernel kernel = Cubic; // kernel choice
-	double interface_threshold = 3360.0; // If ||n_i|| > threshold => particle i belongs to interface (first detection approach)
-	double XSPH_epsilon = 0.5;
-	Free_surface_detection surface_detection = CSF;
-	int N_c = 21; // number of circonferences on which points are placed
+	double interface_threshold = 1.0; // If ||n_i|| > threshold => particle i belongs to interface (first detection approach)
+	double XSPH_epsilon = 1.0;
+	Free_surface_detection surface_detection = DIVERGENCE;
+	int N_c = 11;//21; // number of circonferences on which points are placed
 	int N_p = 6; // number of points on the first circonference (doubled for every circonference)
 	int N_tot = 1; // total number of points
 	for (int i=1; i < N_c; i++) {
@@ -310,7 +312,7 @@ void script_csf_circle_paper() {
 	}
 	printf("N_tot = %d \n", N_tot);
 	int n_iter = (int)(T/dt); // number of iterations to perform
-	double kh = 0.5*l; // kernel width
+	double kh = 1.0*l; // kernel width
 
 	// Animation parameter
 	double T_anim = 10; // duration of animation
@@ -328,6 +330,7 @@ void script_csf_circle_paper() {
 	double b, delta_s, k, theta; 
 	delta_s = l / ((double)N_c - 1.0);
 	theta = (2*M_PI) / ((double)N_p);
+	double ecc = 0.6;
 	
 	int index = 0;
 	for(int i = 0; i < N_c; i++) {
@@ -344,15 +347,25 @@ void script_csf_circle_paper() {
 	    for (int j = 0; j < i*N_p; j++) {
 		k = (double) j/b;
 		xy *pos = xy_new(b*delta_s*cos(k*theta), b*delta_s*sin(k*theta));
+		if (ecc != 0.0) {
+		  pos->x *= sqrt(2.0/sin(ecc*M_PI)) * sin(0.5*ecc*M_PI);
+		  pos->y *= sqrt(2.0/sin(ecc*M_PI)) * cos(0.5*ecc*M_PI);
+		}
 		xy *v = xy_new(0.0, 0.0);
 		particles[index] = Particle_new(index, m, pos, v, interface_threshold, XSPH_epsilon, rho_0, mu, c_0, gamma, sigma);
 		particles_derivatives[index] = Particle_derivatives_new(index);
 		residuals[index] = Residual_new();
-		if (b == N_c - 1) particles[index]->on_free_surface = true; // WARNING: to be removed
+// 		if (b == N_c - 1) particles[index]->on_free_surface = true; // WARNING: to be removed
 		index++;
 	    }
 	  }
 	}
+	
+// 	//Estimate maximum admissible time step for stability
+// 	double h_p = l / sqrt(N_tot);
+// 	double safety_param = 0.8;
+// 	dt = compute_admissible_dt(safety_param, h_p, c_0, rho_0, mu, sigma);
+// 	n_iter = (int)(T/dt);
 
 	// Setup grid
 	Grid *grid = Grid_new(-L, L, -L, L, kh);
@@ -361,8 +374,8 @@ void script_csf_circle_paper() {
 	// Setup setup 
 	Setup *setup = Setup_new(n_iter, dt, kh, verlet, kernel);
 
-// 	simulate(grid, particles, particles_derivatives, residuals, N_tot, update_positions_seminar_5, setup, animation);
-	simulate(grid, particles, particles_derivatives, residuals, N_tot, update_positions_test_static_bubble, setup, animation);
+	simulate(grid, particles, particles_derivatives, residuals, N_tot, update_positions_seminar_5, setup, animation);
+// 	simulate(grid, particles, particles_derivatives, residuals, N_tot, update_positions_test_static_bubble, setup, animation);
 	
 	// Free stuff
 	free_particles(particles, N_tot);

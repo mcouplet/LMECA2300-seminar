@@ -55,6 +55,8 @@ struct Particle {
 	double rho;   //density
 	double P;     // pressure
 	double Cs;    // color field
+	xy* normal;   // normal vector
+	double kappa; // curvature
 
 	double interface_threshold; // Threshold for the detection of particles on the free surface
 	xy* XSPH_correction; // Correction on the velocity field when updating the position of the particles	
@@ -107,6 +109,7 @@ xy * Particle_get_pos(Particle *particle);
 double Particle_get_v_x(Particle *particle);
 double Particle_get_v_y(Particle *particle);
 double Particle_get_Cs(Particle *particle);
+xy * Particle_get_normal(Particle *particle);
 
 // Particle_derivatives
 Particle_derivatives* Particle_derivatives_new(int index);

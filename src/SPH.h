@@ -44,4 +44,8 @@ void compute_XSPH_correction(Particle *particle, Kernel kernel, double kh);
 
 void assemble_residual_NS_test(Particle* particle, Particle_derivatives* particle_derivatives, Residual* residual, double radius_circle);
 
+double compute_admissible_dt(double safety_param, double h_p, double c_0, double rho_0, double mu, double sigma);
+
+void compute_normal(Particle *particle, Particle_derivatives* particle_derivatives);
+
 #endif

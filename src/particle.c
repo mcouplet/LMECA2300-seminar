@@ -62,8 +62,9 @@ Particle* Particle_new(int index, double m, xy* pos, xy* v, double threshold, do
 	particle->pos = pos;
 	particle->rho = rho_0;
 	particle->v = v;
-	particle->P = 0; // assuming that the fluid is at rest (P is the dynamic pressure and not the absolute one!)
+	particle->P = 0.0; // assuming that the fluid is at rest (P is the dynamic pressure and not the absolute one!)
 	
+	particle->normal = xy_new(0.0,0.0);
 	particle->XSPH_correction = xy_new(0.0,0.0);
 	particle->interface_threshold = threshold;
 	particle->XSPH_epsilon = XSPH_epsilon;
@@ -136,6 +137,7 @@ xy * Particle_get_pos(Particle *particle) { return particle->pos; }
 double Particle_get_v_x(Particle *particle) { return particle->v->x; }
 double Particle_get_v_y(Particle *particle) { return particle->v->y; }
 double Particle_get_Cs(Particle *particle) { return particle->Cs; }
+xy * Particle_get_normal(Particle *particle) { return particle->normal; }
 
 
 Verlet* Verlet_new(double kh, double L, int T) {

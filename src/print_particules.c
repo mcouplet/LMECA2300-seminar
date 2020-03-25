@@ -5,6 +5,13 @@ void colormap_Cs(Particle *p, float color[3]);
 // Fills data with particle data
 void fillData(GLfloat(*data)[8], Particle** particles, int N) {
 // 	float rmax = 100.0*sqrtf(2.0f);
+	double max_norm_fs = 0.0;
+	double fs_norm_local;
+	for (int i = 0; i < N; i++) {
+	    xy* fs = xy_new(-particles[i]->param->sigma * particles[i]->normal->x * particles[i]->kappa, -particles[i]->param->sigma * particles[i]->normal->y * particles[i]->kappa);
+	    fs_norm_local = norm(fs);
+	    if (fs_norm_local > max_norm_fs) max_norm_fs = fs_norm_local;
+	}
 	for (int i = 0; i < N; i++) {
 		Particle* p = particles[i];
 		data[i][0] = p->pos->x;
@@ -14,11 +21,13 @@ void fillData(GLfloat(*data)[8], Particle** particles, int N) {
 		// colormap_cell(p, &data[i][4]); // fill color
 // 		colormap_Cs(p, &data[i][4]); // fill color
 		if (p->on_free_surface) {
-		  colormap_uni_color_2(&data[i][4]);
+// 		  colormap_uni_color_2(&data[i][4]);
+		  colormap_fs(p, &data[i][4], max_norm_fs);
 		}
 		else {
 		  colormap_uni_color(&data[i][4]);
 		}
+		
 		data[i][7] = 0.8f; // transparency
 	}
 }
@@ -46,7 +55,7 @@ bov_points_t * load_Grid(Grid* grid,double scale)
 	bov_points_t *points = bov_points_new(data, 2 * nLines, GL_STATIC_DRAW);
 	bov_points_set_width(points, 0.005);
 	double L = grid->h*grid->nCellx;
-	bov_points_scale(points, (GLfloat[2]){0.8/L*scale, 0.8/L*scale});
+	bov_points_scale(points, (GLfloat[2]){0.4/L*scale, 0.4/L*scale});
 	//bov_points_scale(points, (GLfloat[2]) { 0.008, 0.008 });
 	free(data);
 	return points;
@@ -70,7 +79,7 @@ Animation* Animation_new(int N, double timeout,Grid* grid,double scale)
 	bov_points_set_outline_width(particles, 0.0025);
 	
 	double c = 4;
-	bov_points_scale(particles, (GLfloat[2]){0.8*c/L*scale, 0.8*c/L*scale});//0.8
+	bov_points_scale(particles, (GLfloat[2]){0.4*c/L*scale, 0.4*c/L*scale});//0.8
 	//bov_points_scale(particles, (GLfloat[2]){ 0.008, 0.008 });
 	animation->particles = particles;
 	////set-up grid////
@@ -97,7 +106,8 @@ void display_particles(Particle** particles, Animation* animation,bool end)
 // 	colours_neighbors(data, particles, N / 2);
 	animation->particles = bov_particles_update(animation->particles,data,N);
 	free(data);
-
+	
+	char screenshot_name[64] = "screenshot";
 	bov_window_t* window = animation->window;
 	double tbegin = bov_window_get_time(window);
 	if (!end){
@@ -105,6 +115,7 @@ void display_particles(Particle** particles, Animation* animation,bool end)
 			if(animation->grid != NULL)
 				bov_lines_draw(window,animation->grid,0, BOV_TILL_END);
 			bov_particles_draw(window, animation->particles, 0, BOV_TILL_END);
+// 			bov_window_screenshot(window, screenshot_name);
 			bov_window_update(window);
 		}
 	}
@@ -145,7 +156,7 @@ void colormap_cell(Particle* p, float color[3]) {
 
 void colormap_uni_color(float color[3])
 {
-	color[0] = 20;color[1] = 0;color[2] = 0;
+	color[0] = 0;color[1] = 10;color[2] = 20;
 
 }
 
@@ -157,6 +168,14 @@ void colormap_Cs(Particle *p, float color[3]) {
 	color[0] = 20*squared(p->Cs);
 	color[1] = 0;
 	color[2] = 20*squared(1.0-p->Cs);
+}
+
+void colormap_fs(Particle *p, float color[3], double max_norm) {
+	xy* fs = xy_new(-p->param->sigma * p->normal->x * p->kappa, -p->param->sigma * p->normal->y * p->kappa);
+// 	double fs_norm = 1.0;//norm(fs);
+	color[0] = 10*squared(fs->x/max_norm) + 10*squared(fs->y/max_norm);
+	color[1] = 0.0;
+	color[2] = 0.0;//20*squared(fs->y/max_norm);
 }
 
 void colours_neighbors(GLfloat(*data)[8], Particle** particles, int index)
