@@ -53,6 +53,11 @@ double eval_Quintic_kernel(double q, double h) {
 	else return 0;
 }
 
+double derivative_Cubic_kernel(double q, double h);
+double derivative_Lucy_kernel(double q, double h);
+double derivative_NewQuartic_kernel(double q, double h);
+double derivative_Quintic_kernel(double q, double h);
+
 // everything here should be double checked because there are still problems with signs
  xy* grad_kernel(xy* p1, xy* p2, double kh, Kernel kernel) {
 	double d = sqrt(pow(p1->x - p2->x, 2) + pow(p1->y - p2->y, 2));

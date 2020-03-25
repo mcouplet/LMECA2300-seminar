@@ -14,12 +14,7 @@ typedef struct Particle Particle;
 typedef struct Particle_derivatives Particle_derivatives;
 typedef struct Physical_parameters Physical_parameters;
 typedef struct Verlet Verlet;
-typedef enum Free_surface_detection Free_surface_detection;
 
-enum Free_surface_detection {
-    CSF = 1,
-    DIVERGENCE = 2
-};
 
 struct Cell {
 	int i,j;
@@ -52,15 +47,12 @@ struct Particle {
 	double m;     // mass
 	xy* pos;      // position
 	xy* v;        // velocity
-	double rho;   //density
+	double rho;   // density
 	double P;     // pressure
 	double Cs;    // color field
 
-	double interface_threshold; // Threshold for the detection of particles on the free surface
 	xy* XSPH_correction; // Correction on the velocity field when updating the position of the particles	
-	double XSPH_epsilon; // Parameter between 0 and 1 multiplying the XSPH correction
 	bool on_free_surface; // boolean to know if particles is on the free surface (used for visualization)
-	Free_surface_detection detection_strategy; // Strategy to estimate if a particle should be considered on the free surface or not
 	
 	Physical_parameters* param; // physical parameters associated to the particle
 
@@ -76,10 +68,7 @@ struct Particle_derivatives {
 	xy *lapl_v;
 	xy *grad_Cs;
 	double lapl_Cs;
-	double div_pos;
 };
-
-
 
 struct Verlet {
 	bool verlet;
@@ -88,8 +77,6 @@ struct Verlet {
 	int T;
 };
 
-
-
 // Grid
 void Cell_free(Cell* cell); // Cell destructor
 
@@ -97,7 +84,7 @@ Grid* Grid_new(double x1, double x2, double y1, double y2, double kh); // Grid c
 void Grid_free(Grid* grid); // Grid destructor
 
 // Particle
-Particle* Particle_new(int index, double m, xy* pos, xy* v,  double threshold, double XSPH_epsilon, double rho_0, double mu, double c_0, double gamma, double sigma); // Particle constructor
+Particle* Particle_new(int index, double m, xy* pos, xy* v, double rho_0, double mu, double c_0, double gamma, double sigma); // Particle constructor
 void Particle_free(Particle* particle);
 void free_particles(Particle** particles, int N);
 

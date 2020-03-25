@@ -12,13 +12,13 @@ void fillData(GLfloat(*data)[8], Particle** particles, int N) {
 		data[i][2] = p->v->x;
 		data[i][3] = p->v->y;
 		// colormap_cell(p, &data[i][4]); // fill color
-// 		colormap_Cs(p, &data[i][4]); // fill color
+ 		colormap_Cs(p, &data[i][4]); // fill color
 		if (p->on_free_surface) {
 		  colormap_uni_color_2(&data[i][4]);
 		}
-		else {
+		/*else {
 		  colormap_uni_color(&data[i][4]);
-		}
+		}*/
 		data[i][7] = 0.8f; // transparency
 	}
 }

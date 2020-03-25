@@ -14,12 +14,12 @@ void script1();
 void script2();
 
 int main() {
-	// _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF); // comment if on Linux
+	//_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF); // comment if on Linux
 	script_csf();
-// 	script_csf_circle();
-// 	script_circle_to_ellipse();
-// 	script_csf_circle_paper();
-// 	script2();
+	//script_csf_circle();
+	//script_circle_to_ellipse();
+	//script_csf_circle_paper();
+	//script1();
 
 	return EXIT_SUCCESS;
 }
@@ -35,22 +35,21 @@ void script_csf() {
 	// double T = dt; // duration of simulation
 
 	// Physical parameters
-	double rho_0 = 998.0; // initial (physical) density of water at 20째C (in kg/m^3)
-	double mu = 1.0016e-3; // dynamic viscosity of water at 20째C (in N.s/m^2)
+	double rho_0 = 998.0; // initial (physical) density of water at 20캜 (in kg/m^3)
+	double mu = 1.0016e-3; // dynamic viscosity of water at 20캜 (in N.s/m^2)
 	double gamma = 7; // typical value for liquid (dimensionless)
-	double c_0 = 1.0;//1481; // sound speed in water at 20째C (in m/s)
-	double sigma = 72.86e-3; // surface tension of water-air interface at 20째C (in N/m)
+	double c_0 = 1.0;//1481; // sound speed in water at 20캜 (in m/s)
+	double sigma = 72.86e-3; // surface tension of water-air interface at 20캜 (in N/m)
 
 	// SPH parameters
 	int n_per_dim = 101; // number of particles per dimension
-	double kh = sqrt(21)*2*l/n_per_dim; // kernel width to ensure 21 particles in the neighborhood
-	int n_iter = (int)(T/dt); // number of iterations to perform
+	double kh = sqrt(21) * 2 * l / n_per_dim; // kernel width to ensure 21 particles in the neighborhood
+	int n_iter = (int)(T / dt); // number of iterations to perform
 	Kernel kernel = Cubic; // kernel choice
-	double interface_threshold = 1.5;//20; // If ||n_i|| > threshold => particle i belongs to interface (first detection approach)
 	Verlet *verlet = NULL; // don't use Verlet (for now)
+	Free_surface_detection surface_detection = DIVERGENCE;//CSF / DIVERGENCE / NONE
+	double interface_threshold = 1.5;//20 / 1.5; 
 	double XSPH_epsilon = 0.5;
-	Free_surface_detection surface_detection = DIVERGENCE;
-
 
 	printf("n_iter = %d\n", n_iter);
 
@@ -60,18 +59,18 @@ void script_csf() {
 
 	// Initialize particles on a square
 	int n_p = squared(n_per_dim); // total number of particles
-	double h = 2*l / (n_per_dim-1); // step between neighboring particles
+	double h = 2 * l / (n_per_dim - 1); // step between neighboring particles
 	double m = rho_0 * h*h;
 
-	Particle** particles = (Particle**) malloc(n_p*sizeof(Particle*));
+	Particle** particles = (Particle**)malloc(n_p * sizeof(Particle*));
 	Particle_derivatives** particles_derivatives = malloc(n_p * sizeof(Particle_derivatives*));
 	Residual** residuals = malloc(n_p * sizeof(Residual*));
-	for(int i = 0; i < n_per_dim; i++) {
-		for(int j = 0; j < n_per_dim; j++) {
-			int index = i*n_per_dim + j;
-			xy *pos = xy_new(-l+i*h, -l+j*h);
+	for (int i = 0; i < n_per_dim; i++) {
+		for (int j = 0; j < n_per_dim; j++) {
+			int index = i * n_per_dim + j;
+			xy *pos = xy_new(-l + i * h, -l + j * h);
 			xy *v = xy_new(0, 0); // initial velocity = 0
-			particles[index] = Particle_new(index, m, pos, v, interface_threshold, XSPH_epsilon, rho_0, mu, c_0, gamma, sigma);
+			particles[index] = Particle_new(index, m, pos, v, rho_0, mu, c_0, gamma, sigma);
 			particles_derivatives[index] = Particle_derivatives_new(index);
 			residuals[index] = Residual_new();
 		}
@@ -80,10 +79,10 @@ void script_csf() {
 	// Setup grid
 	Grid *grid = Grid_new(-L, L, -L, L, kh);
 	// Setup setup
-	Setup *setup = Setup_new(n_iter, dt, kh, verlet, kernel);
+	Setup *setup = Setup_new(n_iter, dt, kh, verlet, kernel, surface_detection, interface_threshold, XSPH_epsilon);
 	// Setup animation
-	Animation *animation = Animation_new(n_p, dt_anim, grid,1);
-	
+	Animation *animation = Animation_new(n_p, dt_anim, grid, 1);
+
 	// Start simulation
 	simulate(grid, particles, particles_derivatives, residuals, n_p, update_positions_seminar_5, setup, animation);
 
@@ -108,44 +107,43 @@ void script_csf_circle() {
 	double kh = 0.1*L; // kernel width
 	double dt = 1.0; // physical time step
 	double dt_anim = 0.001; // time step for animation
-	int n_iter = 2000; // number of iterations to perform
+	int n_iter = 2; // number of iterations to perform
 	Verlet *verlet = NULL; // don't use Verlet (for now)
 	Kernel kernel = Cubic; // kernel choice
-	double interface_threshold = 0.08; // If ||n_i|| > threshold => particle i belongs to interface (first detection approach)
-	double XSPH_epsilon = 0.5;
+	double interface_threshold = 0.08; 
 	Free_surface_detection surface_detection = CSF;
+	double XSPH_epsilon = 0.5;
 
 	// Physical parameters
-	double rho_0 = 998.0; // initial (physical) density of water at 20째C (in kg/m^3)
-	double mu = 1.0016e-3; // dynamic viscosity of water at 20째C (in N.s/m^2)
+	double rho_0 = 998.0; // initial (physical) density of water at 20캜 (in kg/m^3)
+	double mu = 1.0016e-3; // dynamic viscosity of water at 20캜 (in N.s/m^2)
 	double gamma = 7.0; // typical value for liquid (dimensionless)
-	double c_0 = 1.0;//1481; // sound speed in water at 20째C (in m/s)
-	double sigma = 72.86e-3; // surface tension of water-air interface at 20째C (in N/m)
+	double c_0 = 1.0;//1481; // sound speed in water at 20캜 (in m/s)
+	double sigma = 72.86e-3; // surface tension of water-air interface at 20캜 (in N/m)
 
 	// Initialize particles in a circle
 	int n_p = squared(n_per_dim); // total number of particles
-	double h = 2*l / (n_per_dim-1); // step between neighboring particles
+	double h = 2 * l / (n_per_dim - 1); // step between neighboring particles
 	double m = rho_0 * M_PI * l * l / n_p;
 	double deltat_max = 0.25 * h / c_0;
-// 	printf(">>>>>>>>>>>>>> deltat_max = %2.6f \n", deltat_max);
-	
-	Particle** particles = (Particle**) malloc(n_p*sizeof(Particle*));
+	// 	printf(">>>>>>>>>>>>>> deltat_max = %2.6f \n", deltat_max);
+
+	Particle** particles = (Particle**)malloc(n_p * sizeof(Particle*));
 	Particle_derivatives** particles_derivatives = malloc(n_p * sizeof(Particle_derivatives*));
 	Residual** residuals = (Residual**)malloc(n_p * sizeof(Residual*));
-	
+
 	int k = 0;
 	int alpha = 2;
 	int nb = (int)(alpha*n_per_dim);
-	for(int i = 0; i < n_per_dim; i++) {
-		for(int j = 0; j < n_per_dim; j++) {
-			int index = i*n_per_dim + j;
+	for (int i = 0; i < n_per_dim; i++) {
+		for (int j = 0; j < n_per_dim; j++) {
+			int index = i * n_per_dim + j;
 			xy *pos = generate_circle(k, n_p, nb, l);
-// 			xy *pos_circle = map_to_circle(pos);
-// 			pos->x = pos_circle->x;
-// 			pos->y = pos_circle->y;
+			// 			xy *pos_circle = map_to_circle(pos);
+			// 			pos->x = pos_circle->x;
+			// 			pos->y = pos_circle->y;
 			xy *v = xy_new(0, 0); // initial velocity = 0
-			//xy *v = xy_new(pos->x/10000, pos->y/10000); // initial velocity = 0
-			particles[index] = Particle_new(index, m, pos, v, interface_threshold, XSPH_epsilon, rho_0, mu, c_0, gamma, sigma);
+			particles[index] = Particle_new(index, m, pos, v, rho_0, mu, c_0, gamma, sigma);
 			particles_derivatives[index] = Particle_derivatives_new(index);
 			residuals[index] = Residual_new();
 			k++;
@@ -156,9 +154,9 @@ void script_csf_circle() {
 	// Setup grid
 	Grid *grid = Grid_new(-L, L, -L, L, kh);
 	// Setup animation
-	Animation *animation = Animation_new(n_p, dt_anim, grid,1);
+	Animation *animation = Animation_new(n_p, dt_anim, grid, 1);
 	// Setup setup
-	Setup *setup = Setup_new(n_iter, dt, kh, verlet, kernel);
+	Setup *setup = Setup_new(n_iter, dt, kh, verlet, kernel, surface_detection, interface_threshold, XSPH_epsilon);
 
 	// Start simulation
 	simulate(grid, particles, particles_derivatives, residuals, n_p, update_positions_seminar_5, setup, animation);
@@ -182,28 +180,28 @@ void script_circle_to_ellipse() {
 	double L = 2.0*l; // size of the domain: [-L,L] x [-L,L]
 	double dt = 1.0e-5; // physical time step
 	double T = 0.0076; // duration of simulation
-	
+
 	// Physical parameters
-	double rho_0 = 1000.0; // initial (physical) density of water at 20째C (in kg/m^3)
-	double mu = 1.0016e-3; // dynamic viscosity of water at 20째C (in N.s/m^2)
+	double rho_0 = 1000.0; // initial (physical) density of water at 20캜 (in kg/m^3)
+	double mu = 1.0016e-3; // dynamic viscosity of water at 20캜 (in N.s/m^2)
 	double gamma = 7.0; // typical value for liquid (dimensionless)
-	double c_0 = 1400.0;//1481; // sound speed in water at 20째C (in m/s)
-	double sigma = 0.0; // surface tension of water-air interface at 20째C (in N/m)
-	
+	double c_0 = 1400.0;//1481; // sound speed in water at 20캜 (in m/s)
+	double sigma = 0.0; // surface tension of water-air interface at 20캜 (in N/m)
+
 	// SPH parameters
 	Verlet *verlet = NULL; // don't use Verlet (for now)
 	Kernel kernel = Cubic; // kernel choice
-	double interface_threshold = 1.5;//1000.0; // If ||n_i|| > threshold => particle i belongs to interface (first detection approach)
-	double XSPH_epsilon = 0.5;
 	Free_surface_detection surface_detection = DIVERGENCE;
+	double interface_threshold = 1.5;//1000.0;
+	double XSPH_epsilon = 0.5;
 	int N_c = 30; // number of circonferences on which points are placed
 	int N_p = 6; // number of points on the first circonference (doubled for every circonference)
 	int N_tot = 1; // total number of points
-	for (int i=1; i < N_c; i++) {
-	  N_tot += i*N_p;
+	for (int i = 1; i < N_c; i++) {
+		N_tot += i * N_p;
 	}
 	printf("N_tot = %d \n", N_tot);
-	int n_iter = (int)(T/dt); // number of iterations to perform
+	int n_iter = (int)(T / dt); // number of iterations to perform
 	double kh = 0.2*l;// is ideal to reach t = 0.0076; // kernel width
 // 	printf("kh_old = %lf \n", kh);
 // 	double target = 21.0 / N_tot;
@@ -217,7 +215,7 @@ void script_circle_to_ellipse() {
 // 	}
 // 	kh = kh_min;
 // 	printf("kh_new = %lf \n", kh);
-	
+
 	// Animation parameter
 	double T_anim = 0.1; // duration of animation
 	double dt_anim = T_anim / n_iter; // time step of animation
@@ -225,46 +223,46 @@ void script_circle_to_ellipse() {
 	// Initialize particles in a circle
 	double m = rho_0 * M_PI * l * l / N_tot; // mass of each particle
 
-	Particle** particles = (Particle**) malloc(N_tot*sizeof(Particle*));
+	Particle** particles = (Particle**)malloc(N_tot * sizeof(Particle*));
 	Particle_derivatives** particles_derivatives = malloc(N_tot * sizeof(Particle_derivatives*));
 	Residual** residuals = malloc(N_tot * sizeof(Residual*));
-	
+
 	// parameters defining the circle
-	double b, delta_s, k, theta; 
+	double b, delta_s, k, theta;
 	delta_s = l / ((double)N_c - 1.0);
-	theta = (2*M_PI) / ((double)N_p);
-	
+	theta = (2 * M_PI) / ((double)N_p);
+
 	int index = 0;
-	for(int i = 0; i < N_c; i++) {
-	  b = i;
-	  if (b==0) {
-	    xy *pos = xy_new(0.0, 0.0);
-	    xy *v = xy_new(0.0, 0.0);
-	    particles[index] = Particle_new(index, m, pos, v, interface_threshold, XSPH_epsilon, rho_0, mu, c_0, gamma, sigma);
-	    particles_derivatives[index] = Particle_derivatives_new(index);
-	    residuals[index] = Residual_new();
-	    index++;
-	  }
-	  else {
-	    for (int j = 0; j < i*N_p; j++) {
-		k = (double) j/b;
-		xy *pos = xy_new(b*delta_s*cos(k*theta), b*delta_s*sin(k*theta));
-		xy *v = xy_new(-100.0*pos->x, 100.0*pos->y);
-		particles[index] = Particle_new(index, m, pos, v, interface_threshold, XSPH_epsilon, rho_0, mu, c_0, gamma, sigma);
-		particles_derivatives[index] = Particle_derivatives_new(index);
-		residuals[index] = Residual_new();
-		index++;
-	    }
-	  }
+	for (int i = 0; i < N_c; i++) {
+		b = i;
+		if (b == 0) {
+			xy *pos = xy_new(0.0, 0.0);
+			xy *v = xy_new(0.0, 0.0);
+			particles[index] = Particle_new(index, m, pos, v, rho_0, mu, c_0, gamma, sigma);
+			particles_derivatives[index] = Particle_derivatives_new(index);
+			residuals[index] = Residual_new();
+			index++;
+		}
+		else {
+			for (int j = 0; j < i*N_p; j++) {
+				k = (double)j / b;
+				xy *pos = xy_new(b*delta_s*cos(k*theta), b*delta_s*sin(k*theta));
+				xy *v = xy_new(-100.0*pos->x, 100.0*pos->y);
+				particles[index] = Particle_new(index, m, pos, v, rho_0, mu, c_0, gamma, sigma);
+				particles_derivatives[index] = Particle_derivatives_new(index);
+				residuals[index] = Residual_new();
+				index++;
+			}
+		}
 	}
 
 
 	// Setup grid
 	Grid *grid = Grid_new(-L, L, -L, L, kh);
 	// Setup animation
-	Animation *animation = Animation_new(N_tot, dt_anim, grid,1);
+	Animation *animation = Animation_new(N_tot, dt_anim, grid, 1);
 	// Setup setup
-	Setup *setup = Setup_new(n_iter, dt, kh,verlet, kernel);
+	Setup *setup = Setup_new(n_iter, dt, kh, verlet, kernel, surface_detection, interface_threshold, XSPH_epsilon);
 
 	// Start simulation
 	simulate(grid, particles, particles_derivatives, residuals, N_tot, update_positions_ellipse, setup, animation);
@@ -288,82 +286,82 @@ void script_csf_circle_paper() {
 	double L = 2.0*l; // size of the domain: [-L,L] x [-L,L]
 	double dt = 0.00001; // physical time step
 	double T = 0.05; // duration of simulation
-	
+
 	// Physical parameters
-	double rho_0 = 1000.0; // initial (physical) density of water at 20째C (in kg/m^3)
-	double mu = 0.01; // dynamic viscosity of water at 20째C (in N.s/m^2)
+	double rho_0 = 1000.0; // initial (physical) density of water at 20캜 (in kg/m^3)
+	double mu = 0.01; // dynamic viscosity of water at 20캜 (in N.s/m^2)
 	double gamma = 7.0; // typical value for liquid (dimensionless)
-	double c_0 = 5.0;//5.0;//1481; // sound speed in water at 20째C (in m/s)
-	double sigma = 1.0; // surface tension of water-air interface at 20째C (in N/m)
+	double c_0 = 5.0;//5.0;//1481; // sound speed in water at 20캜 (in m/s)
+	double sigma = 1.0; // surface tension of water-air interface at 20캜 (in N/m)
 
 	// SPH parameters
 	Verlet *verlet = NULL; // don't use Verlet (for now)
 	Kernel kernel = Cubic; // kernel choice
-	double interface_threshold = 3360.0; // If ||n_i|| > threshold => particle i belongs to interface (first detection approach)
-	double XSPH_epsilon = 0.5;
 	Free_surface_detection surface_detection = CSF;
+	double interface_threshold = 3360.0;
+	double XSPH_epsilon = 0.5;
 	int N_c = 21; // number of circonferences on which points are placed
 	int N_p = 6; // number of points on the first circonference (doubled for every circonference)
 	int N_tot = 1; // total number of points
-	for (int i=1; i < N_c; i++) {
-	  N_tot += i*N_p;
+	for (int i = 1; i < N_c; i++) {
+		N_tot += i * N_p;
 	}
 	printf("N_tot = %d \n", N_tot);
-	int n_iter = (int)(T/dt); // number of iterations to perform
+	int n_iter = (int)(T / dt); // number of iterations to perform
 	double kh = 0.5*l; // kernel width
 
 	// Animation parameter
 	double T_anim = 10; // duration of animation
 	double dt_anim = T_anim / n_iter; // time step of animation
-	
-	
+
+
 	// Initialize particles in a circle
 	double m = rho_0 * M_PI * l * l / N_tot; // mass of each particle
 
-	Particle** particles = (Particle**) malloc(N_tot*sizeof(Particle*));
+	Particle** particles = (Particle**)malloc(N_tot * sizeof(Particle*));
 	Particle_derivatives** particles_derivatives = malloc(N_tot * sizeof(Particle_derivatives*));
 	Residual** residuals = malloc(N_tot * sizeof(Residual*));
-	
+
 	// parameters defining the circle
-	double b, delta_s, k, theta; 
+	double b, delta_s, k, theta;
 	delta_s = l / ((double)N_c - 1.0);
-	theta = (2*M_PI) / ((double)N_p);
-	
+	theta = (2 * M_PI) / ((double)N_p);
+
 	int index = 0;
-	for(int i = 0; i < N_c; i++) {
-	  b = i;
-	  if (b==0) {
-	    xy *pos = xy_new(0.0, 0.0);
-	    xy *v = xy_new(0.0, 0.0);
-	    particles[index] = Particle_new(index, m, pos, v, interface_threshold, XSPH_epsilon, rho_0, mu, c_0, gamma, sigma);
-	    particles_derivatives[index] = Particle_derivatives_new(index);
-	    residuals[index] = Residual_new();
-	    index++;
-	  }
-	  else {
-	    for (int j = 0; j < i*N_p; j++) {
-		k = (double) j/b;
-		xy *pos = xy_new(b*delta_s*cos(k*theta), b*delta_s*sin(k*theta));
-		xy *v = xy_new(0.0, 0.0);
-		particles[index] = Particle_new(index, m, pos, v, interface_threshold, XSPH_epsilon, rho_0, mu, c_0, gamma, sigma);
-		particles_derivatives[index] = Particle_derivatives_new(index);
-		residuals[index] = Residual_new();
-		if (b == N_c - 1) particles[index]->on_free_surface = true; // WARNING: to be removed
-		index++;
-	    }
-	  }
+	for (int i = 0; i < N_c; i++) {
+		b = i;
+		if (b == 0) {
+			xy *pos = xy_new(0.0, 0.0);
+			xy *v = xy_new(0.0, 0.0);
+			particles[index] = Particle_new(index, m, pos, v, rho_0, mu, c_0, gamma, sigma);
+			particles_derivatives[index] = Particle_derivatives_new(index);
+			residuals[index] = Residual_new();
+			index++;
+		}
+		else {
+			for (int j = 0; j < i*N_p; j++) {
+				k = (double)j / b;
+				xy *pos = xy_new(b*delta_s*cos(k*theta), b*delta_s*sin(k*theta));
+				xy *v = xy_new(0.0, 0.0);
+				particles[index] = Particle_new(index, m, pos, v, rho_0, mu, c_0, gamma, sigma);
+				particles_derivatives[index] = Particle_derivatives_new(index);
+				residuals[index] = Residual_new();
+				if (b == N_c - 1) particles[index]->on_free_surface = true; // WARNING: to be removed
+				index++;
+			}
+		}
 	}
 
 	// Setup grid
 	Grid *grid = Grid_new(-L, L, -L, L, kh);
 	// Setup animation
-	Animation *animation = Animation_new(N_tot, dt_anim, grid,1);
+	Animation *animation = Animation_new(N_tot, dt_anim, grid, 1);
 	// Setup setup 
-	Setup *setup = Setup_new(n_iter, dt, kh, verlet, kernel);
+	Setup *setup = Setup_new(n_iter, dt, kh, verlet, kernel, surface_detection, interface_threshold, XSPH_epsilon);
 
-// 	simulate(grid, particles, particles_derivatives, residuals, N_tot, update_positions_seminar_5, setup, animation);
+	// 	simulate(grid, particles, particles_derivatives, residuals, N_tot, update_positions_seminar_5, setup, animation);
 	simulate(grid, particles, particles_derivatives, residuals, N_tot, update_positions_test_static_bubble, setup, animation);
-	
+
 	// Free stuff
 	free_particles(particles, N_tot);
 	free_particles_derivatives(particles_derivatives, N_tot);
@@ -382,9 +380,10 @@ void script1() {
 	double timestep = 1;
 	Verlet* verlet = NULL;
 	Grid* grid = Grid_new(-100, 100, -100, 100, kh);
-	Animation* animation = Animation_new(n_p, 0.05, grid,1);
+	Animation* animation = Animation_new(n_p, 0.05, grid, 1);
 	Kernel kernel = Cubic;
-	Setup* setup = Setup_new(50, timestep, kh,verlet, kernel);
+	Setup *setup = Setup_new(50, timestep, kh, verlet, kernel, NONE, 0, 0);
+
 
 	simulate(grid, particles, NULL, NULL, n_p, random_moves, setup, animation);
 	free_particles(particles, n_p);
@@ -406,9 +405,9 @@ void script2() {
 
 
 	Grid* grid = Grid_new(-100, 100, -100, 100, kh + L);
-	Animation* animation = Animation_new(n_p, 0.2, grid,1);
+	Animation* animation = Animation_new(n_p, 0.2, grid, 1);
 	Kernel kernel = Cubic;
-	Setup* setup = Setup_new(50, timestep,kh, verlet, kernel);
+	Setup *setup = Setup_new(50, timestep, kh, verlet, kernel, NONE, 0, 0);
 
 	simulate(grid, particles, NULL, NULL, n_p, random_moves, setup, animation);
 	free_particles(particles, n_p);
