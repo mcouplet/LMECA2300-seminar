@@ -63,7 +63,7 @@ Particle* Particle_new(int index, double m, xy* pos, xy* v, double rho_0, double
 	particle->rho = rho_0;
 	particle->v = v;
 	particle->P = 0.0; // assuming that the fluid is at rest (P is the dynamic pressure and not the absolute one!)
-	
+
 	particle->normal = xy_new(0.0,0.0);
 	particle->XSPH_correction = xy_new(0.0,0.0);
 	particle->on_free_surface = false;
@@ -149,7 +149,7 @@ Cell* localize_particle(Grid *grid, Particle *p) {
 	int i = floor((p->pos->x - grid->left) / grid->h);
 	int j = floor((p->pos->y - grid->bottom) / grid->h);
 	if(i < 0 || i >= grid->nCellx || j < 0 || j >= grid->nCelly) {
-		fprintf(stderr, "ERROR: Particle is outside the grid :(\n");
+		fprintf(stderr, "ERROR: Particle (%lf, %lf) is outside the grid :(\n", p->pos->x, p->pos->y);
 		exit(0);
 	}
 	return grid->cells[i][j];

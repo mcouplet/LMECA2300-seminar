@@ -48,7 +48,7 @@ void update_positions_test_static_bubble(Grid* grid, Particle** particles, Parti
 
 void compute_Cs(Particle *particle, Kernel kernel, double kh);
 void assemble_residual_NS(Particle* particle, Particle_derivatives* Particle_derivatives, Residual* residual, Setup* setup);
-void time_integrate(Particle* particle, Residual* residual, double delta_t);
+void time_integrate(Particle* particle, Residual* residual, double delta_t, double kh, Kernel kernel);
 
 void compute_XSPH_correction(Particle *particle, Kernel kernel, double kh,double epsilon);
 
