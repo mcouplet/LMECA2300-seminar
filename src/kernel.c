@@ -53,6 +53,11 @@ double eval_Quintic_kernel(double q, double h) {
 	else return 0;
 }
 
+// double eval_Wendland_kernel(double q, double h) {
+//     if(q <= 3) return (7/(144*M_PI*h*h)) * pow(2-2*q/3, 4) * (1+4*q/3);
+//     else return 0;
+// }
+
 double derivative_Cubic_kernel(double q, double h);
 double derivative_Lucy_kernel(double q, double h);
 double derivative_NewQuartic_kernel(double q, double h);
@@ -60,6 +65,8 @@ double derivative_Quintic_kernel(double q, double h);
 
 // everything here should be double checked because there are still problems with signs
  xy* grad_kernel(xy* p1, xy* p2, double kh, Kernel kernel) {
+     if(p1->x == p2->x && p1->y == p2->y) return xy_new(0,0);
+
 	double d = sqrt(pow(p1->x - p2->x, 2) + pow(p1->y - p2->y, 2));
     double d_x = p1->x-p2->x;
     double d_y = p1->y-p2->y;

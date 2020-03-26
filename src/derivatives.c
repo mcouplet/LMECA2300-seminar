@@ -9,7 +9,7 @@ double compute_div(Particle * particle, xy_getter get, Kernel kernel, double kh)
         Particle *pj = node->v;
         xy *grad_W = grad_kernel(pi->pos, pj->pos, kh, kernel);
         xy *fj = get(pj);
-        div += (pj->m / pi->rho) *
+        div += (pj->m / pj->rho) * // NOTE THAT THE DENSITY OF J IS USED, ACCORDING TO (26)
             ((fj->x - fi->x) * grad_W->x + (fj->y - fi->y) * grad_W->y);
         free(grad_W);
         node = node->next;
@@ -52,7 +52,7 @@ double compute_lapl(Particle *particle, scalar_getter get, Kernel kernel, double
         double d2 = squared(pi->pos->x - pj->pos->x) + squared(pi->pos->y - pj->pos->y); // squared distance between particles
 //         xy *DXij = xy_new((pi->pos->x - pj->pos->x) / d2, (pi->pos->y - pj->pos->y) / d2); // Delta X_{ij}
         xy *DXij = xy_new((pj->pos->x - pi->pos->x) / d2, (pj->pos->y - pi->pos->y) / d2); // WARNING
-        lapl += 2 * pj->m / pj->rho * (fi - fj) * (DXij->x * grad_W->x + DXij->y * grad_W->y);
+        if(d2 != 0) lapl += 2 * pj->m / pj->rho * (fi - fj) * (DXij->x * grad_W->x + DXij->y * grad_W->y);
         free(grad_W);
         free(DXij);
         node = node->next;

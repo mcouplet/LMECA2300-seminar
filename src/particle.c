@@ -63,7 +63,7 @@ Particle* Particle_new(int index, double m, xy* pos, xy* v, double rho_0, double
 	particle->rho = rho_0;
 	particle->v = v;
 	particle->P = 0.0; // assuming that the fluid is at rest (P is the dynamic pressure and not the absolute one!)
-	
+
 	particle->normal = xy_new(0.0,0.0);
 	particle->XSPH_correction = xy_new(0.0,0.0);
 	particle->on_free_surface = false;
@@ -173,7 +173,8 @@ void add_neighbors_from_cell(Particle* p, Cell* cell , double r) {
 	ListNode *node = cell->particles->head;
 	while (node != NULL) {
 		Particle* q = (Particle*)node->v;
-		if((p->index != q->index) && check_distance(p->pos, q->pos, r))
+		// if((p->index != q->index) && check_distance(p->pos, q->pos, r))
+		if(check_distance(p->pos, q->pos, r))
 				List_append(p->neighborhood, q);
 		node = node->next;
 	}

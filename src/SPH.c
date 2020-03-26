@@ -35,10 +35,12 @@ void free_Residuals(Residual** residuals, int N) {
 
 void simulate(Grid* grid, Particle** particles, Particle_derivatives** particles_derivatives, Residual** residuals, int n_p, update_positions update_positions, Setup* setup, Animation* animation) {
 	double current_time = 0.0;
+	printf("%d\n", setup->itermax);
 	for (int iter = 0; iter < setup->itermax; iter++) {
 		printf("----------------------------------------------------- \n");
 		printf("iter %d / %d @ t = %lf \n", iter, setup->itermax, current_time);
 		update_cells(grid, particles, n_p);
+		fprintf(stderr,"cououc\n");
 		update_neighborhoods(grid, particles, n_p, iter, setup->verlet);
 
 		if (animation != NULL)
@@ -81,13 +83,13 @@ void random_moves(Grid* grid, Particle** particles, Particle_derivatives** parti
 }
 
 void update_positions_seminar_5(Grid* grid, Particle** particles, Particle_derivatives** particles_derivatives, Residual** residuals, int n_p, Setup* setup) {
-	
+
 	// Compute Cs, the XSPH correction on the velocity, and the divergence of the positions
 	for (int i = 0; i < n_p; i++) {
 		compute_Cs(particles[i], setup->kernel, setup->kh);
 		if (setup->XSPH_epsilon != 0.0) compute_XSPH_correction(particles[i], setup->kernel, setup->kh,setup->XSPH_epsilon);
 	}
-	
+
 	// Compute derivatives and normal
 	for (int i = 0; i < n_p; i++) {
 		particles_derivatives[i]->div_v = compute_div(particles[i], Particle_get_v, setup->kernel, setup->kh);
@@ -102,7 +104,7 @@ void update_positions_seminar_5(Grid* grid, Particle** particles, Particle_deriv
 
 	// Assemble residual and compute curvature
 	for (int i = 0; i < n_p; i++) {
-	    particles[i]->kappa = 2.0*compute_div(particles[i], Particle_get_normal, setup->kernel, setup->kh);
+	    //particles[i]->kappa = 2.0*compute_div(particles[i], Particle_get_normal, setup->kernel, setup->kh);
 	    assemble_residual_NS(particles[i], particles_derivatives[i], residuals[i], setup);
 	}
 
@@ -120,7 +122,7 @@ void compute_Cs(Particle *particle, Kernel kernel, double kh) {
 		particle->Cs += (pj->m / pj->rho) * eval_kernel(pi->pos, pj->pos, kh, kernel);
 		node = node->next;
 	}
-
+	// printf("pos = (%lf, %lf), Cs = %lf\n", particle->pos->x, particle->pos->y, particle->Cs);
 }
 
 void compute_normal(Particle *particle, Particle_derivatives* particle_derivatives) {
@@ -140,12 +142,14 @@ void assemble_residual_NS(Particle* particle, Particle_derivatives* particle_der
 	xy* grad_P = particle_derivatives->grad_P;
 	xy* lapl_v = particle_derivatives->lapl_v;
 
+	// Compute UNIT normal vector
 	xy *n = particle_derivatives->grad_Cs; // surface normal inward
-	double norm_n = norm(n); // norm of n
+	double norm_n = norm(n);
+	n->x /= norm_n, n->y /= norm_n;
+
 	double lapl_Cs = particle_derivatives->lapl_Cs;
 	// Choose between curvature estimated with Laplacian of colour field or with divergence of normal
 // 	double kappa = - lapl_Cs / norm_n; // curvature with Laplacian of colour field
-	double kappa = particle->kappa; // curavture with divergence of normal
 
 	double fs_x = 0; double fs_y = 0;
 	// Apply surface tension only on particles in the vicinity the interface
@@ -153,22 +157,24 @@ void assemble_residual_NS(Particle* particle, Particle_derivatives* particle_der
 	// Identification based on the norm of the normal
 	if (setup->free_surface_detection == CSF)
 		criterion = norm_n > setup->interface_threshold;
-	// Identification based on the divergence of the position vector	
+	// Identification based on the divergence of the position vector
 	else if (setup->free_surface_detection == DIVERGENCE)
-		criterion = compute_div(particle, Particle_get_pos, setup->kernel, setup->kh) < setup->interface_threshold;
+		criterion = compute_div(particle, Particle_get_pos, setup->kernel, setup->kh) <= setup->interface_threshold;
 	else
 		criterion = false;
 	if (criterion) {
 		particle->on_free_surface = true;
 // 	      fs_x = - particle->param->sigma * lapl_Cs * n->x / norm_n;
 // 	      fs_y = - particle->param->sigma * lapl_Cs * n->y / norm_n;
-	      fs_x = - particle->param->sigma * kappa * n->x / norm_n;
-	      fs_y = - particle->param->sigma * kappa * n->y / norm_n;
-  	    printf("pos = (%lf, %lf), n = (%lf, %lf), fs = (%lf, %lf), kappa = %lf\n", particle->pos->x, particle->pos->y, n->x, n->y, fs_x, fs_y, kappa);
+	      // fs_x = - particle->param->sigma * kappa * n->x / norm_n;
+	      // fs_y = - particle->param->sigma * kappa * n->y / norm_n;
+		  double kappa = compute_curvature(particle, setup, 0.5);
+		  // double kappa = - lapl_Cs / norm_n; // curvature with Laplacian of colour field
+		  printf("pos = (%lf, %lf), n = (%lf, %lf), div_r = %lf, kappa = %lf\n", particle->pos->x, particle->pos->y, n->x, n->y, compute_div(particle, Particle_get_pos, setup->kernel, setup->kh), kappa);
 	}
 	else
 		particle->on_free_surface = false;
-	
+
 // 	// Exact values of normal and curvature for a circle centered in (0,0)
 // 	xy* n_exact = xy_new(particle->pos->x, particle->pos->y);
 // 	double norm_n_exact = norm(n_exact);
@@ -204,11 +210,30 @@ void time_integrate(Particle* particle, Residual* residual, double delta_t) {
 	particle->rho += delta_t * residual->mass_eq;
 	particle->v->x += delta_t * residual->momentum_x_eq;
 	particle->v->y += delta_t * residual->momentum_y_eq;
-	
+
 	// Update pressure with Tait's equation of state
 	double B = squared(particle->param->sound_speed) * particle->param->rho_0 / particle->param->gamma;
 	particle->P = B * (pow(particle->rho / particle->param->rho_0, particle->param->gamma) - 1);
 
+}
+
+// Normal should be available everywhere!
+double compute_curvature(Particle *particle, Setup *setup, double epsilon) {
+	double num = epsilon * 2 * compute_div(particle, Particle_get_normal, setup->kernel, setup->kh);
+	printf("%lf\n", compute_div(particle, Particle_get_normal, setup->kernel, setup->kh));
+	double denom = 0;
+	Particle *pi = particle;
+	ListNode *node = pi->neighborhood->head;
+	while (node != NULL) {
+		Particle *pj = node->v;
+		//printf("%lf %lf\n", pj->normal->x, pj->normal->y);
+		xy *grad_W = grad_kernel(pi->pos, pj->pos, setup->kh, setup->kernel);
+		denom += sqrt(squared(pi->pos->x - pj->pos->x) + squared(pi->pos->y - pj->pos->y)) *
+			(pj->m / pj->rho) * norm(grad_W);
+		free(grad_W);
+		node = node->next;
+	}
+	return num / denom;
 }
 
 void compute_XSPH_correction(Particle *pi, Kernel kernel, double kh, double epsilon) {
@@ -260,7 +285,7 @@ void update_positions_ellipse(Grid* grid, Particle** particles, Particle_derivat
 }
 
 void update_positions_test_static_bubble(Grid* grid, Particle** particles, Particle_derivatives** particles_derivatives, Residual** residuals, int n_p, Setup* setup) {
-	
+
 	// Compute Cs, the XSPH correction on the velocity, and the divergence of the positions
 	int index_x_max, index_x_min, index_y_max, index_y_min;
 	double pos_x_max = -INFINITY, pos_x_min = INFINITY, pos_y_max = -INFINITY, pos_y_min = INFINITY;
@@ -287,7 +312,7 @@ void update_positions_test_static_bubble(Grid* grid, Particle** particles, Parti
 // 		assemble_residual_NS_test(particles[i], particles_derivatives[i], residuals[i], radius_circle, setup);
 		compute_normal(particles[i], particles_derivatives[i]);
 	}
-	
+
 	// Assemble residual and compute curvature
 	for (int i = 0; i < n_p; i++) {
 	    particles[i]->kappa = 2.0*compute_div(particles[i], Particle_get_normal, setup->kernel, setup->kh);
@@ -319,16 +344,16 @@ void assemble_residual_NS_test(Particle* particle, Particle_derivatives* particl
 	xy* n_exact = xy_new(particle->pos->x, particle->pos->y);
 	double norm_n_exact = norm(n_exact);
 	double kappa_exact = 1.0 / radius_circle;
-	
+
 	double fs_x = 0; double fs_y = 0;
 	// Apply surface tension only on particles in the vicinity the interface
-	if (particle->on_free_surface) {	    
+	if (particle->on_free_surface) {
 	    fs_x = - particle->param->sigma * kappa_exact * n->x / norm_n;
 	    fs_y = - particle->param->sigma * kappa_exact * n->y / norm_n;
 // 	  printf("pos = (%lf, %lf), n_exact = (%lf, %lf), n = (%lf, %lf), ||n|| = %lf, fs = (%lf, %lf), kappa_exact = %2.3f, kappa = %2.6f \n", particle->pos->x, particle->pos->y,-n_exact->x / norm_n_exact, -n_exact->y / norm_n_exact, n->x / norm_n, n->y / norm_n, norm_n, fs_x, fs_y, kappa_exact, kappa);
 	  printf("kappa_exact = %2.3f, kappa = %2.6f, kappa_div_n = %2.6f \n", kappa_exact, kappa, kappa_2);
 
-	  
+
 	}
 
 	residual->mass_eq = -rho_i * div_vel_i;
@@ -344,8 +369,8 @@ double compute_admissible_dt(double safety_param, double h_p, double c_0, double
   if (mu > 0.0) dt_2 = 0.25 * (h_p*h_p) / (mu / rho_0); // viscous diffusion
   double dt_3 = INFINITY;
   if (sigma > 0.0) dt_3 = 0.25 * sqrt((rho_0*pow(h_p,3))/(2*M_PI*sigma)); // surface tension (capillary waves)
-  
+
   double dt_min_interm = fmin(dt_1, dt_2);
   return safety_param * fmin(dt_min_interm, dt_3);
-  
+
 }

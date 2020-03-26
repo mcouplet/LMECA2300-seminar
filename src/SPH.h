@@ -50,6 +50,7 @@ void compute_Cs(Particle *particle, Kernel kernel, double kh);
 void assemble_residual_NS(Particle* particle, Particle_derivatives* Particle_derivatives, Residual* residual, Setup* setup);
 void time_integrate(Particle* particle, Residual* residual, double delta_t);
 
+double compute_curvature(Particle *particle, Setup *setup, double epsilon);
 void compute_XSPH_correction(Particle *particle, Kernel kernel, double kh,double epsilon);
 
 void assemble_residual_NS_test(Particle* particle, Particle_derivatives* particle_derivatives, Residual* residual, double radius_circle, Setup* setup);
