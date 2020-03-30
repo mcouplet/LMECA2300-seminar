@@ -6,6 +6,7 @@
 #include "derivatives.h"
 #include "SPH.h"
 
-double density_correction_MLS(Particle** particles, Setup* setup, int n_p);
+//double density_correction_MLS(Particle** particles, Setup* setup, int n_p);
+xy* correct_grad(xy *current_grad, Particle *p, double kh, Kernel kernel);
 
 #endif
