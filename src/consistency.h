@@ -6,6 +6,9 @@
 #include "derivatives.h"
 #include "SPH.h"
 
-double density_correction_MLS(Particle** particles, Setup* setup, int n_p);
-
+void density_correction_MLS(Particle* pi, Setup* setup);
+double get_W_MLS(Particle* pi, Particle* pj, Setup* setup, double* beta);
+double** get_A(Particle* pi);
+double* get_beta(double** A);
+void Corrective_Smoothed_Particle_Method(Particle *p,Particle_derivatives *dp, Setup *setup);
 #endif
