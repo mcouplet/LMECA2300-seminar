@@ -42,4 +42,6 @@ double norm(xy *v);
 xy* map_to_circle(xy* pos_square);
 xy* generate_circle(int k, int n, int nb, double radius);
 
+//xy* correct_grad(xy *current_grad, Particle *p, Setup *setup, Kernel kernel);
+
 #endif

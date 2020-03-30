@@ -64,7 +64,7 @@ double derivative_NewQuartic_kernel(double q, double h);
 double derivative_Quintic_kernel(double q, double h);
 
 // everything here should be double checked because there are still problems with signs
- xy* grad_kernel(xy* p1, xy* p2, double kh, Kernel kernel) {
+xy* grad_kernel(xy* p1, xy* p2, double kh, Kernel kernel) {
      if(p1->x == p2->x && p1->y == p2->y) return xy_new(0,0);
 
 	double d = sqrt(pow(p1->x - p2->x, 2) + pow(p1->y - p2->y, 2));
@@ -95,8 +95,22 @@ double derivative_Quintic_kernel(double q, double h);
 
 	return xy_new(g_x, g_y);
 }
- double derivative_Cubic_kernel(double q,double h)
- {
+
+double derivative_kernel(double r, double h, Kernel kernel){
+	if(kernel == Cubic){
+		return derivative_Cubic_kernel(2*r/h, h/2);
+	} else if(kernel == Lucy){
+		return derivative_Lucy_kernel(r/h, h);
+	} else if(kernel == NewQuartic){
+		return derivative_NewQuartic_kernel(2*r/h, h/2);
+	} else if(kernel == Quintic){
+		return derivative_Quintic_kernel(3*r/h, h/3);
+	}
+	return 0;
+}
+
+double derivative_Cubic_kernel(double q,double h)
+{
 	 double alpha = 15.0/(7.0*M_PI*pow(h, 2));
 	 double g;
 	 if (q >= 0 && q <= 1)

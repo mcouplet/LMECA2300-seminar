@@ -217,6 +217,28 @@ void time_integrate(Particle* particle, Residual* residual, double delta_t) {
 
 }
 
+//Only work in 2D case
+xy* correct_grad(xy *current_grad, Particle *p, Setup *setup){
+	Kernel kernel = setup->kernel;
+	double m11 = 0; double m12 = 0; double m21 = 0; double m22 = 0;
+	ListNode *current = p->neighborhood->head;
+	while(current != NULL){
+		Particle *j = current->v;
+
+		double r = sqrt(pow(p->pos->x - j->pos->x, 2) + pow(p->pos->y - j->pos->y, 2));
+		double derivativeKernel = derivative_kernel(r, setup->kh, kernel);
+
+		m11 -= (j->m/j->rho)*derivativeKernel*(1/r)*pow(p->pos->x - j->pos->x,2);
+		m12 -= (j->m/j->rho)*derivativeKernel*(1/r)*(p->pos->x - j->pos->x)*(p->pos->y - j->pos->y);
+		m21 -= (j->m/j->rho)*derivativeKernel*(1/r)*(p->pos->x - j->pos->x)*(p->pos->y - j->pos->y);
+		m22 -= (j->m/j->rho)*derivativeKernel*(1/r)*pow(p->pos->y - j->pos->y,2);
+		current = current->next;
+	}
+	double det = m11*m22 - m12*m21;
+
+	return xy_new((m22*current_grad->x - m21*current_grad->y)/det, (-m12*current_grad->x + m22*current_grad->y)/det);
+}
+
 // Normal should be available everywhere!
 double compute_curvature(Particle *particle, Setup *setup, double epsilon) {
 	double num = epsilon * 2 * compute_div(particle, Particle_get_normal, setup->kernel, setup->kh);
@@ -228,6 +250,7 @@ double compute_curvature(Particle *particle, Setup *setup, double epsilon) {
 		Particle *pj = node->v;
 		//printf("%lf %lf\n", pj->normal->x, pj->normal->y);
 		xy *grad_W = grad_kernel(pi->pos, pj->pos, setup->kh, setup->kernel);
+		xy *correcter_gradient_W = correct_grad(grad_W, pi, setup);
 		denom += sqrt(squared(pi->pos->x - pj->pos->x) + squared(pi->pos->y - pj->pos->y)) *
 			(pj->m / pj->rho) * norm(grad_W);
 		free(grad_W);

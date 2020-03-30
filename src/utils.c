@@ -76,6 +76,3 @@ xy* generate_circle(int k, int n, int nb, double radius) {
     
     return coord;  
 }
-
-
-
