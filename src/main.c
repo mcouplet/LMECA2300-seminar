@@ -20,6 +20,9 @@ int main() {
 	script_circle_to_ellipse();
 	//script_csf_circle_paper();
 	//script_csf();
+	//script_csf_circle();
+	//script_circle_to_ellipse();
+	// script_csf_circle_paper();
 	//script1();
 
 	return EXIT_SUCCESS;
