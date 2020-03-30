@@ -9,7 +9,7 @@ double compute_div(Particle * particle, xy_getter get, Kernel kernel, double kh)
         Particle *pj = node->v;
         xy *grad_W = grad_kernel(pi->pos, pj->pos, kh, kernel);
 
-        grad_W = correct_grad(grad_W, pi, kh, kernel);
+        //grad_W = correct_grad(grad_W, pi, kh, kernel);
 
         xy *fj = get(pj);
         div += (pj->m / pj->rho) * // NOTE THAT THE DENSITY OF J IS USED, ACCORDING TO (26)
@@ -32,8 +32,6 @@ void compute_grad(Particle * particle, scalar_getter get, Kernel kernel, double 
         Particle *pj = node->v;
         xy *grad_W = grad_kernel(pi->pos, pj->pos, kh, kernel);
 
-        grad_W = correct_grad(grad_W, pi, kh, kernel);
-
         double fj = get(pj);
         //printf("Position of pj: (%lf, %lf), fj = %lf\n", pj->pos->x, pj->pos->y, fj);
         gx += pi->rho * pj->m * (fi/squared(pi->rho) + fj/squared(pj->rho)) * grad_W->x; // sign is not the same as in the def...
@@ -42,8 +40,14 @@ void compute_grad(Particle * particle, scalar_getter get, Kernel kernel, double 
         //printf("grad = (%lf, %lf), fj = %lf\n", grad->x, grad->y, fj);
         node = node->next;
     }
-	grad->x = gx;
-	grad->y = gy;
+    xy *cg = xy_new(gx,gy);
+    grad->x = gx;
+    grad->y = gy;
+    //xy *grad_W = correct_grad(cg, pi, kh, kernel);
+	//grad->x = grad_W->x;
+	//grad->y = grad_W->y;
+    //free(grad_W);
+    free(cg);
 }
 
 double compute_lapl(Particle *particle, scalar_getter get, Kernel kernel, double kh) {
@@ -55,7 +59,7 @@ double compute_lapl(Particle *particle, scalar_getter get, Kernel kernel, double
         Particle *pj = node->v;
         xy *grad_W = grad_kernel(pi->pos, pj->pos, kh, kernel);
 
-        grad_W = correct_grad(grad_W, pi, kh, kernel);
+        //grad_W = correct_grad(grad_W, pi, kh, kernel);
         
         double fj = get(pj);
         double d2 = squared(pi->pos->x - pj->pos->x) + squared(pi->pos->y - pj->pos->y); // squared distance between particles
