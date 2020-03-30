@@ -4,6 +4,7 @@
 #include "derivatives.h"
 #include <math.h>
 #include "kernel.h"
+#include "consistency.h"
 //#include "crtdbg.h" // for memory leak detection; comment if you're on Linux
 
 void script_csf();
