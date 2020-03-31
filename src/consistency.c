@@ -1,7 +1,9 @@
 #include "consistency.h"
 
 
-double get_M0(Particle* pi, double kh, Kernel kernel){
+
+
+double get_M0_local(Particle* pi, double kh, Kernel kernel){
 	double M = 0;
 	ListNode* current = pi->neighborhood->head;
 	while(current != NULL){
@@ -14,7 +16,7 @@ double get_M0(Particle* pi, double kh, Kernel kernel){
 	return M;
 }
 
-double get_M1(Particle* pi, double kh, Kernel kernel){
+double get_M1_local(Particle* pi, double kh, Kernel kernel){
 	double M = 0;
 	ListNode* current = pi->neighborhood->head;
 	while(current != NULL){
@@ -30,7 +32,17 @@ double get_M1(Particle* pi, double kh, Kernel kernel){
 	}
 	return M;
 }
-
+void get_M0(Particle** p, int n_p, double kh, Kernel kernel){
+	double max = 0;
+	for(int i = 0; i < n_p ; i++){
+		Particle* pi = p[i];
+		double M0 = get_M0_local(pi,kh,kernel);
+		if (max <= abs(M0)){
+			max = abs(M0);
+		}
+	}
+	printf("Largest M0 error : %f\n", max);
+}
 
 
 
@@ -62,6 +74,7 @@ void density_correction_MLS(Particle** p, int n_p, double kh, Kernel kernel){
 		Particle* pi = p[i];
 		pi->rho = density_corr[i];
 	}
+	free(density_corr);
 }
 double density_correction_MLS_local(Particle* pi, double kh, Kernel kernel){
 // We only compute beta once since it does not depend on other particles.

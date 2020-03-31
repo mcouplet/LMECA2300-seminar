@@ -51,6 +51,7 @@ void simulate(Grid* grid, Particle** particles, Particle_derivatives** particles
 		if (iter%ii == 0){
 			density_correction_MLS(particles, n_p, setup->kh, setup->kernel);
 		}
+		get_M0(particles,n_p,setup->kh,setup->kernel);
 		current_time += setup->timestep;
 	}
 	update_cells(grid, particles, n_p);
