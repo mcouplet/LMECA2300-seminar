@@ -19,65 +19,73 @@ xy* correct_grad(xy *current_grad, Particle *p, double kh, Kernel kernel){
 	return xy_new((m22*current_grad->x - m21*current_grad->y)/det, (-m12*current_grad->x + m22*current_grad->y)/det);
 }
 
-// void density_correction_MLS(Particle* pi, double kh, Kernel kernel){
-// // We only compute beta once since it does not depend on other particles.
-//   double beta[3] = get_beta(get_A(pi, kh, kernel));
-//   double num = 0;
-//   double den = 0;
+void density_correction_MLS(Particle* pi, double kh, Kernel kernel){
+// We only compute beta once since it does not depend on other particles.
+  double beta[3] = {0};
+	double A[3][3];
+	for(int i = 0; i < 3 ; i++){
+		for(int j=0;j>3;j++){
+			A[i][j] = 0;
+		}
+	}
+	get_A(pi,kh,kernel,A);
+	get_beta(A,beta);
+
+  double num = 0;
+  double den = 0;
+
+  ListNode* current = pi->neighborhood->head;
+  while(current != NULL){
+    Particle* pj = current->v;
+    double W_MLS = get_W_MLS(pi,pj,kh,kernel,beta);
+    num += W_MLS*pj->m;
+    den += W_MLS*pj->m/pj->rho;
+    current = current-> next;
+  }
+  // Correction
+  pi->rho = num/den;
+}
+
+double get_W_MLS(Particle* pi, Particle* pj, double kh, Kernel kernel, double* beta){
+// Return the kernel function corrected by mean least squares
+  double W = eval_kernel(pi->pos, pj->pos, kh, kernel);
+  double xi = pi->pos->x;   double xj = pj->pos->x;
+  double yi = pi->pos->y;   double yj = pj->pos->y;
+
+  double W_MLS = (beta[0] + beta[1]*(xi-xj) + beta[2]*(yi-yj))*W;
+  return W_MLS;
+}
 //
-//   ListNode* current = pi->neighborhood->head;
-//   while(current != NULL){
-//     Particle* pj = current->v;
-//     W_MLS = get_W_MLS(pi,pj,setup,beta);
-//     num += W_MLS*pj->m;
-//     den += W_MLS*pj->m/pj->rho;
-//     current = current-> next;
-//   }
-//   // Correction
-//   pi->rho = num/den;
-// }
+void get_A(Particle* pi, double kh, Kernel kernel, double** A){
+// Return the matrix A which has to be inversed and multiply to obtain beta
+  ListNode* current = pi->neighborhood->head;
+  while(current != NULL){
+    Particle* pj = current->v;
+    double W = eval_kernel(pi->pos, pj->pos, kh, kernel);
+    double k = W*pj->m/pj->rho;
+    double xixj = pi->pos->x - pj->pos->x;
+    double yiyj = pi->pos->y - pj->pos->y;
+    // Matrix filling
+    A[0][0] += k;           A[0][1] += k*xixj;     			A[0][2] += k*yiyj;
+    A[1][0] += k*A[0][1];   A[1][1] += k*pow(xixj,2);   A[1][2] += k*xixj*yiyj;
+    A[2][0] += k*A[0][2];   A[2][1] += k*A[1][2];  			A[2][2] += k*pow(yiyj,2);
+    // go to the next neighbor
+    current= current->next;
+  }
+}
 //
-// double get_W_MLS(Particle* pi, Particle* pj, double kh, Kernel kernel, double* beta){
-// // Return the kernel function corrected by mean least squares
-//   double W = eval_kernel(pi->pos, pj->pos, kh, kernel);
-//   double xi = pi->pos[0];   double xj = pj->pos[0];
-//   double yi = pi->pos[1];   double yj = pj->pos[1];
-//
-//   double W_MLS = (beta[0] + beta[1]*(xi-xj) + beta[2]*(yi-yj))*W;
-//   return W_MLS;
-// }
-//
-// double** get_A(Particle* pi, double kh, Kernel kernel){
-// // Return the matrix A which has to be inversed and multiply to obtain beta
-//   double A[3][3] = {0};
-//   ListNode* current = pi->neighborhood->head;
-//   while(current != NULL){
-//     Particle* pj = current->v;
-//     double W = eval_kernel(pi->pos, pj->pos, kh, kernel);
-//     double k = W*pj->m/pj->rho;
-//     double xixj = pi->pos[0] - pj->pos[0];
-//     double yiyj = pi->pos[1] - pj->pos[1];
-//     // Matrix filling
-//     A[0][0] += k;           A[0][1] += k*xixj;     A[0][2] += k*yiyj;
-//     A[1][0] += k*A[0][1];   A[1][1] += k*xixj^2;   A[1][2] += k*xixj*yiyj;
-//     A[2][0] += k*A[0][2];   A[2][1] += k*A[1][2];  A[2][2] += k*yiyj^2;
-//     // go to the next neighbor
-//     current= current->next;
-//   }
-//   return A;
-// }
-//
-// double* get_beta(double** A){
-//   // B = [1,0,0]^T
-//   double C11 =   A[0][0]*(A[1][1]*A[2][2] - A[0][2]*A[2][1]);
-//   double C21 = - A[0][2]*(A[0][1]*A[2][2] - A[1][2]*A[2][0]);
-//   double C31 =   A[0][2]*(A[1][0]*A[2][1] - A[1][1]*A[2][0]);
-//
-//   double det_A = C11 + C21 + C31;
-//
-//   double beta[3] = {C11/det_A, C21/det_A, C31/det_A};
-//   return beta;
-// }
+void get_beta(double** A, double* beta){
+  // B = [1,0,0]^T
+  double C11 =   A[0][0]*(A[1][1]*A[2][2] - A[0][2]*A[2][1]);
+  double C21 = - A[0][2]*(A[0][1]*A[2][2] - A[1][2]*A[2][0]);
+  double C31 =   A[0][2]*(A[1][0]*A[2][1] - A[1][1]*A[2][0]);
+
+  double det_A = C11 + C21 + C31;
+
+	beta[0] = C11/det_A;
+	beta[1] = C21/det_A;
+	beta[2] = C31/det_A;
+}
 
 // void Corrective_Smoothed_Particle_Method(Particle *p,Particle_derivatives *dp, double kh, Kernel kernel){
 //     double num1=0.0;
