@@ -4,6 +4,7 @@
 #include "utils.h"
 #include "particle.h"
 #include "kernel.h"
+#include "SPH.h"
 #include "consistency.h"
 
 typedef double(*scalar_getter)(Particle* particle); // scalar getter function (e.g. pressure getter)

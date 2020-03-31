@@ -7,9 +7,9 @@
 #include "SPH.h"
 
 xy* correct_grad(xy *current_grad, Particle *p, double kh, Kernel kernel);
-void density_correction_MLS(Particle* pi, Setup* setup);
-double get_W_MLS(Particle* pi, Particle* pj, Setup* setup, double* beta);
-double** get_A(Particle* pi);
+void density_correction_MLS(Particle* pi, double kh, Kernel kernel);
+double get_W_MLS(Particle* pi, Particle* pj, double kh, Kernel kernel, double* beta);
+double** get_A(Particle* pi, double kh, Kernel kernel);
 double* get_beta(double** A);
-void Corrective_Smoothed_Particle_Method(Particle *p,Particle_derivatives *dp, Setup *setup);
+void Corrective_Smoothed_Particle_Method(Particle *p,Particle_derivatives *dp, double kh, Kernel kernel);
 #endif

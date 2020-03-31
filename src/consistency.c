@@ -20,9 +20,9 @@ xy* correct_grad(xy *current_grad, Particle *p, double kh, Kernel kernel){
 	return xy_new((m22*current_grad->x - m21*current_grad->y)/det, (-m12*current_grad->x + m22*current_grad->y)/det);
 }
 
-void density_correction_MLS(Particle* pi, Setup* setup){
+void density_correction_MLS(Particle* pi, double kh, Kernel kernel){
 // We only compute beta once since it does not depend on other particles.
-  double beta[3] = get_beta(get_A(pi, setup));
+  double beta[3] = get_beta(get_A(pi, kh, kernel));
   double num = 0;
   double den = 0;
 
@@ -38,9 +38,9 @@ void density_correction_MLS(Particle* pi, Setup* setup){
   pi->rho = num/den;
 }
 
-double get_W_MLS(Particle* pi, Particle* pj, Setup* setup, double* beta){
+double get_W_MLS(Particle* pi, Particle* pj, double kh, Kernel kernel, double* beta){
 // Return the kernel function corrected by mean least squares
-  double W = eval_kernel(pi->pos, pj->pos, setup->kh, setup->kernel);
+  double W = eval_kernel(pi->pos, pj->pos, kh, kernel);
   double xi = pi->pos[0];   double xj = pj->pos[0];
   double yi = pi->pos[1];   double yj = pj->pos[1];
 
@@ -48,13 +48,13 @@ double get_W_MLS(Particle* pi, Particle* pj, Setup* setup, double* beta){
   return W_MLS;
 }
 
-double** get_A(Particle* pi, Setup* setup){
+double** get_A(Particle* pi, double kh, Kernel kernel){
 // Return the matrix A which has to be inversed and multiply to obtain beta
   double A[3][3] = {0};
   ListNode* current = pi->neighborhood->head;
   while(current != NULL){
     Particle* pj = current->v;
-    double W = eval_kernel(pi->pos, pj->pos, setup->kh, setup->kernel);
+    double W = eval_kernel(pi->pos, pj->pos, kh, kernel);
     double k = W*pj->m/pj->rho;
     double xixj = pi->pos[0] - pj->pos[0];
     double yiyj = pi->pos[1] - pj->pos[1];
@@ -80,7 +80,7 @@ double* get_beta(double** A){
   return beta;
 }
 
-void Corrective_Smoothed_Particle_Method(Particle *p,Particle_derivatives *dp, Setup *setup){
+void Corrective_Smoothed_Particle_Method(Particle *p,Particle_derivatives *dp, double kh, Kernel kernel){
     double num1=0.0;
     double denom1=0.0;
     double denom2=0.0;
@@ -89,8 +89,8 @@ void Corrective_Smoothed_Particle_Method(Particle *p,Particle_derivatives *dp, S
     ListNode *current = p->neighborhood->head;
     while(current != NULL){
         Particle *j = current->v;
-        num1 += j->rho*eval_kernel(p->pos,j->pos,setup->kh,setup->kernel)*j->m/j->rho;
-        denom1 += eval_kernel(p->pos,j->pos,setup->kh,setup->kernel)*j->m/j->rho;
+        num1 += j->rho*eval_kernel(p->pos,j->pos,kh,kernel)*j->m/j->rho;
+        denom1 += eval_kernel(p->pos,j->pos,kh,kernel)*j->m/j->rho;
         current = current->next;
     }
 
@@ -100,8 +100,8 @@ void Corrective_Smoothed_Particle_Method(Particle *p,Particle_derivatives *dp, S
     current = p->neighborhood->head;
     while(current != NULL){
         Particle *j = current->v;
-        denom2+=eval_kernel(p->pos,j->pos,setup->kh,XXX)*(j->pos->x-p->pos->x)*j->m/j->rho;
-        denom3+=eval_kernel(p->pos,j->pos,setup->kh,XXX)*(j->pos->y-p->pos->y)*j->m/j->rho;
+        denom2+=eval_kernel(p->pos,j->pos,kh,XXX)*(j->pos->x-p->pos->x)*j->m/j->rho;
+        denom3+=eval_kernel(p->pos,j->pos,kh,XXX)*(j->pos->y-p->pos->y)*j->m/j->rho;
         current = current->next;
 
     }
