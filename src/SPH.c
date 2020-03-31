@@ -43,10 +43,8 @@ void simulate(Grid* grid, Particle** particles, Particle_derivatives** particles
 		update_cells(grid, particles, n_p);
 		fprintf(stderr,"cououc\n");
 		update_neighborhoods(grid, particles, n_p, iter, setup->verlet);
-
 		if (animation != NULL)
 			display_particles(particles, animation, false);
-
 		update_positions(grid, particles, particles_derivatives, residuals, n_p, setup);
 		if (iter%ii == 0){
 			density_correction_MLS(particles, n_p, setup->kh, setup->kernel);
@@ -175,7 +173,7 @@ void assemble_residual_NS(Particle* particle, Particle_derivatives* particle_der
 	      // fs_y = - particle->param->sigma * kappa * n->y / norm_n;
 		  double kappa = compute_curvature(particle, setup, 0.5);
 		  // double kappa = - lapl_Cs / norm_n; // curvature with Laplacian of colour field
-		  printf("pos = (%lf, %lf), n = (%lf, %lf), div_r = %lf, kappa = %lf\n", particle->pos->x, particle->pos->y, n->x, n->y, compute_div(particle, Particle_get_pos, setup->kernel, setup->kh), kappa);
+		  // printf("pos = (%lf, %lf), n = (%lf, %lf), div_r = %lf, kappa = %lf\n", particle->pos->x, particle->pos->y, n->x, n->y, compute_div(particle, Particle_get_pos, setup->kernel, setup->kh), kappa);
 	}
 	else
 		particle->on_free_surface = false;
@@ -227,7 +225,7 @@ void time_integrate(Particle* particle, Residual* residual, double delta_t) {
 // Normal should be available everywhere!
 double compute_curvature(Particle *particle, Setup *setup, double epsilon) {
 	double num = epsilon * 2 * compute_div(particle, Particle_get_normal, setup->kernel, setup->kh);
-	printf("%lf\n", compute_div(particle, Particle_get_normal, setup->kernel, setup->kh));
+	// printf("%lf\n", compute_div(particle, Particle_get_normal, setup->kernel, setup->kh));
 	double denom = 0;
 	Particle *pi = particle;
 	ListNode *node = pi->neighborhood->head;
@@ -289,7 +287,7 @@ void update_positions_ellipse(Grid* grid, Particle** particles, Particle_derivat
 	// Compute semi-major axis of an ellipse
 	double a_ellipse = particles[index_x_max]->pos->x - particles[index_x_min]->pos->x;
 	double b_ellipse = particles[index_y_max]->pos->y - particles[index_y_min]->pos->y;
-	printf("a = %lf, b = %lf\n", a_ellipse * 0.5, b_ellipse * 0.5);
+	// printf("a = %lf, b = %lf\n", a_ellipse * 0.5, b_ellipse * 0.5);
 }
 
 void update_positions_test_static_bubble(Grid* grid, Particle** particles, Particle_derivatives** particles_derivatives, Residual** residuals, int n_p, Setup* setup) {
@@ -360,7 +358,7 @@ void assemble_residual_NS_test(Particle* particle, Particle_derivatives* particl
 	    fs_y = - particle->param->sigma * kappa_exact * n->y / norm_n;
 // 	  printf("pos = (%lf, %lf), n_exact = (%lf, %lf), n = (%lf, %lf), ||n|| = %lf, fs = (%lf, %lf), kappa_exact = %2.3f, kappa = %2.6f \n",
 //	 particle->pos->x, particle->pos->y,-n_exact->x / norm_n_exact, -n_exact->y / norm_n_exact, n->x / norm_n, n->y / norm_n, norm_n, fs_x, fs_y, kappa_exact, kappa);
-	  printf("kappa_exact = %2.3f, kappa = %2.6f, kappa_div_n = %2.6f \n", kappa_exact, kappa, kappa_2);
+	  // printf("kappa_exact = %2.3f, kappa = %2.6f, kappa_div_n = %2.6f \n", kappa_exact, kappa, kappa_2);
 
 
 	}

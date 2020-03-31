@@ -36,12 +36,13 @@ void get_M0(Particle** p, int n_p, double kh, Kernel kernel){
 	double max = 0;
 	for(int i = 0; i < n_p ; i++){
 		Particle* pi = p[i];
-		double M0 = get_M0_local(pi,kh,kernel);
-		if (max <= abs(M0)){
-			max = abs(M0);
+		double M0 = fabs(get_M0_local(pi,kh,kernel));
+		printf("M0 = %e\tMax = %e\n",M0,max);
+		if (max <= M0){
+			max = M0;
 		}
 	}
-	printf("Largest M0 error : %f\n", max);
+	printf("Largest M0 error : %e\n", 1.0-max);
 }
 
 
