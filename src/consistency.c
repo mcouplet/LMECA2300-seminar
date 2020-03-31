@@ -90,7 +90,7 @@ double get_W_MLS(Particle* pi, Particle* pj, double kh, Kernel kernel, double* b
   return W_MLS;
 }
 //
-void get_A(Particle* pi, double kh, Kernel kernel, double** A){
+void get_A(Particle* pi, double kh, Kernel kernel, double A[3][3]){
 // Return the matrix A which has to be inversed and multiply to obtain beta
   ListNode* current = pi->neighborhood->head;
   while(current != NULL){
@@ -108,7 +108,7 @@ void get_A(Particle* pi, double kh, Kernel kernel, double** A){
   }
 }
 //
-void get_beta(double** A, double* beta){
+void get_beta(double A[3][3], double* beta){
   // B = [1,0,0]^T
   double C11 =   A[0][0]*(A[1][1]*A[2][2] - A[0][2]*A[2][1]);
   double C21 = - A[0][2]*(A[0][1]*A[2][2] - A[1][2]*A[2][0]);
