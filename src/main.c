@@ -16,10 +16,10 @@ void script2();
 
 int main() {
 	// _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF); // comment if on Linux
-	//script_csf_circle();
-	script_circle_to_ellipse();
+	// script_csf_circle();
+	//script_circle_to_ellipse();
 	//script_csf_circle_paper();
-	//script_csf();
+	script_csf();
 	//script_csf_circle();
 	//script_circle_to_ellipse();
 	// script_csf_circle_paper();
@@ -44,6 +44,7 @@ void script_csf() {
 	double gamma = 7; // typical value for liquid (dimensionless)
 	double c_0 = 1.0;//1481; // sound speed in water at 20°C (in m/s)
 	double sigma = 72.86e-3; // surface tension of water-air interface at 20°C (in N/m)
+	bool gravity = 1;
 
 	// SPH parameters
 	int n_per_dim = 101; // number of particles per dimension
@@ -54,6 +55,7 @@ void script_csf() {
 	Verlet *verlet = NULL; // don't use Verlet (for now)
 	double XSPH_epsilon = 0.5;
 	Free_surface_detection surface_detection = DIVERGENCE;
+	// Free_surface_detection surface_detection = CSF;
 
 
 	printf("n_iter = %d\n", n_iter);
@@ -84,7 +86,7 @@ void script_csf() {
 	// Setup grid
 	Grid *grid = Grid_new(-L, L, -L, L, kh);
 	// Setup setup
-	Setup *setup = Setup_new(n_iter, dt, kh, verlet, kernel, surface_detection, interface_threshold, XSPH_epsilon);
+	Setup *setup = Setup_new_bis(n_iter, dt, kh, verlet, kernel, surface_detection, interface_threshold, XSPH_epsilon, gravity);
 	// Setup animation
 	Animation *animation = Animation_new(n_p, dt_anim, grid, 1);
 

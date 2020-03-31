@@ -25,19 +25,31 @@ double get_M1_local(Particle* pi, double kh, Kernel kernel){
 		double V = pj->m/pj->rho;
 
 		double d = sqrt(squared(pi->pos->x-pj->pos->x) + squared(pi->pos->y-pj->pos->y));
-		double h = kh/2;
+		double h = kh;
 		double Xi_Xj = d/h; //Pas sur
 		M += W*V*Xi_Xj;
 		current = current-> next;
 	}
 	return M;
 }
+void get_M1(Particle** p, int n_p, double kh, Kernel kernel){
+	double max = 0;
+	for(int i = 0; i < n_p ; i++){
+		Particle* pi = p[i];
+		double M1 = fabs(get_M1_local(pi,kh,kernel));
+		// printf("M1 = %e\tMax = %e\n",M1,max);
+		if (max <= M1){
+			max = M1;
+		}
+	}
+	printf("Largest M1 error : %e\n", max);
+}
 void get_M0(Particle** p, int n_p, double kh, Kernel kernel){
 	double max = 0;
 	for(int i = 0; i < n_p ; i++){
 		Particle* pi = p[i];
 		double M0 = fabs(get_M0_local(pi,kh,kernel));
-		printf("M0 = %e\tMax = %e\n",M0,max);
+		// printf("M0 = %e\tMax = %e\n",M0,max);
 		if (max <= M0){
 			max = M0;
 		}

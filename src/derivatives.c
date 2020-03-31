@@ -9,7 +9,7 @@ double compute_div(Particle * particle, xy_getter get, Kernel kernel, double kh)
         Particle *pj = node->v;
         xy *grad_W = grad_kernel(pi->pos, pj->pos, kh, kernel);
 
-        //grad_W = correct_grad(grad_W, pi, kh, kernel);
+        // grad_W = correct_grad(grad_W, pi, kh, kernel);
 
         xy *fj = get(pj);
         div += (pj->m / pj->rho) * // NOTE THAT THE DENSITY OF J IS USED, ACCORDING TO (26)
@@ -43,7 +43,7 @@ void compute_grad(Particle * particle, scalar_getter get, Kernel kernel, double 
     xy *cg = xy_new(gx,gy);
     grad->x = gx;
     grad->y = gy;
-    //xy *grad_W = correct_grad(cg, pi, kh, kernel);
+    xy *grad_W = correct_grad(cg, pi, kh, kernel);
 	//grad->x = grad_W->x;
 	//grad->y = grad_W->y;
     //free(grad_W);

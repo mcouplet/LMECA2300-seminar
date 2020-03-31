@@ -10,6 +10,20 @@ Setup* Setup_new(int iter, double timestep,double kh,Verlet* verlet,Kernel kerne
 	setup->free_surface_detection = free_surface_detection;
 	setup->interface_threshold = interface_threshold;
 	setup->XSPH_epsilon = XSPH_epsilon;
+	setup->gravity = 0;
+	return setup;
+}
+Setup* Setup_new_bis(int iter, double timestep,double kh,Verlet* verlet,Kernel kernel, Free_surface_detection free_surface_detection, double interface_threshold,double XSPH_epsilon, bool gravity) {
+	Setup* setup = (Setup*)malloc(sizeof(Setup));
+	setup->itermax = iter;
+	setup->timestep = timestep;
+	setup->kh = kh;
+	setup->verlet = verlet;
+	setup->kernel = kernel;
+	setup->free_surface_detection = free_surface_detection;
+	setup->interface_threshold = interface_threshold;
+	setup->XSPH_epsilon = XSPH_epsilon;
+	setup->gravity = gravity;
 	return setup;
 }
 
@@ -50,6 +64,7 @@ void simulate(Grid* grid, Particle** particles, Particle_derivatives** particles
 			density_correction_MLS(particles, n_p, setup->kh, setup->kernel);
 		}
 		get_M0(particles,n_p,setup->kh,setup->kernel);
+		get_M1(particles,n_p,setup->kh,setup->kernel);
 		current_time += setup->timestep;
 	}
 	update_cells(grid, particles, n_p);
@@ -152,7 +167,7 @@ void assemble_residual_NS(Particle* particle, Particle_derivatives* particle_der
 
 	double lapl_Cs = particle_derivatives->lapl_Cs;
 	// Choose between curvature estimated with Laplacian of colour field or with divergence of normal
-// 	double kappa = - lapl_Cs / norm_n; // curvature with Laplacian of colour field
+	// 	double kappa = - lapl_Cs / norm_n; // curvature with Laplacian of colour field
 
 	double fs_x = 0; double fs_y = 0;
 	// Apply surface tension only on particles in the vicinity the interface
@@ -167,8 +182,8 @@ void assemble_residual_NS(Particle* particle, Particle_derivatives* particle_der
 		criterion = false;
 	if (criterion) {
 		particle->on_free_surface = true;
-// 	      fs_x = - particle->param->sigma * lapl_Cs * n->x / norm_n;
-// 	      fs_y = - particle->param->sigma * lapl_Cs * n->y / norm_n;
+		// 	      fs_x = - particle->param->sigma * lapl_Cs * n->x / norm_n;
+	// 	      fs_y = - particle->param->sigma * lapl_Cs * n->y / norm_n;
 	      // fs_x = - particle->param->sigma * kappa * n->x / norm_n;
 	      // fs_y = - particle->param->sigma * kappa * n->y / norm_n;
 		  double kappa = compute_curvature(particle, setup, 0.5);
@@ -196,9 +211,12 @@ void assemble_residual_NS(Particle* particle, Particle_derivatives* particle_der
 // 	}
 
 	residual->mass_eq = -rho_i * div_vel_i;
-	residual->momentum_x_eq = (-1.0/rho_i) * grad_P->x + (mu_i/rho_i) * lapl_v->x + fs_x;
-	residual->momentum_y_eq = (-1.0/rho_i) * grad_P->y + (mu_i/rho_i) * lapl_v->y + fs_y;
-
+	residual->momentum_x_eq = (-1.0/rho_i) * grad_P->x + (mu_i/rho_i) * lapl_v->x;
+	residual->momentum_y_eq = (-1.0/rho_i) * grad_P->y + (mu_i/rho_i) * lapl_v->y;
+	if (setup->gravity == 1){
+		double g = 9.81;
+		residual->momentum_y_eq -= g;
+	}
 }
 
 

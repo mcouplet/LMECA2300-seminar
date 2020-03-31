@@ -25,6 +25,7 @@ struct Setup{
 	Free_surface_detection free_surface_detection;  // Strategy to estimate if a particle should be considered on the free surface or not
 	double interface_threshold; // Threshold for the detection of particles on the free surface
 	double XSPH_epsilon; // Parameter between 0 and 1 multiplying the XSPH correction;0 if no correction wanted
+	bool gravity;
 };
 
 struct Residual {
@@ -36,6 +37,7 @@ struct Residual {
 
 
 Setup* Setup_new(int iter, double timestep,double kh, Verlet* verlet, Kernel kernel,Free_surface_detection free_surface_detection,double interface_threshold, double XSPH_epsilon);
+Setup* Setup_new_bis(int iter, double timestep,double kh, Verlet* verlet, Kernel kernel,Free_surface_detection free_surface_detection,double interface_threshold, double XSPH_epsilon, bool gravity);
 void Setup_free(Setup* setup);
 
 Residual* Residual_new();
