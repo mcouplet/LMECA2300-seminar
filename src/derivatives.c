@@ -59,7 +59,7 @@ double compute_lapl(Particle *particle, scalar_getter get, Kernel kernel, double
         Particle *pj = node->v;
         xy *grad_W = grad_kernel(pi->pos, pj->pos, kh, kernel);
 
-        grad_W = correct_grad(grad_W, pi, kh, kernel);
+        // grad_W = correct_grad(grad_W, pi, kh, kernel);
 
         double fj = get(pj);
         double d2 = squared(pi->pos->x - pj->pos->x) + squared(pi->pos->y - pj->pos->y); // squared distance between particles

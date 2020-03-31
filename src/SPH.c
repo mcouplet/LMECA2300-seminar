@@ -35,6 +35,7 @@ void free_Residuals(Residual** residuals, int N) {
 
 void simulate(Grid* grid, Particle** particles, Particle_derivatives** particles_derivatives, Residual** residuals, int n_p, update_positions update_positions, Setup* setup, Animation* animation) {
 	double current_time = 0.0;
+	int ii = 5;
 	printf("%d\n", setup->itermax);
 	for (int iter = 0; iter < setup->itermax; iter++) {
 		printf("----------------------------------------------------- \n");
@@ -47,6 +48,9 @@ void simulate(Grid* grid, Particle** particles, Particle_derivatives** particles
 			display_particles(particles, animation, false);
 
 		update_positions(grid, particles, particles_derivatives, residuals, n_p, setup);
+		if (iter%ii == 0){
+			density_correction_MLS(particles, n_p, setup->kh, setup->kernel);
+		}
 		current_time += setup->timestep;
 	}
 	update_cells(grid, particles, n_p);
@@ -230,7 +234,7 @@ double compute_curvature(Particle *particle, Setup *setup, double epsilon) {
 		Particle *pj = node->v;
 		//printf("%lf %lf\n", pj->normal->x, pj->normal->y);
 		xy *grad_W = grad_kernel(pi->pos, pj->pos, setup->kh, setup->kernel);
-		//xy *corrected_gradient_W = correct_grad(grad_W, pi, setup);//Here it would biais the curvature I think 
+		//xy *corrected_gradient_W = correct_grad(grad_W, pi, setup);//Here it would biais the curvature I think
 		denom += sqrt(squared(pi->pos->x - pj->pos->x) + squared(pi->pos->y - pj->pos->y)) *
 			(pj->m / pj->rho) * norm(grad_W);
 		free(grad_W);

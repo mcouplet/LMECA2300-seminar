@@ -4,6 +4,7 @@
 #include "print_particules.h"
 #include "kernel.h"
 #include "derivatives.h"
+#include "consistency.h"
 
 typedef struct Setup Setup;
 typedef struct Residual Residual;
