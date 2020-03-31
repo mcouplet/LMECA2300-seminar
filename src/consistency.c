@@ -52,13 +52,23 @@ xy* correct_grad(xy *current_grad, Particle *p, double kh, Kernel kernel){
 	double det = m11*m22 - m12*m21;
 	return xy_new((m22*current_grad->x - m21*current_grad->y)/det, (-m12*current_grad->x + m22*current_grad->y)/det);
 }
-
-void density_correction_MLS(Particle* pi, double kh, Kernel kernel){
+void density_correction_MLS(Particle** p, int n_p, double kh, Kernel kernel){
+	double* density_corr = (double*)malloc(n_p * sizeof(double));
+	for(int i = 0; i < n_p ; i++){
+		Particle* pi = p[i];
+		density_corr[i] = density_correction_MLS_local(pi,kh,kernel);
+	}
+	for(int i = 0; i < n_p ; i++){
+		Particle* pi = p[i];
+		pi->rho = density_corr[i];
+	}
+}
+double density_correction_MLS_local(Particle* pi, double kh, Kernel kernel){
 // We only compute beta once since it does not depend on other particles.
   double beta[3] = {0};
 	double A[3][3];
 	for(int i = 0; i < 3 ; i++){
-		for(int j=0;j>3;j++){
+		for(int j = 0; j < 3 ; j++){
 			A[i][j] = 0;
 		}
 	}
@@ -77,7 +87,7 @@ void density_correction_MLS(Particle* pi, double kh, Kernel kernel){
     current = current-> next;
   }
   // Correction
-  pi->rho = num/den;
+  return (num/den);
 }
 
 double get_W_MLS(Particle* pi, Particle* pj, double kh, Kernel kernel, double* beta){
