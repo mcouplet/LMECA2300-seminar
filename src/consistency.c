@@ -22,7 +22,7 @@ xy* correct_grad(xy *current_grad, Particle *p, double kh, Kernel kernel){
 
 void density_correction_MLS(Particle* pi, Setup* setup){
 // We only compute beta once since it does not depend on other particles.
-  double beta[3] = get_beta(get_A(pi));
+  double beta[3] = get_beta(get_A(pi, setup));
   double num = 0;
   double den = 0;
 
@@ -48,7 +48,7 @@ double get_W_MLS(Particle* pi, Particle* pj, Setup* setup, double* beta){
   return W_MLS;
 }
 
-double** get_A(Particle* pi){
+double** get_A(Particle* pi, Setup* setup){
 // Return the matrix A which has to be inversed and multiply to obtain beta
   double A[3][3] = {0};
   ListNode* current = pi->neighborhood->head;
@@ -94,16 +94,16 @@ void Corrective_Smoothed_Particle_Method(Particle *p,Particle_derivatives *dp, S
         current = current->next;
     }
 
-    //p->rho->x = num1/denom1;
+    p->rho = num1/denom1;
         //Correction of the gradient of pressure of our particle
-    
+
     current = p->neighborhood->head;
     while(current != NULL){
         Particle *j = current->v;
         denom2+=eval_kernel(p->pos,j->pos,setup->kh,XXX)*(j->pos->x-p->pos->x)*j->m/j->rho;
         denom3+=eval_kernel(p->pos,j->pos,setup->kh,XXX)*(j->pos->y-p->pos->y)*j->m/j->rho;
         current = current->next;
-        
+
     }
     dp->grad_P->x = dp->grad_P->x/denom2;
     dp->grad_P->y = dp->grad_P->y/denom3;
