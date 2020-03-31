@@ -1,5 +1,39 @@
 #include "consistency.h"
 
+
+double get_M0(Particle* pi, double kh, Kernel kernel){
+	double M = 0;
+	ListNode* current = pi->neighborhood->head;
+	while(current != NULL){
+		Particle* pj = current->v;
+		double W = eval_kernel(pi->pos, pj->pos, kh, kernel);
+		double V = pj->m/pj->rho;
+		M += W*V;
+		current = current-> next;
+	}
+	return M;
+}
+
+double get_M1(Particle* pi, double kh, Kernel kernel){
+	double M = 0;
+	ListNode* current = pi->neighborhood->head;
+	while(current != NULL){
+		Particle* pj = current->v;
+		double W = eval_kernel(pi->pos, pj->pos, kh, kernel);
+		double V = pj->m/pj->rho;
+
+		double d = sqrt(squared(pi->pos->x-pj->pos->x) + squared(pi->pos->y-pj->pos->y));
+		double h = kh/2;
+		double Xi_Xj = d/h; //Pas sur
+		M += W*V*Xi_Xj;
+		current = current-> next;
+	}
+	return M;
+}
+
+
+
+
 xy* correct_grad(xy *current_grad, Particle *p, double kh, Kernel kernel){
 	double m11 = 0; double m12 = 0; double m21 = 0; double m22 = 0;
 	ListNode *current = p->neighborhood->head;

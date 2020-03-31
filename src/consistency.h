@@ -6,6 +6,9 @@
 #include "derivatives.h"
 #include "SPH.h"
 
+
+double get_M0(Particle* pi, double kh, Kernel kernel);
+double get_M1(Particle* pi, double kh, Kernel kernel);
 xy* correct_grad(xy *current_grad, Particle *p, double kh, Kernel kernel);
 void density_correction_MLS(Particle* pi, double kh, Kernel kernel);
 double get_W_MLS(Particle* pi, Particle* pj, double kh, Kernel kernel, double* beta);
