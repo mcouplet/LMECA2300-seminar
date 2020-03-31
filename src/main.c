@@ -16,8 +16,12 @@ void script2();
 
 int main() {
 	// _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF); // comment if on Linux
-	// script_csf_circle();
+	//script_csf_circle();
 	script_circle_to_ellipse();
+	//script_csf_circle_paper();
+	//script_csf();
+	//script_csf_circle();
+	//script_circle_to_ellipse();
 	// script_csf_circle_paper();
 	//script1();
 
