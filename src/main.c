@@ -258,8 +258,8 @@ void script_circle_to_ellipse() {
 
 	// Start simulation
 	simulate(grid, particles, particles_derivatives, residuals, N_tot, update_positions_ellipse, setup, animation);
-	get_M0(particles, N_tot, kh, kernel);
-	get_M1(particles, N_tot, kh, kernel);
+	//get_M0(particles, N_tot, kh, kernel);
+	//get_M1(particles, N_tot, kh, kernel);
 	// Free stuff
 	free_particles(particles, N_tot);
 	free_particles_derivatives(particles_derivatives, N_tot);

@@ -47,7 +47,7 @@ void compute_grad(Particle * particle, scalar_getter get, Kernel kernel, double 
     //xy *grad_W = correct_grad(cg, pi, kh, kernel);
 	//grad->x = grad_W->x;
 	//grad->y = grad_W->y;
-    free(grad_W);
+    //free(grad_W);
     free(cg);
 }
 
