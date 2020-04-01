@@ -5,6 +5,7 @@
 #include "kernel.h"
 #include "derivatives.h"
 #include "consistency.h"
+#include "boundary.h"
 
 typedef struct Setup Setup;
 typedef struct Residual Residual;

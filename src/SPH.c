@@ -61,10 +61,10 @@ void simulate(Grid* grid, Particle** particles, Particle_derivatives** particles
 			display_particles(particles, animation, false);
 		update_positions(grid, particles, particles_derivatives, residuals, n_p, setup);
 		if (iter%ii == 0){
-			//density_correction_MLS(particles, n_p, setup->kh, setup->kernel);
+			// density_correction_MLS(particles, n_p, setup->kh, setup->kernel);
 		}
-		//get_M0(particles,n_p,setup->kh,setup->kernel);
-		//get_M1(particles,n_p,setup->kh,setup->kernel);
+		get_M0(particles,n_p,setup->kh,setup->kernel);
+		get_M1(particles,n_p,setup->kh,setup->kernel);
 		current_time += setup->timestep;
 	}
 	update_cells(grid, particles, n_p);
@@ -270,7 +270,7 @@ double compute_curvature(Particle *particle, Setup *setup, double epsilon) {
     //denom->y=0.0;
     ListNode *node = pi->neighborhood->head;
     double Csi=0.0;
-    
+
     //Constriction of Csi just like the book
     while (node != NULL) {
         Particle *pj = node->v;
@@ -284,23 +284,23 @@ double compute_curvature(Particle *particle, Setup *setup, double epsilon) {
         Particle *pj = node->v;
         //mass density ratio
         double mrho = pj->m/pj->rho;
-        
+
         //nomalized position-> (X_i-X_j) / ||X_i-X_j||^2
         xy *ij = xy_new(pi->pos->x - pj->pos->x, pi->pos->y - pj->pos->y);
         double norm_ij = squared(norm(ij));
         xy *unit = xy_new(ij->x/norm_ij, ij->y/norm_ij);
         //double unit = (pi->pos-pj->pos)/squared(norm(pi->pos - pj->pos));
-        
+
         // Gradient of W
         xy *grad_W = grad_kernel(pi->pos, pj->pos, setup->kh, setup->kernel);
-        
+
         //Vectorial decompsoition of denom
         denom->x+=grad_W->x*mrho;
         denom->y+=grad_W->y*mrho;
-        
+
         // Numerator assembly
         num+=mrho*(Csi-1)*((unit->x*grad_W->x)+(unit->y*grad_W->y));
-                           
+
         free(grad_W);
         node = node->next;
     }
