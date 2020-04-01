@@ -1,10 +1,12 @@
 #include "print_particules.h"
 #include "particle.h"
+#include "boundary.h"
 #include "SPH.h"
 #include "derivatives.h"
 #include <math.h>
 #include "kernel.h"
 #include "consistency.h"
+
 //#include "crtdbg.h" // for memory leak detection; comment if you're on Linux
 
 void script_csf();
@@ -18,9 +20,9 @@ int main() {
 	// _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF); // comment if on Linux
 	// script_csf_circle();
 	//script_csf_circle();
-	script_circle_to_ellipse();
+	// script_circle_to_ellipse();
 	//script_csf_circle_paper();
-	//script_csf();
+	script_csf();
 	//script1();
 
 	return EXIT_SUCCESS;
@@ -30,8 +32,8 @@ int main() {
 void script_csf() {
 
 	// Parameters of the problem
-	double L = 2; // size of the domain: [-L,L] x [-L,L]
-	double l = 1; // size of the square: [-l,l] x [-l,l]
+	double L = 1; // size of the domain: [-L,L] x [-L,L]
+	double l = 0.8; // size of the square: [-l,l] x [-l,l]
 	double dt = 0.001; // physical time step
 	double T = 30; // duration of simulation
 	// double T = dt; // duration of simulation
@@ -83,12 +85,15 @@ void script_csf() {
 
 	// Setup grid
 	Grid *grid = Grid_new(-L, L, -L, L, kh);
+	// Setup BOUNDARY
+	Boundary* boundary = Boundary_new(-L,L,-L,L);
 	// Setup setup
 	Setup *setup = Setup_new_bis(n_iter, dt, kh, verlet, kernel, surface_detection, interface_threshold, XSPH_epsilon, gravity);
 	// Setup animation
 	Animation *animation = Animation_new(n_p, dt_anim, grid, 1);
 
 	// Start simulation
+	// simulate_boundary(grid, particles, particles_derivatives, residuals, n_p, update_positions_seminar_5, setup, animation, boundary);
 	simulate(grid, particles, particles_derivatives, residuals, n_p, update_positions_seminar_5, setup, animation);
 	// Free stuff
 	free_particles(particles, n_p);

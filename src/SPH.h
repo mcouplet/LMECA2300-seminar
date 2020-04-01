@@ -3,9 +3,10 @@
 #include "particle.h"
 #include "print_particules.h"
 #include "kernel.h"
+#include "boundary.h"
 #include "derivatives.h"
 #include "consistency.h"
-#include "boundary.h"
+
 
 typedef struct Setup Setup;
 typedef struct Residual Residual;
@@ -45,6 +46,7 @@ Residual* Residual_new();
 void free_Residuals(Residual** residuals,int N);
 
 void simulate(Grid* grid, Particle** particles, Particle_derivatives** particles_derivatives, Residual** residuals, int n_p, update_positions update_positions, Setup* setup, Animation* animation);
+// void simulate_boundary(Grid* grid, Particle** particles, Particle_derivatives** particles_derivatives, Residual** residuals, int n_p, update_positions update_positions, Setup* setup, Animation* animation, Boundary* boundary);
 void random_moves(Grid* grid, Particle** particles, Particle_derivatives** particles_derivatives, Residual** residuals, int n_p, Setup* setup);
 void update_positions_seminar_5(Grid* grid, Particle** particles, Particle_derivatives** particles_derivatives, Residual** residuals, int n_p, Setup* setup);
 void update_positions_ellipse(Grid* grid, Particle** particles, Particle_derivatives** particles_derivatives, Residual** residuals, int n_p, Setup* setup);

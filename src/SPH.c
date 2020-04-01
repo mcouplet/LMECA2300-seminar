@@ -60,8 +60,9 @@ void simulate(Grid* grid, Particle** particles, Particle_derivatives** particles
 		if (animation != NULL)
 			display_particles(particles, animation, false);
 		update_positions(grid, particles, particles_derivatives, residuals, n_p, setup);
+		// Check boundary
 		if (iter%ii == 0){
-			// density_correction_MLS(particles, n_p, setup->kh, setup->kernel);
+			density_correction_MLS(particles, n_p, setup->kh, setup->kernel);
 		}
 		get_M0(particles,n_p,setup->kh,setup->kernel);
 		get_M1(particles,n_p,setup->kh,setup->kernel);
@@ -73,6 +74,9 @@ void simulate(Grid* grid, Particle** particles, Particle_derivatives** particles
 		display_particles(particles, animation, true);
 }
 
+void simulate_boundary(Grid* grid, Particle** particles, Particle_derivatives** particles_derivatives, Residual** residuals, int n_p, update_positions update_positions, Setup* setup, Animation* animation, Boundary* boundary){
+	
+}
 
 
 //move randomly each particles
@@ -258,11 +262,8 @@ double compute_curvature(Particle *particle, Setup *setup, double epsilon) {
 		free(grad_W);
 		node = node->next;
 	}
-	double r = sqrt(pi->pos->x*pi->pos->x + pi->pos->y*pi->pos->y);
-	printf("Curvature : %f -- %f\n", num/denom, 1/r);
 	return num / denom;
-}
-*/
+}*/
 
 double compute_curvature(Particle *particle, Setup *setup, double epsilon) {
     double num = 0.0;
@@ -278,14 +279,13 @@ double compute_curvature(Particle *particle, Setup *setup, double epsilon) {
     while (node != NULL) {
         Particle *pj = node->v;
         double mrho= pj->m/pj->rho;
-        Csi += mrho*eval_kernel(pi->pos,pj->pos,setup->kh,setup->kernel);//////////Deja ici y a un soucis
+        Csi=mrho*eval_kernel(pi->pos,pj->pos,setup->kh,setup->kernel);
         node = node->next;
     }
     //Constriction of kappa just like the book
     node = pi->neighborhood->head;
     while (node != NULL) {
         Particle *pj = node->v;
-<<<<<<< HEAD
         //mass density ratio
         double mrho = pj->m/pj->rho;
 
@@ -306,58 +306,10 @@ double compute_curvature(Particle *particle, Setup *setup, double epsilon) {
         num+=mrho*(Csi-1)*((unit->x*grad_W->x)+(unit->y*grad_W->y));
 
         free(grad_W);
-||||||| merged common ancestors
-        //mass density ratio
-        double mrho = pj->m/pj->rho;
-        
-        //nomalized position-> (X_i-X_j) / ||X_i-X_j||^2
-        xy *ij = xy_new(pi->pos->x - pj->pos->x, pi->pos->y - pj->pos->y);
-        double norm_ij = squared(norm(ij));
-        xy *unit = xy_new(ij->x/norm_ij, ij->y/norm_ij);
-        //double unit = (pi->pos-pj->pos)/squared(norm(pi->pos - pj->pos));
-        
-        // Gradient of W
-        xy *grad_W = grad_kernel(pi->pos, pj->pos, setup->kh, setup->kernel);
-        
-        //Vectorial decompsoition of denom
-        denom->x+=grad_W->x*mrho;
-        denom->y+=grad_W->y*mrho;
-        
-        // Numerator assembly
-        num+=mrho*(Csi-1)*((unit->x*grad_W->x)+(unit->y*grad_W->y));
-                           
-        free(grad_W);
-=======
-        if(pj != pi){
-	        //mass density ratio
-	        double mrho = pj->m/pj->rho;
-	        
-	        //nomalized position-> (X_i-X_j) / ||X_i-X_j||^2
-	        xy *ij = xy_new(pi->pos->x - pj->pos->x, pi->pos->y - pj->pos->y);
-	        double norm_ij = squared(norm(ij));
-	        xy *unit = xy_new(ij->x/norm_ij, ij->y/norm_ij);
-	        //double unit = (pi->pos-pj->pos)/squared(norm(pi->pos - pj->pos));
-	        
-	        // Gradient of W
-	        xy *grad_W = grad_kernel(pi->pos, pj->pos, setup->kh, setup->kernel);
-	        
-	        //Vectorial decompsoition of denom
-	        denom->x += grad_W->x*mrho;
-	        denom->y += grad_W->y*mrho;
-	        
-	        // Numerator assembly
-	        num += mrho*(Csi-1)*((unit->x*grad_W->x)+(unit->y*grad_W->y));
-	        //printf("Bug : %f, %f, %f, %f\n", mrho, Csi-1, unit->x, grad_W->x);
-	                           
-	        free(grad_W);
-    	}
->>>>>>> 48ee3b7b1f91521686a16fe7062a5bb84fb79098
         node = node->next;
     }
     //Kappa assembly
-    double r = sqrt(pi->pos->x*pi->pos->x + pi->pos->y*pi->pos->y);
-	printf("Curvature : %f -- %f\n", num / norm(denom), 1/r);
-    return (num / norm(denom))/10;
+    return num / norm(denom);
 }
 
 void compute_XSPH_correction(Particle *pi, Kernel kernel, double kh, double epsilon) {

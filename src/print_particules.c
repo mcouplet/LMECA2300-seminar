@@ -27,7 +27,7 @@ void fillData(GLfloat(*data)[8], Particle** particles, int N) {
 		else {
 		  colormap_uni_color(&data[i][4]);
 		}
-		
+
 		data[i][7] = 0.8f; // transparency
 	}
 }
@@ -77,7 +77,7 @@ Animation* Animation_new(int N, double timeout,Grid* grid,double scale)
 	// setting particles appearance
 	bov_points_set_width(particles, 0.01);
 	bov_points_set_outline_width(particles, 0.0025);
-	
+
 	double c = 4;
 	bov_points_scale(particles, (GLfloat[2]){0.8*c/L*scale, 0.8*c/L*scale});//0.8
 	//bov_points_scale(particles, (GLfloat[2]){ 0.008, 0.008 });
