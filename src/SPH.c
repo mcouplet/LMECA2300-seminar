@@ -78,6 +78,7 @@ void simulate_boundary(Grid* grid, Particle** particles, Particle_derivatives** 
 	double current_time = 0.0;
 	double Rp = 0.01;
 	int ii = 5;
+	// setup->gravity = 0; // To disable gravity
 	printf("%d\n", setup->itermax);
 	for (int iter = 0; iter < setup->itermax; iter++) {
 		printf("----------------------------------------------------- \n");
@@ -482,8 +483,8 @@ Boundary* Boundary_new(double xleft, double xright, double ybottom, double ytop,
 	boundary->xright = xright;
 	boundary->ybottom = ybottom;
 	boundary->ytop = ytop;
-	boundary->CF = CF;
 	boundary->CR = CR;
+	boundary->CF = CF;
 	return boundary;
 }
 void Boundary_free(Boundary* boundary){
@@ -511,8 +512,8 @@ void velocity_reflection_vertical(Particle* pi, double CR, double CF){
 void velocity_reflection_horizontal(Particle* pi, double CR, double CF){
 	double vpN = pi->v->y;
 	double vpT = pi->v->x;
-	pi->v->x = vpN*CR;
-	pi->v->y = -(1-CF)* vpT;
+	pi->v->y = vpN*CR;
+	pi->v->x = -(1-CF)* vpT;
 }
 void reflective_boundary(Particle** p, int n_p, Boundary* boundary, double Rp){
 	// We have just computed the time integration. We correct the positions of the particles
