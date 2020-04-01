@@ -17,12 +17,9 @@ void script2();
 int main() {
 	// _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF); // comment if on Linux
 	// script_csf_circle();
-	//script_circle_to_ellipse();
+	script_circle_to_ellipse();
 	//script_csf_circle_paper();
-	script_csf();
-	//script_csf_circle();
-	//script_circle_to_ellipse();
-	// script_csf_circle_paper();
+	//script_csf();
 	//script1();
 
 	return EXIT_SUCCESS;
@@ -35,7 +32,7 @@ void script_csf() {
 	double L = 2; // size of the domain: [-L,L] x [-L,L]
 	double l = 1; // size of the square: [-l,l] x [-l,l]
 	double dt = 0.001; // physical time step
-	double T = 100; // duration of simulation
+	double T = 30; // duration of simulation
 	// double T = dt; // duration of simulation
 
 	// Physical parameters
@@ -92,7 +89,6 @@ void script_csf() {
 
 	// Start simulation
 	simulate(grid, particles, particles_derivatives, residuals, n_p, update_positions_seminar_5, setup, animation);
-
 	// Free stuff
 	free_particles(particles, n_p);
 	free_particles_derivatives(particles_derivatives, n_p);
@@ -186,7 +182,7 @@ void script_circle_to_ellipse() {
 	double l = 1.0; // radius of the circle
 	double L = 2.0*l; // size of the domain: [-L,L] x [-L,L]
 	double dt = 1.0e-5; // physical time step
-	double T = 0.0076; // duration of simulation
+	double T = 0.0026; // duration of simulation
 
 	// Physical parameters
 	double rho_0 = 1000.0; // initial (physical) density of water at 20°C (in kg/m^3)
@@ -262,7 +258,8 @@ void script_circle_to_ellipse() {
 
 	// Start simulation
 	simulate(grid, particles, particles_derivatives, residuals, N_tot, update_positions_ellipse, setup, animation);
-
+	get_M0(particles, N_tot, kh, kernel);
+	get_M1(particles, N_tot, kh, kernel);
 	// Free stuff
 	free_particles(particles, N_tot);
 	free_particles_derivatives(particles_derivatives, N_tot);

@@ -7,9 +7,10 @@ double compute_div(Particle * particle, xy_getter get, Kernel kernel, double kh)
     ListNode *node = pi->neighborhood->head;
     while(node != NULL) {
         Particle *pj = node->v;
+
         xy *grad_W = grad_kernel(pi->pos, pj->pos, kh, kernel);
 
-        // grad_W = correct_grad(grad_W, pi, kh, kernel);
+        //grad_W = correct_grad_local(grad_W, pi, pj, kh, kernel);
 
         xy *fj = get(pj);
         div += (pj->m / pj->rho) * // NOTE THAT THE DENSITY OF J IS USED, ACCORDING TO (26)
@@ -43,10 +44,10 @@ void compute_grad(Particle * particle, scalar_getter get, Kernel kernel, double 
     xy *cg = xy_new(gx,gy);
     grad->x = gx;
     grad->y = gy;
-    xy *grad_W = correct_grad(cg, pi, kh, kernel);
+    //xy *grad_W = correct_grad(cg, pi, kh, kernel);
 	//grad->x = grad_W->x;
 	//grad->y = grad_W->y;
-    //free(grad_W);
+    free(grad_W);
     free(cg);
 }
 
@@ -59,7 +60,7 @@ double compute_lapl(Particle *particle, scalar_getter get, Kernel kernel, double
         Particle *pj = node->v;
         xy *grad_W = grad_kernel(pi->pos, pj->pos, kh, kernel);
 
-        // grad_W = correct_grad(grad_W, pi, kh, kernel);
+        //grad_W = correct_grad_local(grad_W, pi, pj, kh, kernel);
 
         double fj = get(pj);
         double d2 = squared(pi->pos->x - pj->pos->x) + squared(pi->pos->y - pj->pos->y); // squared distance between particles
