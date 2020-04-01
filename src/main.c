@@ -53,8 +53,10 @@ void script_csf() {
 	double interface_threshold = 1.5;//20; // If ||n_i|| > threshold => particle i belongs to interface (first detection approach)
 	Verlet *verlet = NULL; // don't use Verlet (for now)
 	double XSPH_epsilon = 0.5;
-	Free_surface_detection surface_detection = DIVERGENCE;
-	// Free_surface_detection surface_detection = CSF;
+	// Free_surface_detection surface_detection = DIVERGENCE;
+	double CR = 1.0;
+	double CF = 0.0;
+	Free_surface_detection surface_detection = CSF;
 
 
 	printf("n_iter = %d\n", n_iter);
@@ -85,15 +87,15 @@ void script_csf() {
 	// Setup grid
 	Grid *grid = Grid_new(-L, L, -L, L, kh);
 	// Setup BOUNDARY
-	Boundary* boundary = Boundary_new(-L,L,-L,L);
+	Boundary* boundary = Boundary_new(-L,L,-L,L,CR,CF);
 	// Setup setup
 	Setup *setup = Setup_new_bis(n_iter, dt, kh, verlet, kernel, surface_detection, interface_threshold, XSPH_epsilon, gravity);
 	// Setup animation
 	Animation *animation = Animation_new(n_p, dt_anim, grid, 1);
 
 	// Start simulation
-	// simulate_boundary(grid, particles, particles_derivatives, residuals, n_p, update_positions_seminar_5, setup, animation, boundary);
-	simulate(grid, particles, particles_derivatives, residuals, n_p, update_positions_seminar_5, setup, animation);
+	simulate_boundary(grid, particles, particles_derivatives, residuals, n_p, update_positions_seminar_5, setup, animation, boundary);
+	// simulate(grid, particles, particles_derivatives, residuals, n_p, update_positions_seminar_5, setup, animation);
 	// Free stuff
 	free_particles(particles, n_p);
 	free_particles_derivatives(particles_derivatives, n_p);

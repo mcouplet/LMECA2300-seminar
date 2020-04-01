@@ -75,7 +75,31 @@ void simulate(Grid* grid, Particle** particles, Particle_derivatives** particles
 }
 
 void simulate_boundary(Grid* grid, Particle** particles, Particle_derivatives** particles_derivatives, Residual** residuals, int n_p, update_positions update_positions, Setup* setup, Animation* animation, Boundary* boundary){
-	double nothing = 1;
+	double current_time = 0.0;
+	double Rp = 0.01;
+	int ii = 5;
+	printf("%d\n", setup->itermax);
+	for (int iter = 0; iter < setup->itermax; iter++) {
+		printf("----------------------------------------------------- \n");
+		printf("iter %d / %d @ t = %lf \n", iter, setup->itermax, current_time);
+		update_cells(grid, particles, n_p);
+		fprintf(stderr,"cououc\n");
+		update_neighborhoods(grid, particles, n_p, iter, setup->verlet);
+		if (animation != NULL)
+			display_particles(particles, animation, false);
+		update_positions(grid, particles, particles_derivatives, residuals, n_p, setup);
+		reflective_boundary(particles,n_p,boundary,Rp);
+		if (iter%ii == 0){
+			density_correction_MLS(particles, n_p, setup->kh, setup->kernel);
+		}
+		get_M0(particles,n_p,setup->kh,setup->kernel);
+		get_M1(particles,n_p,setup->kh,setup->kernel);
+		current_time += setup->timestep;
+	}
+	update_cells(grid, particles, n_p);
+	update_neighborhoods(grid, particles, n_p, 0, setup->verlet);
+	if (animation != NULL)
+		display_particles(particles, animation, true);
 }
 
 
@@ -452,12 +476,14 @@ double compute_admissible_dt(double safety_param, double h_p, double c_0, double
 
 }
 
-Boundary* Boundary_new(double xleft, double xright, double ybottom, double ytop){
+Boundary* Boundary_new(double xleft, double xright, double ybottom, double ytop,double CR, double CF){
 	Boundary* boundary = (Boundary*) malloc(sizeof(Boundary));
 	boundary->xleft = xleft;
 	boundary->xright = xright;
 	boundary->ybottom = ybottom;
 	boundary->ytop = ytop;
+	boundary->CF = CF;
+	boundary->CR = CR;
 	return boundary;
 }
 void Boundary_free(Boundary* boundary){
@@ -488,8 +514,10 @@ void velocity_reflection_horizontal(Particle* pi, double CR, double CF){
 	pi->v->x = vpN*CR;
 	pi->v->y = -(1-CF)* vpT;
 }
-void reflective_boundary(Particle** p, int n_p, double CR, double CF, Boundary* boundary,double Rp){
+void reflective_boundary(Particle** p, int n_p, Boundary* boundary, double Rp){
 	// We have just computed the time integration. We correct the positions of the particles
+	double CF = boundary->CF;
+	double CR = boundary->CR;
 	for(int i = 0; i < n_p ; i++){
 		// For each particle we check if its position is close to a wall
 		Particle* pi = p[i];

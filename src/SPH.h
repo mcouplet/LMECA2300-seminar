@@ -40,6 +40,8 @@ struct Boundary{
   double xright;
   double ybottom;
   double ytop;
+	double CR;
+  double CF;
 };
 
 Setup* Setup_new(int iter, double timestep,double kh, Verlet* verlet, Kernel kernel,Free_surface_detection free_surface_detection,double interface_threshold, double XSPH_epsilon);
@@ -69,8 +71,8 @@ double compute_admissible_dt(double safety_param, double h_p, double c_0, double
 
 void compute_normal(Particle *particle, Particle_derivatives* particle_derivatives);
 
-Boundary* Boundary_new(double xleft, double xright, double ybottom, double ytop);
+Boundary* Boundary_new(double xleft, double xright, double ybottom, double ytop, double CR, double CF);
 void Boundary_free(Boundary* boundary);
-void reflective_boundary(Particle** p, int n_p, double CR, double CF, Boundary* boundary,double Rp);
+void reflective_boundary(Particle** p, int n_p, Boundary* boundary,double Rp);
 
 #endif
