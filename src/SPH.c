@@ -75,7 +75,7 @@ void simulate(Grid* grid, Particle** particles, Particle_derivatives** particles
 }
 
 void simulate_boundary(Grid* grid, Particle** particles, Particle_derivatives** particles_derivatives, Residual** residuals, int n_p, update_positions update_positions, Setup* setup, Animation* animation, Boundary* boundary){
-	
+	double nothing = 1;
 }
 
 
@@ -450,4 +450,84 @@ double compute_admissible_dt(double safety_param, double h_p, double c_0, double
   double dt_min_interm = fmin(dt_1, dt_2);
   return safety_param * fmin(dt_min_interm, dt_3);
 
+}
+
+Boundary* Boundary_new(double xleft, double xright, double ybottom, double ytop){
+	Boundary* boundary = (Boundary*) malloc(sizeof(Boundary));
+	boundary->xleft = xleft;
+	boundary->xright = xright;
+	boundary->ybottom = ybottom;
+	boundary->ytop = ytop;
+	return boundary;
+}
+void Boundary_free(Boundary* boundary){
+	free(boundary);
+}
+
+void center_reflection_right(Particle* pi, double CR, double Rp, double d){
+		pi->pos->x -= (1+CR)*(Rp - d);
+}
+void center_reflection_left(Particle* pi, double CR, double Rp, double d){
+		pi->pos->x += (1+CR)*(Rp - d);
+}
+void center_reflection_top(Particle* pi, double CR, double Rp, double d){
+		pi->pos->y -= (1+CR)*(Rp - d);
+}
+void center_reflection_bottom(Particle* pi, double CR, double Rp, double d){
+		pi->pos->y += (1+CR)*(Rp - d);
+}
+void velocity_reflection_vertical(Particle* pi, double CR, double CF){
+	double vpN = pi->v->x;
+	double vpT = pi->v->y;
+	pi->v->x = -vpN*CR;
+	pi->v->y = (1-CF)* vpT;
+}
+void velocity_reflection_horizontal(Particle* pi, double CR, double CF){
+	double vpN = pi->v->y;
+	double vpT = pi->v->x;
+	pi->v->x = vpN*CR;
+	pi->v->y = -(1-CF)* vpT;
+}
+void reflective_boundary(Particle** p, int n_p, double CR, double CF, Boundary* boundary,double Rp){
+	// We have just computed the time integration. We correct the positions of the particles
+	for(int i = 0; i < n_p ; i++){
+		// For each particle we check if its position is close to a wall
+		Particle* pi = p[i];
+		double xright = boundary->xright;	double xleft = boundary->xleft;
+		double ytop = boundary->ytop;			double ybottom = boundary->ybottom;
+		double dxright,dxleft,dytop,dybottom;
+
+		// Collision test
+		int collision, collision_right, collision_left, collision_top, collision_bottom;
+		collision = 0; collision_right = 0; collision_left = 0; collision_top = 0; collision_bottom = 0;
+
+		if(pi->pos->x > boundary->xright - Rp){
+			collision_right = 1;
+			collision = 1;
+			dxright = fabs(pi->pos->x - xright);
+			center_reflection_right(pi,CR,Rp,dxright);
+			velocity_reflection_vertical(pi,CR,CF);
+		}
+		if(pi->pos->x < boundary->xleft + Rp){
+			collision_left = 1;
+			collision = 1;
+			dxleft = fabs(pi->pos->x - xleft);
+			center_reflection_left(pi,CR,Rp,dxleft);
+			velocity_reflection_vertical(pi,CR,CF);
+		}
+		if(pi->pos->y > boundary->ytop - Rp){
+			collision_top = 1;
+			collision = 1;
+			dytop = fabs(pi->pos->y - ytop);
+			center_reflection_top(pi,CR,Rp,dytop);
+			velocity_reflection_horizontal(pi,CR,CF);
+		}
+		if(pi->pos->y < boundary->ybottom + Rp){
+			collision_bottom = 1;
+			collision = 1;
+			dybottom = fabs(pi->pos->y - ytop);
+			center_reflection_bottom(pi,CR,Rp,dytop);
+			velocity_reflection_horizontal(pi,CR,CF);
+		}
+	}
 }

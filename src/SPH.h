@@ -3,11 +3,10 @@
 #include "particle.h"
 #include "print_particules.h"
 #include "kernel.h"
-#include "boundary.h"
 #include "derivatives.h"
 #include "consistency.h"
 
-
+typedef struct Boundary Boundary;
 typedef struct Setup Setup;
 typedef struct Residual Residual;
 typedef void(*update_positions)(Grid* grid, Particle** particles, Particle_derivatives** particles_derivatives, Residual** residuals, int n_p, Setup* setup);
@@ -36,7 +35,12 @@ struct Residual {
 	double momentum_y_eq;
 };
 
-
+struct Boundary{
+  double xleft;
+  double xright;
+  double ybottom;
+  double ytop;
+};
 
 Setup* Setup_new(int iter, double timestep,double kh, Verlet* verlet, Kernel kernel,Free_surface_detection free_surface_detection,double interface_threshold, double XSPH_epsilon);
 Setup* Setup_new_bis(int iter, double timestep,double kh, Verlet* verlet, Kernel kernel,Free_surface_detection free_surface_detection,double interface_threshold, double XSPH_epsilon, bool gravity);
@@ -46,7 +50,7 @@ Residual* Residual_new();
 void free_Residuals(Residual** residuals,int N);
 
 void simulate(Grid* grid, Particle** particles, Particle_derivatives** particles_derivatives, Residual** residuals, int n_p, update_positions update_positions, Setup* setup, Animation* animation);
-// void simulate_boundary(Grid* grid, Particle** particles, Particle_derivatives** particles_derivatives, Residual** residuals, int n_p, update_positions update_positions, Setup* setup, Animation* animation, Boundary* boundary);
+void simulate_boundary(Grid* grid, Particle** particles, Particle_derivatives** particles_derivatives, Residual** residuals, int n_p, update_positions update_positions, Setup* setup, Animation* animation, Boundary* boundary);
 void random_moves(Grid* grid, Particle** particles, Particle_derivatives** particles_derivatives, Residual** residuals, int n_p, Setup* setup);
 void update_positions_seminar_5(Grid* grid, Particle** particles, Particle_derivatives** particles_derivatives, Residual** residuals, int n_p, Setup* setup);
 void update_positions_ellipse(Grid* grid, Particle** particles, Particle_derivatives** particles_derivatives, Residual** residuals, int n_p, Setup* setup);
@@ -64,5 +68,9 @@ void assemble_residual_NS_test(Particle* particle, Particle_derivatives* particl
 double compute_admissible_dt(double safety_param, double h_p, double c_0, double rho_0, double mu, double sigma);
 
 void compute_normal(Particle *particle, Particle_derivatives* particle_derivatives);
+
+Boundary* Boundary_new(double xleft, double xright, double ybottom, double ytop);
+void Boundary_free(Boundary* boundary);
+void reflective_boundary(Particle** p, int n_p, double CR, double CF, Boundary* boundary,double Rp);
 
 #endif

@@ -1,6 +1,5 @@
 #include "print_particules.h"
 #include "particle.h"
-#include "boundary.h"
 #include "SPH.h"
 #include "derivatives.h"
 #include <math.h>
