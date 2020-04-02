@@ -58,7 +58,7 @@ void simulate(Grid* grid, Particle** particles, Particle_derivatives** particles
 		fprintf(stderr,"cououc\n");
 		update_neighborhoods(grid, particles, n_p, iter, setup->verlet);
 		if (animation != NULL)
-			display_particles(particles, animation, false);
+			display_particles(particles, animation, false, iter);
 		update_positions(grid, particles, particles_derivatives, residuals, n_p, setup);
 		for(int i = 0; i < n_p; i++){
 			Corrective_Smoothed_Particle_Method(particles[i],particles_derivatives[i], setup->kh, setup->kernel);
@@ -74,7 +74,7 @@ void simulate(Grid* grid, Particle** particles, Particle_derivatives** particles
 	update_cells(grid, particles, n_p);
 	update_neighborhoods(grid, particles, n_p, 0, setup->verlet);
 	if (animation != NULL)
-		display_particles(particles, animation, true);
+		display_particles(particles, animation, true, setup->itermax);
 }
 
 void simulate_boundary(Grid* grid, Particle** particles, Particle_derivatives** particles_derivatives, Residual** residuals, int n_p, update_positions update_positions, Setup* setup, Animation* animation, Boundary* boundary){
@@ -90,7 +90,7 @@ void simulate_boundary(Grid* grid, Particle** particles, Particle_derivatives** 
 		fprintf(stderr,"cououc\n");
 		update_neighborhoods(grid, particles, n_p, iter, setup->verlet);
 		if (animation != NULL)
-			display_particles(particles, animation, false);
+			display_particles(particles, animation, false,iter);
 		update_positions(grid, particles, particles_derivatives, residuals, n_p, setup);
 		reflective_boundary(particles,n_p,boundary,Rp);
 		if (iter%ii == 0){
@@ -103,7 +103,7 @@ void simulate_boundary(Grid* grid, Particle** particles, Particle_derivatives** 
 	update_cells(grid, particles, n_p);
 	update_neighborhoods(grid, particles, n_p, 0, setup->verlet);
 	if (animation != NULL)
-		display_particles(particles, animation, true);
+		display_particles(particles, animation, true,setup->itermax);
 }
 
 
