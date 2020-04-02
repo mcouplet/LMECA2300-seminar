@@ -14,11 +14,12 @@ void script_circle_to_ellipse();
 void script_csf_circle_paper();
 void script1();
 void script2();
+void dam_break();
 
 int main() {
 	// _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF); // comment if on Linux
-
-	dam_break();
+	script_circle_to_ellipse();
+	// dam_break();
 
 	return EXIT_SUCCESS;
 }
@@ -37,7 +38,7 @@ void dam_break() {
 	double gamma = 7; // typical value for liquid (dimensionless)
 	double c_0 = 1.0;//1481; // sound speed in water at 20°C (in m/s)
 	double sigma = 72.86e-3; // surface tension of water-air interface at 20°C (in N/m)
-	bool gravity = 1;
+	bool gravity = 0;
 
 	// SPH parameters
 	int n_per_dim = 51; // number of particles per dimension
@@ -82,7 +83,7 @@ void dam_break() {
 	Grid *grid = Grid_new(-L, L, -L, L, kh);
 	// Setup BOUNDARY
 	double d = 0.5*L;
-	Boundary* boundary = Boundary_new(-l,d,-l,d,CR,CF);
+	Boundary* boundary = Boundary_new(-d,d,-d,d,CR,CF);
 	// Setup setup
 	Setup *setup = Setup_new_bis(n_iter, dt, kh, verlet, kernel, surface_detection, interface_threshold, XSPH_epsilon, gravity);
 	// Setup animation
@@ -99,4 +100,99 @@ void dam_break() {
 	Setup_free(setup);
 	Animation_free(animation);
 
+}
+
+
+// Evolution of a 2D circle with non-zero initial velocities (no surface tension force)
+// Test case from "Simulating Free Surface Flows with SPH", Monaghan (1994)
+void script_circle_to_ellipse() {
+
+	// Parameters of the problem
+	double l = 1.0; // radius of the circle
+	double L = 2.0*l; // size of the domain: [-L,L] x [-L,L]
+	double dt = 1.0e-5; // physical time step
+	double T = 0.0076; // duration of simulation
+
+	// Physical parameters
+	double rho_0 = 1000.0; // initial (physical) density of water at 20°C (in kg/m^3)
+	double mu = 1.0016e-3; // dynamic viscosity of water at 20°C (in N.s/m^2)
+	double gamma = 7.0; // typical value for liquid (dimensionless)
+	double c_0 = 1400.0;//1481; // sound speed in water at 20°C (in m/s)
+	double sigma = 0.0; // surface tension of water-air interface at 20°C (in N/m)
+
+	// SPH parameters
+	Verlet *verlet = NULL; // don't use Verlet (for now)
+	Kernel kernel = Cubic; // kernel choice
+	double interface_threshold = 1.5;//1000.0; // If ||n_i|| > threshold => particle i belongs to interface (first detection approach)
+	double XSPH_epsilon = 0.5;
+	Free_surface_detection surface_detection = DIVERGENCE;
+	int N_c = 30; // number of circonferences on which points are placed
+	int N_p = 6; // number of points on the first circonference (doubled for every circonference)
+	int N_tot = 1; // total number of points
+	for (int i = 1; i < N_c; i++) {
+		N_tot += i * N_p;
+	}
+	printf("N_tot = %d \n", N_tot);
+	int n_iter = (int)(T / dt); // number of iterations to perform
+	double kh = 0.2*l;// is ideal to reach t = 0.0076; // kernel width
+
+
+	// Animation parameter
+	double T_anim = 0.1; // duration of animation
+	double dt_anim = T_anim / n_iter; // time step of animation
+
+	// Initialize particles in a circle
+	double m = rho_0 * M_PI * l * l / N_tot; // mass of each particle
+
+	Particle** particles = (Particle**)malloc(N_tot * sizeof(Particle*));
+	Particle_derivatives** particles_derivatives = malloc(N_tot * sizeof(Particle_derivatives*));
+	Residual** residuals = malloc(N_tot * sizeof(Residual*));
+
+	// parameters defining the circle
+	double b, delta_s, k, theta;
+	delta_s = l / ((double)N_c - 1.0);
+	theta = (2*M_PI) / ((double)N_p);
+
+	int index = 0;
+	for (int i = 0; i < N_c; i++) {
+		b = i;
+		if (b == 0) {
+			xy *pos = xy_new(0.0, 0.0);
+			xy *v = xy_new(0.0, 0.0);
+			particles[index] = Particle_new(index, m, pos, v, rho_0, mu, c_0, gamma, sigma);
+			particles_derivatives[index] = Particle_derivatives_new(index);
+			residuals[index] = Residual_new();
+			index++;
+		}
+		else {
+			for (int j = 0; j < i*N_p; j++) {
+				k = (double)j / b;
+				xy *pos = xy_new(b*delta_s*cos(k*theta), b*delta_s*sin(k*theta));
+				xy *v = xy_new(-100.0*pos->x, 100.0*pos->y);
+				particles[index] = Particle_new(index, m, pos, v, rho_0, mu, c_0, gamma, sigma);
+				particles_derivatives[index] = Particle_derivatives_new(index);
+				residuals[index] = Residual_new();
+				index++;
+			}
+		}
+	}
+
+
+	// Setup grid
+	Grid *grid = Grid_new(-L, L, -L, L, kh);
+	// Setup animation
+	Animation *animation = Animation_new(N_tot, dt_anim, grid, 1);
+	// Setup setup
+	Setup *setup = Setup_new(n_iter, dt, kh, verlet, kernel, surface_detection, interface_threshold, XSPH_epsilon);
+
+	// Start simulation
+	simulate(grid, particles, particles_derivatives, residuals, N_tot, update_positions_ellipse, setup, animation);
+
+	// Free stuff
+	free_particles(particles, N_tot);
+	free_particles_derivatives(particles_derivatives, N_tot);
+	free_Residuals(residuals, N_tot);
+	Grid_free(grid);
+	Setup_free(setup);
+	Animation_free(animation);
 }
