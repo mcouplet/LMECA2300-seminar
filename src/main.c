@@ -158,7 +158,7 @@ void box(){
 	// Setup BOUNDARY
 	double d = 1;
 	double Rp = 0.01; //particle radius
-	Boundary* boundary = Boundary_new(-d-Rp,3*d+Rp,-d-Rp,d+Rp,CR,CF);
+	Boundary* boundary = Boundary_new(-d-Rp,3*d+Rp,-d-Rp,2*d+Rp,CR,CF);
 
 	// Setup setup
 	Setup *setup = Setup_new(n_iter, dt, kh, verlet, kernel, surface_detection, interface_threshold, XSPH_epsilon, gravity);
