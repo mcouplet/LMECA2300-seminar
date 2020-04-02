@@ -60,9 +60,12 @@ void simulate(Grid* grid, Particle** particles, Particle_derivatives** particles
 		if (animation != NULL)
 			display_particles(particles, animation, false);
 		update_positions(grid, particles, particles_derivatives, residuals, n_p, setup);
+		for(int i = 0; i < n_p; i++){
+			Corrective_Smoothed_Particle_Method(particles[i],particles_derivatives[i], setup->kh, setup->kernel);
+		}
 		// Check boundary
 		if (iter%ii == 0){
-			density_correction_MLS(particles, n_p, setup->kh, setup->kernel);
+			// density_correction_MLS(particles, n_p, setup->kh, setup->kernel);
 		}
 		get_M0(particles,n_p,setup->kh,setup->kernel);
 		get_M1(particles,n_p,setup->kh,setup->kernel);
@@ -354,6 +357,7 @@ void compute_XSPH_correction(Particle *pi, Kernel kernel, double kh, double epsi
 	//printf("pos = (%lf, %lf), Cs = %lf\n", particle->pos->x, particle->pos->y, particle->Cs);
 }
 
+/////////////
 void update_positions_ellipse(Grid* grid, Particle** particles, Particle_derivatives** particles_derivatives, Residual** residuals, int n_p, Setup* setup) {
 
   	// Compute Cs, the XSPH correction on the velocity, and the divergence of the positions
