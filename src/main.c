@@ -14,10 +14,10 @@ void script_circle_to_ellipse();
 void script_csf_circle_paper();
 void script1();
 void script2();
+void dam_break();
 
 int main() {
 	// _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF); // comment if on Linux
-
 	dam_break();
 
 	return EXIT_SUCCESS;
