@@ -97,8 +97,7 @@ void Animation_free(Animation* animation)
 	bov_window_delete(animation->window);
 	free(animation);
 }
-
-void display_particles(Particle** particles, Animation* animation,bool end)
+void display_particles(Particle** particles, Animation* animation,bool end, int iter)
 {
 	int N = animation->N;
 	GLfloat(*data)[8] = malloc(sizeof(data[0])*N);
@@ -107,13 +106,20 @@ void display_particles(Particle** particles, Animation* animation,bool end)
 	animation->particles = bov_particles_update(animation->particles,data,N);
 	free(data);
 
+	char screenshot_name[64] = "myEllipse_";
+	char int_string[32];
+	sprintf(int_string, "%d", iter);
+	strcat(screenshot_name, int_string);
+// 	strcat(screenshot_name, ".png");
+
 	bov_window_t* window = animation->window;
 	double tbegin = bov_window_get_time(window);
 	if (!end){
 		while (bov_window_get_time(window) - tbegin < animation->timeout) {
 			if(animation->grid != NULL)
-				bov_lines_draw(window,animation->grid,0, BOV_TILL_END);
+// 				bov_lines_draw(window,animation->grid,0, BOV_TILL_END);
 			bov_particles_draw(window, animation->particles, 0, BOV_TILL_END);
+			if (iter%10 == 0) bov_window_screenshot(window, screenshot_name);
 			bov_window_update(window);
 		}
 	}
@@ -121,12 +127,42 @@ void display_particles(Particle** particles, Animation* animation,bool end)
 		// we want to keep the window open with everything displayed
 		while (!bov_window_should_close(window)) {
 			if (animation->grid != NULL)
-				bov_lines_draw(window, animation->grid, 0, BOV_TILL_END);
+// 				bov_lines_draw(window, animation->grid, 0, BOV_TILL_END);
 			bov_particles_draw(window, animation->particles, 0, BOV_TILL_END);
+			bov_window_screenshot(window, screenshot_name);
 			bov_window_update_and_wait_events(window);
 		}
 	}
 }
+// void display_particles(Particle** particles, Animation* animation,bool end)
+// {
+// 	int N = animation->N;
+// 	GLfloat(*data)[8] = malloc(sizeof(data[0])*N);
+// 	fillData(data, particles, N);
+// // 	colours_neighbors(data, particles, N / 2);
+// 	animation->particles = bov_particles_update(animation->particles,data,N);
+// 	free(data);
+//
+// 	bov_window_t* window = animation->window;
+// 	double tbegin = bov_window_get_time(window);
+// 	if (!end){
+// 		while (bov_window_get_time(window) - tbegin < animation->timeout) {
+// 			if(animation->grid != NULL)
+// 				bov_lines_draw(window,animation->grid,0, BOV_TILL_END);
+// 			bov_particles_draw(window, animation->particles, 0, BOV_TILL_END);
+// 			bov_window_update(window);
+// 		}
+// 	}
+// 	else {
+// 		// we want to keep the window open with everything displayed
+// 		while (!bov_window_should_close(window)) {
+// 			if (animation->grid != NULL)
+// 				bov_lines_draw(window, animation->grid, 0, BOV_TILL_END);
+// 			bov_particles_draw(window, animation->particles, 0, BOV_TILL_END);
+// 			bov_window_update_and_wait_events(window);
+// 		}
+// 	}
+// }
 
 // Fills color with the color to use for particle p
 void colormap_cell(Particle* p, float color[3]) {
