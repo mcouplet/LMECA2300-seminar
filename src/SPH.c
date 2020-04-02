@@ -1,19 +1,6 @@
 #include "SPH.h"
 
-Setup* Setup_new(int iter, double timestep,double kh,Verlet* verlet,Kernel kernel, Free_surface_detection free_surface_detection, double interface_threshold,double XSPH_epsilon) {
-	Setup* setup = (Setup*)malloc(sizeof(Setup));
-	setup->itermax = iter;
-	setup->timestep = timestep;
-	setup->kh = kh;
-	setup->verlet = verlet;
-	setup->kernel = kernel;
-	setup->free_surface_detection = free_surface_detection;
-	setup->interface_threshold = interface_threshold;
-	setup->XSPH_epsilon = XSPH_epsilon;
-	setup->gravity = 0;
-	return setup;
-}
-Setup* Setup_new_bis(int iter, double timestep,double kh,Verlet* verlet,Kernel kernel, Free_surface_detection free_surface_detection, double interface_threshold,double XSPH_epsilon, bool gravity) {
+Setup* Setup_new(int iter, double timestep,double kh,Verlet* verlet,Kernel kernel, Free_surface_detection free_surface_detection, double interface_threshold,double XSPH_epsilon, bool gravity) {
 	Setup* setup = (Setup*)malloc(sizeof(Setup));
 	setup->itermax = iter;
 	setup->timestep = timestep;
@@ -76,25 +63,35 @@ void simulate(Grid* grid, Particle** particles, Particle_derivatives** particles
 	if (animation != NULL)
 		display_particles(particles, animation, true, setup->itermax);
 }
-
+double max_velocity(Particle** p, int n_p){
+	double max = 0;
+	for(int i = 0 ; i < n_p; i++){
+		double v = fabs(p[i]->v->x);
+		if(max < v){
+			max = v;
+		}
+	}
+	return max;
+}
 void simulate_boundary(Grid* grid, Particle** particles, Particle_derivatives** particles_derivatives, Residual** residuals, int n_p, update_positions update_positions, Setup* setup, Animation* animation, Boundary* boundary){
 	double current_time = 0.0;
 	double Rp = 0.01;
 	int ii = 5;
-	// setup->gravity = 0; // To disable gravity
+	double bounds[4] = {boundary->xleft,boundary->xright, boundary->ybottom, boundary->ytop};
 	printf("%d\n", setup->itermax);
 	for (int iter = 0; iter < setup->itermax; iter++) {
 		printf("----------------------------------------------------- \n");
 		printf("iter %d / %d @ t = %lf \n", iter, setup->itermax, current_time);
 		update_cells(grid, particles, n_p);
-		fprintf(stderr,"cououc\n");
 		update_neighborhoods(grid, particles, n_p, iter, setup->verlet);
 		if (animation != NULL)
-			display_particles(particles, animation, false,iter);
+			display_particles_boundary(particles, animation, false,iter,bounds);
 		update_positions(grid, particles, particles_derivatives, residuals, n_p, setup);
+
+		printf("velocity_max = %f\n", max_velocity(particles,n_p));
 		reflective_boundary(particles,n_p,boundary,Rp);
 		if (iter%ii == 0){
-			density_correction_MLS(particles, n_p, setup->kh, setup->kernel);
+			// density_correction_MLS(particles, n_p, setup->kh, setup->kernel);
 		}
 		get_M0(particles,n_p,setup->kh,setup->kernel);
 		get_M1(particles,n_p,setup->kh,setup->kernel);
@@ -131,7 +128,67 @@ void random_moves(Grid* grid, Particle** particles, Particle_derivatives** parti
 			p->pos->y = grid->top - s;
 	}
 }
+void update_positions_Colagrossi(Grid* grid, Particle** particles, Particle_derivatives** particles_derivatives, Residual** residuals, int n_p, Setup* setup){
+	// Colagrossi method
+	// Compute derivatives
+	for(int i = 0; i < n_p; i++){
+		Particle* pi = particles[i];
+		Particle_derivatives* dpi = particles_derivatives[i];
+		Kernel kernel = setup->kernel;
+		double kh = setup->kh;
+		dpi->div_v = compute_div(pi, Particle_get_v, kernel, kh);//Verifier
+		dpi->lapl_v->x = compute_lapl(pi, Particle_get_v_x,kernel,kh);
+		dpi->lapl_v->y = compute_lapl(pi, Particle_get_v_y,kernel,kh);
+		compute_grad(pi, Particle_get_P, kernel, kh, particles_derivatives[i]->grad_P);
+	}
+	// Compute the residuals
+	double g = -9.81;
+	for(int i = 0; i < n_p; i ++){
+		Particle* pi = particles[i];
+		Residual* res = residuals[i];
+		Particle_derivatives* dpi = particles_derivatives[i];
+		double rho = pi->rho;
+		double mu = pi->param->dynamic_viscosity;
+		// Mass conservation
+		res->mass_eq = rho*dpi->div_v;
+		//Momentum equation (on dirait qu'il manque un terme)
+		// Pressure gradient
+		res->momentum_x_eq = (-1.0/rho)*dpi->grad_P->x;
+		res->momentum_y_eq = (-1.0/rho)*dpi->grad_P->y;
+		// Viscosity constraint
+		res->momentum_x_eq += (mu/rho) * dpi->lapl_v->x;
+		res->momentum_y_eq += (mu/rho) * dpi->lapl_v->y;
 
+		if (setup->gravity == 1){
+			res->momentum_y_eq -= g;
+		}
+	}
+	// Time integration
+	double dt = setup->timestep;
+	for(int i = 0; i < n_p; i ++){
+		Particle* pi = particles[i];
+		Residual* res = residuals[i];
+		// Explicit Euler
+		pi->rho += dt * res->mass_eq;
+		pi->v->x += dt * res->momentum_x_eq;
+		pi->v->y += dt * res->momentum_y_eq;
+		// Implicit Euler
+		pi->pos->x += pi->v->x*dt;
+		pi->pos->y += pi->v->y*dt;
+	}
+	// Constitutive equation for the pressure
+	for(int i = 0; i < n_p; i ++){
+		Particle* pi = particles[i];
+		double rho = pi->rho;
+		double c = pi->param->sound_speed;
+		double rho_0 = pi->param->rho_0;
+		double gamma = pi->param->gamma;
+
+		double B = c*c*rho_0/gamma;
+
+		pi->P = B*(pow(rho/rho_0,gamma)-1);
+	}
+}
 void update_positions_seminar_5(Grid* grid, Particle** particles, Particle_derivatives** particles_derivatives, Residual** residuals, int n_p, Setup* setup) {
 
 	// Compute Cs, the XSPH correction on the velocity, and the divergence of the positions
@@ -256,14 +313,15 @@ void assemble_residual_NS(Particle* particle, Particle_derivatives* particle_der
 // Time integrate the Navier-Stokes equations based on the residual already assembled
 void time_integrate(Particle* particle, Residual* residual, double delta_t) {
 
-	// Update position with an Euler explicit scheme
-	particle->pos->x += delta_t * particle->v->x - delta_t * particle->XSPH_correction->x;
-	particle->pos->y += delta_t * particle->v->y - delta_t * particle->XSPH_correction->y;
-
 	// Update density and velocity with an Euler explicit scheme (TODO: implement more accurate and more stable schemes)
 	particle->rho += delta_t * residual->mass_eq;
 	particle->v->x += delta_t * residual->momentum_x_eq;
 	particle->v->y += delta_t * residual->momentum_y_eq;
+
+	// Update position with an Euler Implicit scheme
+	particle->pos->x += delta_t * particle->v->x - delta_t * particle->XSPH_correction->x;
+	particle->pos->y += delta_t * particle->v->y - delta_t * particle->XSPH_correction->y;
+
 
 	// Update pressure with Tait's equation of state
 	double B = squared(particle->param->sound_speed) * particle->param->rho_0 / particle->param->gamma;
@@ -518,8 +576,8 @@ void velocity_reflection_vertical(Particle* pi, double CR, double CF){
 void velocity_reflection_horizontal(Particle* pi, double CR, double CF){
 	double vpN = pi->v->y;
 	double vpT = pi->v->x;
-	pi->v->y = vpN*CR;
-	pi->v->x = -(1-CF)* vpT;
+	pi->v->y = -vpN*CR;
+	pi->v->x = (1-CF)* vpT;
 }
 void reflective_boundary(Particle** p, int n_p, Boundary* boundary, double Rp){
 	// We have just computed the time integration. We correct the positions of the particles
@@ -536,32 +594,37 @@ void reflective_boundary(Particle** p, int n_p, Boundary* boundary, double Rp){
 		int collision, collision_right, collision_left, collision_top, collision_bottom;
 		collision = 0; collision_right = 0; collision_left = 0; collision_top = 0; collision_bottom = 0;
 
-		if(pi->pos->x > boundary->xright - Rp){
+		int i = 0;
+		while(pi->pos->x > boundary->xright - Rp){
 			collision_right = 1;
 			collision = 1;
 			dxright = fabs(pi->pos->x - xright);
 			center_reflection_right(pi,CR,Rp,dxright);
 			velocity_reflection_vertical(pi,CR,CF);
+			i++;
+			// printf("i = %d\n",i);
+			// printf("position : %f,%f\n", pi->pos->x, pi->pos->y);
 		}
-		if(pi->pos->x < boundary->xleft + Rp){
+		while(pi->pos->x < boundary->xleft + Rp){
 			collision_left = 1;
 			collision = 1;
 			dxleft = fabs(pi->pos->x - xleft);
 			center_reflection_left(pi,CR,Rp,dxleft);
 			velocity_reflection_vertical(pi,CR,CF);
+
 		}
-		if(pi->pos->y > boundary->ytop - Rp){
+		while(pi->pos->y > boundary->ytop - Rp){
 			collision_top = 1;
 			collision = 1;
 			dytop = fabs(pi->pos->y - ytop);
 			center_reflection_top(pi,CR,Rp,dytop);
 			velocity_reflection_horizontal(pi,CR,CF);
 		}
-		if(pi->pos->y < boundary->ybottom + Rp){
+		while(pi->pos->y < boundary->ybottom + Rp){
 			collision_bottom = 1;
 			collision = 1;
-			dybottom = fabs(pi->pos->y - ytop);
-			center_reflection_bottom(pi,CR,Rp,dytop);
+			dybottom = fabs(pi->pos->y - ybottom);
+			center_reflection_bottom(pi,CR,Rp,dybottom);
 			velocity_reflection_horizontal(pi,CR,CF);
 		}
 	}

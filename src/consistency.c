@@ -59,7 +59,7 @@ void get_M0(Particle** p, int n_p, double kh, Kernel kernel){
 
 
 
-xy* correct_grad(xy *current_grad, Particle *p, double kh, Kernel kernel){
+void correct_grad(xy *current_grad, Particle *p, double kh, Kernel kernel){
 	double m11 = 0; double m12 = 0; double m21 = 0; double m22 = 0;
 	ListNode *current = p->neighborhood->head;
 	while(current != NULL){
@@ -75,10 +75,12 @@ xy* correct_grad(xy *current_grad, Particle *p, double kh, Kernel kernel){
 		current = current->next;
 	}
 	double det = m11*m22 - m12*m21;
-	return xy_new((m22*current_grad->x - m21*current_grad->y)/det, (-m12*current_grad->x + m11*current_grad->y)/det);
+	current_grad->x = (m22*current_grad->x - m21*current_grad->y)/det;
+	current_grad->y = (-m12*current_grad->x + m11*current_grad->y)/det;
+	// return xy_new((m22*current_grad->x - m21*current_grad->y)/det, (-m12*current_grad->x + m11*current_grad->y)/det);
 }
 
-xy* correct_grad_local(xy *current_grad, Particle *p, Particle *j, double kh, Kernel kernel){
+void correct_grad_local(xy *current_grad, Particle *p, Particle *j, double kh, Kernel kernel){
 	double m11 = 0; double m12 = 0; double m21 = 0; double m22 = 0;
 	double r = sqrt(pow(p->pos->x - j->pos->x, 2) + pow(p->pos->y - j->pos->y, 2));
 	if(r != 0){
@@ -90,9 +92,11 @@ xy* correct_grad_local(xy *current_grad, Particle *p, Particle *j, double kh, Ke
 	}
 	double det = 1;//m11*m22 - m12*m21;
 	//printf("current : %f\n", current_grad->x);
-	printf("-- %f, %f, %f, %f, %f, %f\n", (m22*current_grad->x - m21*current_grad->y)/det, (-m12*current_grad->x + m22*current_grad->y)/det, m11, m12, m21, m22);
-	printf("%f, %f, %f, %f\n", r, current_grad->x, current_grad->y, det);
-	return xy_new((m22*current_grad->x - m21*current_grad->y)/det, (-m12*current_grad->x + m11*current_grad->y)/det);
+	// printf("-- %f, %f, %f, %f, %f, %f\n", (m22*current_grad->x - m21*current_grad->y)/det, (-m12*current_grad->x + m22*current_grad->y)/det, m11, m12, m21, m22);
+	// printf("%f, %f, %f, %f\n", r, current_grad->x, current_grad->y, det);
+	current_grad->x = (m22*current_grad->x - m21*current_grad->y)/det;
+	current_grad->y = (-m12*current_grad->x + m11*current_grad->y)/det;
+	// return xy_new((m22*current_grad->x - m21*current_grad->y)/det, (-m12*current_grad->x + m11*current_grad->y)/det);
 }
 
 void density_correction_MLS(Particle** p, int n_p, double kh, Kernel kernel){
