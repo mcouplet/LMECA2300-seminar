@@ -33,8 +33,8 @@ void compute_grad(Particle* pi, scalar_getter get, Kernel kernel, double kh,xy* 
 
       double fj = get(pj);
       //printf("Position of pj: (%lf, %lf), fj = %lf\n", pj->pos->x, pj->pos->y, fj);
-      gx -= pi->rho * pj->m * (fi/squared(pi->rho) + fj/squared(pj->rho)) * grad_W->x; // sign is not the same as in the def...
-      gy -= pi->rho * pj->m * (fi/squared(pi->rho) + fj/squared(pj->rho)) * grad_W->y;
+      gx += pi->rho * pj->m * (fi/squared(pi->rho) + fj/squared(pj->rho)) * grad_W->x; // sign is not the same as in the def...
+      gy += pi->rho * pj->m * (fi/squared(pi->rho) + fj/squared(pj->rho)) * grad_W->y;
       free(grad_W);
       //printf("grad = (%lf, %lf), fj = %lf\n", grad->x, grad->y, fj);
       node = node->next;
