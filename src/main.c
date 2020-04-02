@@ -18,8 +18,8 @@ void dam_break();
 
 int main() {
 	// _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF); // comment if on Linux
-
-	dam_break();
+	script_circle_to_ellipse();
+	// dam_break();
 
 	return EXIT_SUCCESS;
 }
