@@ -987,7 +987,7 @@ bov_window_t* bov_window_new(int width, int height, const char* win_name)
 	bov_text_set_outline_width(window->help, 0.5f);
 
 	window->indication = bov_text_new((GLubyte[]) {
-		"press 'k' for keyboard shortcuts\n"
+		//"press 'k' for keyboard shortcuts\n"
 	}, GL_STATIC_DRAW);
 	bov_text_set_space_type(window->indication, PIXEL_SPACE);
 	bov_text_set_fontsize(window->indication, 32.0f); // 32 pixel height

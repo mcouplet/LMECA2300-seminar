@@ -40,11 +40,10 @@ void simulate(Grid* grid, Particle** particles, Particle_derivatives** particles
 		printf("----------------------------------------------------- \n");
 		printf("iter %d / %d @ t = %lf \n", iter, setup->itermax, current_time);
 		update_cells(grid, particles, n_p);
-		fprintf(stderr,"cououc\n");
 		update_neighborhoods(grid, particles, n_p, iter, setup->verlet);
 
 		if (animation != NULL)
-			display_particles(particles, animation, false);
+			display_particles(particles, animation, false, iter);
 
 		update_positions(grid, particles, particles_derivatives, residuals, n_p, setup);
 		current_time += setup->timestep;
@@ -52,7 +51,7 @@ void simulate(Grid* grid, Particle** particles, Particle_derivatives** particles
 	update_cells(grid, particles, n_p);
 	update_neighborhoods(grid, particles, n_p, 0, setup->verlet);
 	if (animation != NULL)
-		display_particles(particles, animation, true);
+		display_particles(particles, animation, true, -1);
 }
 
 
@@ -104,7 +103,7 @@ void update_positions_seminar_5(Grid* grid, Particle** particles, Particle_deriv
 
 	// Assemble residual and compute curvature
 	for (int i = 0; i < n_p; i++) {
-	    //particles[i]->kappa = 2.0*compute_div(particles[i], Particle_get_normal, setup->kernel, setup->kh);
+	    particles[i]->kappa = 2.0*compute_div(particles[i], Particle_get_normal, setup->kernel, setup->kh);
 	    assemble_residual_NS(particles[i], particles_derivatives[i], residuals[i], setup);
 	}
 
@@ -166,11 +165,12 @@ void assemble_residual_NS(Particle* particle, Particle_derivatives* particle_der
 		particle->on_free_surface = true;
 // 	      fs_x = - particle->param->sigma * lapl_Cs * n->x / norm_n;
 // 	      fs_y = - particle->param->sigma * lapl_Cs * n->y / norm_n;
-	      // fs_x = - particle->param->sigma * kappa * n->x / norm_n;
-	      // fs_y = - particle->param->sigma * kappa * n->y / norm_n;
-		  double kappa = compute_curvature(particle, setup, 0.5);
+		double kappa = particle->kappa;//compute_curvature(particle, setup, 0.5);
+	      fs_x = - particle->param->sigma * kappa * n->x ;
+	      fs_y = - particle->param->sigma * kappa * n->y ;
 		  // double kappa = - lapl_Cs / norm_n; // curvature with Laplacian of colour field
-		  printf("pos = (%lf, %lf), n = (%lf, %lf), div_r = %lf, kappa = %lf\n", particle->pos->x, particle->pos->y, n->x, n->y, compute_div(particle, Particle_get_pos, setup->kernel, setup->kh), kappa);
+// 		  printf("pos = (%lf, %lf), n = (%lf, %lf), div_r = %lf, kappa = %lf\n", particle->pos->x, particle->pos->y, n->x, n->y, compute_div(particle, Particle_get_pos, setup->kernel, setup->kh), kappa);
+	      
 	}
 	else
 		particle->on_free_surface = false;
@@ -190,7 +190,7 @@ void assemble_residual_NS(Particle* particle, Particle_derivatives* particle_der
 // 	if (x_pos == 50.0 || x_pos == -50.0 || y_pos == 50.0 || y_pos == -50.0) {
 // 	  printf("pos = (%lf, %lf), n = (%lf, %lf), ||n|| = %lf, fs = (%lf, %lf), kappa = %2.6f \n",   particle->pos->x, particle->pos->y, n->x / norm_n, n->y / norm_n, norm_n, fs->x, fs->y, kappa);
 // 	}
-
+// 	printf("Pressure = %lf, fs_norm = %lf \n", particle->P, sqrt(squared(fs_x)+squared(fs_y)));
 	residual->mass_eq = -rho_i * div_vel_i;
 	residual->momentum_x_eq = (-1.0/rho_i) * grad_P->x + (mu_i/rho_i) * lapl_v->x + fs_x;
 	residual->momentum_y_eq = (-1.0/rho_i) * grad_P->y + (mu_i/rho_i) * lapl_v->y + fs_y;
