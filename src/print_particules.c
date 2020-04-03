@@ -75,7 +75,7 @@ Animation* Animation_new(int N, double timeout,Grid* grid,double scale)
 	bov_points_t *particles = bov_particles_new(data, N, GL_STATIC_DRAW);
 	free(data);
 	// setting particles appearance
-	bov_points_set_width(particles, 0.01);
+	bov_points_set_width(particles, 0.001); //To change to 0.001 for dam_break
 	bov_points_set_outline_width(particles, 0.0025);
 
 	double c = 4;
@@ -105,7 +105,7 @@ void display_particles_boundary(Particle** particles, Animation* animation,bool 
 	animation->particles = bov_particles_update(animation->particles,data,N);
 	free(data);
 
-	char screenshot_name[64] = "mybox_";
+	char screenshot_name[64] = "dambreak_";
 	char int_string[32];
 	sprintf(int_string, "%d", iter);
 	strcat(screenshot_name, int_string);
@@ -125,7 +125,7 @@ void display_particles_boundary(Particle** particles, Animation* animation,bool 
 	bov_points_param_t BoundParams = {
 		.fillColor = { 0.0, 1.0, 0.0, 1.0 },
 		.scale = { 1.0, 1.0 },
-		.width = 0.01
+		.width = 0.001
 	};
 	bov_points_set_param(point_bound, BoundParams);
 	//
@@ -161,7 +161,7 @@ void display_particles(Particle** particles, Animation* animation,bool end, int 
 	animation->particles = bov_particles_update(animation->particles,data,N);
 	free(data);
 
-	char screenshot_name[64] = "mybox_";
+	char screenshot_name[64] = "circle_";
 	char int_string[32];
 	sprintf(int_string, "%d", iter);
 	strcat(screenshot_name, int_string);
@@ -171,7 +171,7 @@ void display_particles(Particle** particles, Animation* animation,bool end, int 
 	if (!end){
 		while (bov_window_get_time(window) - tbegin < animation->timeout) {
 			if(animation->grid != NULL)
-				// bov_lines_draw(window,animation->grid,0, BOV_TILL_END); //To show the grid
+				bov_lines_draw(window,animation->grid,0, BOV_TILL_END); //To show the grid
 			bov_particles_draw(window, animation->particles, 0, BOV_TILL_END);
 			if (iter%10 == 0) bov_window_screenshot(window, screenshot_name);
 			bov_window_update(window);

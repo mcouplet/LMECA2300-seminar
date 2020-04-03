@@ -33,7 +33,16 @@ void free_Residuals(Residual** residuals, int N) {
 		free(residuals[i]);
 	free(residuals);
 }
-
+double max_velocity(Particle** p, int n_p){
+	double max = 0;
+	for(int i = 0 ; i < n_p; i++){
+		double v = fabs(p[i]->v->x);
+		if(max < v){
+			max = v;
+		}
+	}
+	return max;
+}
 void simulate(Grid* grid, Particle** particles, Particle_derivatives** particles_derivatives, Residual** residuals, int n_p, update_positions update_positions, Setup* setup, Animation* animation) {
 	double current_time = 0.0;
 	int ii = 5;
@@ -42,15 +51,11 @@ void simulate(Grid* grid, Particle** particles, Particle_derivatives** particles
 		printf("----------------------------------------------------- \n");
 		printf("iter %d / %d @ t = %lf \n", iter, setup->itermax, current_time);
 		update_cells(grid, particles, n_p);
-		fprintf(stderr,"cououc\n");
 		update_neighborhoods(grid, particles, n_p, iter, setup->verlet);
 		if (animation != NULL)
 			display_particles(particles, animation, false, iter);
 		update_positions(grid, particles, particles_derivatives, residuals, n_p, setup);
-		for(int i = 0; i < n_p; i++){
-			Corrective_Smoothed_Particle_Method(particles[i],particles_derivatives[i], setup->kh, setup->kernel);
-		}
-		// Check boundary
+		printf("velocity_max = %f\n", max_velocity(particles,n_p));
 		if (iter%ii == 0){
 			// density_correction_MLS(particles, n_p, setup->kh, setup->kernel);
 		}
@@ -63,19 +68,9 @@ void simulate(Grid* grid, Particle** particles, Particle_derivatives** particles
 	if (animation != NULL)
 		display_particles(particles, animation, true, setup->itermax);
 }
-double max_velocity(Particle** p, int n_p){
-	double max = 0;
-	for(int i = 0 ; i < n_p; i++){
-		double v = fabs(p[i]->v->x);
-		if(max < v){
-			max = v;
-		}
-	}
-	return max;
-}
 void simulate_boundary(Grid* grid, Particle** particles, Particle_derivatives** particles_derivatives, Residual** residuals, int n_p, update_positions update_positions, Setup* setup, Animation* animation, Boundary* boundary){
 	double current_time = 0.0;
-	double Rp = 0.01;
+	double Rp = 0.001;
 	int ii = 5;
 	double bounds[4] = {boundary->xleft,boundary->xright, boundary->ybottom, boundary->ytop};
 	printf("%d\n", setup->itermax);
@@ -218,6 +213,7 @@ void update_positions_seminar_5(Grid* grid, Particle** particles, Particle_deriv
 	// Integrate (obtain new values, i.e. density, velocities, pressure and positions, at time t+1)
 	for (int i = 0; i < n_p; i++)
 		time_integrate(particles[i], residuals[i], setup->timestep);
+		// time_integrate_CSPM(particles[i],particles_derivatives[i], residuals[i], setup);
 }
 
 void compute_Cs(Particle *particle, Kernel kernel, double kh) {
@@ -271,33 +267,11 @@ void assemble_residual_NS(Particle* particle, Particle_derivatives* particle_der
 		criterion = false;
 	if (criterion) {
 		particle->on_free_surface = true;
-		// 	      fs_x = - particle->param->sigma * lapl_Cs * n->x / norm_n;
-	// 	      fs_y = - particle->param->sigma * lapl_Cs * n->y / norm_n;
-	      // fs_x = - particle->param->sigma * kappa * n->x / norm_n;
-	      // fs_y = - particle->param->sigma * kappa * n->y / norm_n;
-		  double kappa = compute_curvature(particle, setup, 0.5);
-		  // double kappa = - lapl_Cs / norm_n; // curvature with Laplacian of colour field
-		  // printf("pos = (%lf, %lf), n = (%lf, %lf), div_r = %lf, kappa = %lf\n", particle->pos->x, particle->pos->y, n->x, n->y, compute_div(particle, Particle_get_pos, setup->kernel, setup->kh), kappa);
+	  double kappa = compute_curvature(particle, setup, 0.5);
+		particle->P= 0;
 	}
 	else
 		particle->on_free_surface = false;
-
-// 	// Exact values of normal and curvature for a circle centered in (0,0)
-// 	xy* n_exact = xy_new(particle->pos->x, particle->pos->y);
-// 	double norm_n_exact = norm(n_exact);
-// 	double circle_radius = 1e-3;
-// 	double epsilon = 1e-5;
-// 	double kappa_exact = 1.0 / circle_radius;
-// 	// To print quantities on the surface of the circle
-// 	if (pow(particle->pos->x,2) + pow(particle->pos->y,2) <= pow(circle_radius+epsilon,2) &&  pow(particle->pos->x,2) + pow(particle->pos->y,2) >= pow(circle_radius-epsilon,2)) {
-// 	  printf("pos = (%lf, %lf), n_exact = (%lf, %lf), n = (%lf, %lf), ||n|| = %lf, fs = (%lf, %lf), kappa_exact =
-//  %2.3f, kappa = %2.6f \n", particle->pos->x, particle->pos->y,-n_exact->x / norm_n_exact, -n_exact->y / norm_n_exact, n->x / norm_n, n->y / norm_n, norm_n, fs_x, fs_y, kappa_exact, kappa);
-// 	}
-	// To print quantities on the surface of the square
-// 	double x_pos = particle->pos->x, y_pos = particle->pos->y;
-// 	if (x_pos == 50.0 || x_pos == -50.0 || y_pos == 50.0 || y_pos == -50.0) {
-// 	  printf("pos = (%lf, %lf), n = (%lf, %lf), ||n|| = %lf, fs = (%lf, %lf), kappa = %2.6f \n",   particle->pos->x, particle->pos->y, n->x / norm_n, n->y / norm_n, norm_n, fs->x, fs->y, kappa);
-// 	}
 
 	residual->mass_eq = -rho_i * div_vel_i;
 	residual->momentum_x_eq = (-1.0/rho_i) * grad_P->x + (mu_i/rho_i) * lapl_v->x;
@@ -325,6 +299,27 @@ void time_integrate(Particle* particle, Residual* residual, double delta_t) {
 
 	// Update pressure with Tait's equation of state
 	double B = squared(particle->param->sound_speed) * particle->param->rho_0 / particle->param->gamma;
+	// double B = 0.85*1e5;
+	particle->P = B * (pow(particle->rho / particle->param->rho_0, particle->param->gamma) - 1);
+
+}
+void time_integrate_CSPM(Particle* particle, Particle_derivatives *dp, Residual* residual, Setup* setup) {
+
+	// Update density and velocity with an Euler explicit scheme (TODO: implement more accurate and more stable schemes)
+	double delta_t = setup->timestep;
+	particle->rho += delta_t * residual->mass_eq;
+	Corrective_Smoothed_Particle_Method(particle , dp, setup->kh, setup->kernel);
+	particle->v->x += delta_t * residual->momentum_x_eq;
+	particle->v->y += delta_t * residual->momentum_y_eq;
+
+	// Update position with an Euler Implicit scheme
+	particle->pos->x += delta_t * particle->v->x - delta_t * particle->XSPH_correction->x;
+	particle->pos->y += delta_t * particle->v->y - delta_t * particle->XSPH_correction->y;
+
+
+	// Update pressure with Tait's equation of state
+	double B = squared(particle->param->sound_speed) * particle->param->rho_0 / particle->param->gamma;
+	// double B = 0.85*1e5;
 	particle->P = B * (pow(particle->rho / particle->param->rho_0, particle->param->gamma) - 1);
 
 }

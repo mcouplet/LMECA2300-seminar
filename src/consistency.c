@@ -180,31 +180,30 @@ void get_beta(double A[3][3], double* beta){
 	beta[2] = C31/det_A;
 }
 
-void Corrective_Smoothed_Particle_Method(Particle *p,Particle_derivatives *dp, double kh, Kernel kernel){
+void Corrective_Smoothed_Particle_Method(Particle *pi,Particle_derivatives *dpi, double kh, Kernel kernel){
     double num1=0.0;
     double denom1=0.0;
     double denom2=0.0;
     double denom3=0.0;
-        //Correction of the density of our particle.
-    ListNode *current = p->neighborhood->head;
+    //Correction of the density of our particle.
+    ListNode *current = pi->neighborhood->head;
     while(current != NULL){
-        Particle *j = current->v;
-        num1 += j->rho*eval_kernel(p->pos,j->pos,kh,kernel)*j->m/j->rho;
-        denom1 += eval_kernel(p->pos,j->pos,kh,kernel)*j->m/j->rho;
+        Particle *pj = current->v;
+        num1 += eval_kernel(pi->pos,pj->pos,kh,kernel)*pj->m;
+        denom1 += eval_kernel(pi->pos,pj->pos,kh,kernel)*pj->m/pj->rho;
         current = current->next;
     }
-    p->rho = num1/denom1;
-        //Correction of the gradient of pressure of our particle
-    current = p->neighborhood->head;
+    pi->rho = num1/denom1;
+    //Correction of the gradient of pressure of our particle
+    current = pi->neighborhood->head;
     while(current != NULL){
-        Particle *j = current->v;
-        double r = sqrt(squared(p->pos->x - j->pos->x) + squared(p->pos->y - j->pos->y));
-        double dk = derivative_kernel(r,kh, kernel);
+        Particle *pj = current->v;
+				xy *grad_W = grad_kernel(pi->pos, pj->pos, kh, kernel);
 
-        denom2+=eval_kernel(p->pos,j->pos,kh,dk)*(j->pos->x-p->pos->x)*j->m/j->rho;
-        denom3+=eval_kernel(p->pos,j->pos,kh,dk)*(j->pos->y-p->pos->y)*j->m/j->rho;
+        denom2 += grad_W->x*(pj->pos->x - pi->pos->x)*pj->m/pj->rho;
+        denom3 += grad_W->y*(pj->pos->y - pi->pos->y)*pj->m/pj->rho;
         current = current->next;
     }
-    dp->grad_P->x = dp->grad_P->x/denom2;
-    dp->grad_P->y = dp->grad_P->y/denom3;
+    dpi->grad_P->x /= denom2;
+    dpi->grad_P->y /= denom3;
 }
