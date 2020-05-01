@@ -14,6 +14,7 @@ typedef struct Particle Particle;
 typedef struct Particle_derivatives Particle_derivatives;
 typedef struct Physical_parameters Physical_parameters;
 typedef struct Verlet Verlet;
+typedef struct Boundary Boundary;
 
 
 struct Cell {
@@ -79,6 +80,13 @@ struct Verlet {
 	int T;
 };
 
+struct Boundary {
+        int nb_part_on_bound;
+	Particle** part_on_bound;
+	xy* v_imposed;
+	xy* acc_imposed;    
+};
+
 // Grid
 void Cell_free(Cell* cell); // Cell destructor
 
@@ -124,5 +132,10 @@ Particle** build_particles(int N, double L);
 
 void reset_grid(Grid* grid);
 void reset_particles(Particle** particles, int N, int iter, Verlet* verlet);
+
+// Boundary
+Boundary* Boundary_new(xy* coord_1, xy* coord_2, Particle** part, int index_start_boundary, int nb_part_per_bound, int nb_rows_per_bound, double mass, xy* vel_BC, xy* acc_BC);
+void Boundary_free(Boundary* boundary);
+void free_boundaries(Boundary** boundaries, int N);
 
 #endif

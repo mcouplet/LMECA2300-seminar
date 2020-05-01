@@ -10,6 +10,7 @@ void script_csf();
 void script_csf_circle();
 void script_circle_to_ellipse();
 void script_csf_circle_paper();
+void script_lid_driven_cavity();
 void script1();
 void script2();
 
@@ -387,6 +388,135 @@ void script_csf_circle_paper() {
 	Animation_free(animation);
 
 }
+
+
+void script_lid_driven_cavity() {
+
+  	// Parameters of the problem
+	double L_y = 1.0;
+	double L_x = 1.0;
+	double dt = 0.001; // physical time step
+	double T = 1.0; // duration of simulation
+	
+	// Physical parameters
+	double speed_upper_boundary = 1.0;
+	double Re = 100.0;
+	double rho_0 = 1.0; // initial (physical) density of water at 20°C (in kg/m^3)
+	double mu = (rho_0*speed_upper_boundary*L_x) / Re;
+	double gamma = 7.0; // typical value for liquid (dimensionless)
+	double c_0 = 10.0*speed_upper_boundary;//5.0;//1481; // sound speed in water at 20°C (in m/s)
+	
+	// SPH parameters
+	Verlet *verlet = NULL; // don't use Verlet (for now)
+	Kernel kernel = Cubic; // kernel choice
+	double XSPH_epsilon = 1.0;
+	Free_surface_detection surface_detection = DIVERGENCE;
+	
+	// -------- NUMBER OF PARTICLES AND SIZE --------
+	
+	// 1/ *** In the domain ***
+	int N_x = 50;
+	int N_y = 50;
+	double h_x = L_x / ((double)N_x - 1.0);
+	double h_y = L_y / ((double)N_y - 1.0);
+	int total_nb_part_in_domain = N_x*N_y;
+
+	double mass = rho_0 * h_x * h_y;
+	double kh = sqrt(21) * 2 * L_x / N_x;
+	
+	// 2/ *** On the boundaries ****
+	int nb_boundaries = 4;
+	Boundary** boundaries  = (Boundary**)malloc(nb_boundaries * sizeof(Boundary*));
+	// Coordinates of the corners
+	xy* pos_corner_down_left = xy_new(0.0, 0.0);
+	xy* pos_corner_up_left = xy_new(L_y, 0.0);
+	xy* pos_corner_up_right = xy_new(L_x, L_y);
+	xy* pos_corner_down_right = xy_new(L_x, 0.0);
+	xy** coord_corners = (xy**)malloc(nb_boundaries*2*sizeof(xy*));
+	coord_corners[0] = pos_corner_down_left, coord_corners[1] = pos_corner_up_left; // Boundary 1
+	coord_corners[2] = pos_corner_up_left, coord_corners[3] = pos_corner_up_right; // Boundary 2
+	coord_corners[4] = pos_corner_up_right, coord_corners[5] = pos_corner_down_right; // Boundary 3
+	coord_corners[6] = pos_corner_down_right, coord_corners[7] = pos_corner_down_left; // Boundary 4
+	// Number of particles on the boundaries 
+	int nb_rows_per_bound = 3; // WARNING: we should add a number of rows such that the kernel of a particle next to a boundary will not be truncated
+	int nb_part_per_bound[nb_boundaries] = {N_y, N_x, N_y, N_x};
+	int nb_part_per_row_to_add = 0;
+	for (int j_row = 1; j_row <= nb_rows_per_bound; j_row++) nb_part_per_row_to_add += j_row*2;
+	int total_nb_part_on_bound = 0;
+	for (int i = 0; i<nb_boundaries; i++) {
+	    nb_part_per_bound[i] = nb_rows_per_bound*nb_part_per_bound[i] + nb_part_per_row_to_add;
+	    total_nb_part_on_bound += nb_part_per_bound[i];
+	}
+	// Solid wall B.C. to be imposed on the boundaries // WARNING: only solid wall B.C. are possible for the moment. Might be good to have periodic and inflow/outflow B.C.
+	xy** vel_BC = (xy**)malloc(nb_boundaries*sizeof(xy*));
+	vel_BC[0] = xy_new(0.0, 0.0); // Boundary 1
+	vel_BC[0] = xy_new(speed_upper_boundary, 0.0); // Boundary 2
+	vel_BC[0] = xy_new(0.0, 0.0); // Boundary 3
+	vel_BC[0] = xy_new(0.0, 0.0); // Boundary 4
+	xy** acc_BC = (xy**)malloc(nb_boundaries*sizeof(xy*));
+	acc_BC[0] = xy_new(0.0, 0.0); // Boundary 1
+	acc_BC[0] = xy_new(0.0, 0.0); // Boundary 2
+	acc_BC[0] = xy_new(0.0, 0.0); // Boundary 3
+	acc_BC[0] = xy_new(0.0, 0.0); // Boundary 4
+	
+	// 3/ *** Combined ***
+	int N_tot = total_nb_part_in_domain + total_nb_part_on_bound;
+
+	Particle** particles = (Particle**)malloc(N_tot * sizeof(Particle*));
+	Particle_derivatives** particles_derivatives = malloc(total_nb_part_in_domain * sizeof(Particle_derivatives*));
+	Residual** residuals = malloc(total_nb_part_in_domain * sizeof(Residual*));
+	
+	// -------- PROPERTIES OF PARTICLES 
+	
+	// 1/ *** In the domain ***
+	for (int i = 0; i < N_x; i++) {
+		for (int j = 0; j < N_y; j++) {
+			int index = i * N_x + j;
+			xy *pos = xy_new(0.0 + i * h_x, 0.0 + j * h_y);
+			xy *v = xy_new(0, 0); // initial velocity = 0
+			particles[index] = Particle_new(index, mass, pos, v, rho_0, mu, c_0, gamma, 0.0);
+			particles_derivatives[index] = Particle_derivatives_new(index);
+			residuals[index] = Residual_new();
+		}
+	}
+	
+	// 2/ *** On the boundaries ****
+	int index_start_boundary = total_nb_part_in_domain; // the indices of the particles on the boundaries start after the last index of the particles in the domain
+	for (int i_b = 0; i_b < nb_boundaries; i_b++) {
+	    boundaries[i_b] = Boundary_new(coord_corners[2*i_b], coord_corners[2*i_b+1], particles, index_start_boundary, nb_part_per_bound[i_b], nb_rows_per_bound, mass, vel_BC[i_b], acc_BC[i_b]);
+	    index_start_boundary += nb_part_per_bound[i_b];
+	}
+	
+	//Estimate maximum admissible time step for stability
+	double h_p = h_x;
+	double safety_param = 0.8;
+	dt = compute_admissible_dt(safety_param, h_p, c_0, rho_0, mu, 0.0);
+	int n_iter = (int)(T/dt);
+	
+	// Animation parameter
+	double T_anim = 10; // duration of animation
+	double dt_anim = T_anim / n_iter; // time step of animation
+
+	// Setup grid
+	Grid *grid = Grid_new(0.0, L_x, 0.0, L_y, kh);
+	// Setup animation
+	Animation *animation = Animation_new(N_tot, dt_anim, grid, 1);
+	// Setup setup
+	Setup *setup = Setup_new(n_iter, dt, kh, verlet, kernel, surface_detection, 0.0, XSPH_epsilon);
+
+
+	simulate(grid, particles, particles_derivatives, residuals, N_tot, update_positions_with_boundaries, setup, animation);
+	
+	// Free stuff
+	free_particles(particles, N_tot);
+	free_particles_derivatives(particles_derivatives, N_tot);
+	free_Residuals(residuals, N_tot);
+	Grid_free(grid);
+	Setup_free(setup);
+	Animation_free(animation);
+
+}
+
 
 // Without Verlet
 void script1() {

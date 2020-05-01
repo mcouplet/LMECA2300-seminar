@@ -126,7 +126,7 @@ void display_particles(Particle** particles, Animation* animation,bool end, int 
 			if(animation->grid != NULL)
 // 				bov_lines_draw(window,animation->grid,0, BOV_TILL_END);
 			bov_particles_draw(window, animation->particles, 0, BOV_TILL_END);
-			if (iter%10 == 0) bov_window_screenshot(window, screenshot_name);
+// 			if (iter%10 == 0) bov_window_screenshot(window, screenshot_name);
 			bov_window_update(window);
 		}
 	}
@@ -136,7 +136,7 @@ void display_particles(Particle** particles, Animation* animation,bool end, int 
 			if (animation->grid != NULL)
 // 				bov_lines_draw(window, animation->grid, 0, BOV_TILL_END);
 			bov_particles_draw(window, animation->particles, 0, BOV_TILL_END);
-			bov_window_screenshot(window, screenshot_name);
+// 			bov_window_screenshot(window, screenshot_name);
 			bov_window_update_and_wait_events(window);
 		}
 	}

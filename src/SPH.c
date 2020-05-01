@@ -112,6 +112,35 @@ void update_positions_seminar_5(Grid* grid, Particle** particles, Particle_deriv
 		time_integrate(particles[i], residuals[i], setup->timestep);
 }
 
+void update_positions_with_boundaries(Grid* grid, Particle** particles, Particle_derivatives** particles_derivatives, Residual** residuals, int n_p, Setup* setup) {
+	
+	int ind = 0;
+	  
+	// Compute derivatives of the bulk particles and the XSPH correction term
+	for (int i = 0; i < n_p; i++) {
+	        ind = setup->index_domain[i];
+		if (setup->XSPH_epsilon != 0.0) compute_XSPH_correction(particles[i], setup->kernel, setup->kh,setup->XSPH_epsilon);
+		particles_derivatives[i]->div_v = compute_div(particles[i], Particle_get_v, setup->kernel, setup->kh);
+		particles_derivatives[i]->lapl_v->x = compute_lapl(particles[i], Particle_get_v_x, setup->kernel, setup->kh);
+		particles_derivatives[i]->lapl_v->y = compute_lapl(particles[i], Particle_get_v_y, setup->kernel, setup->kh);
+		compute_grad(particles[i], Particle_get_P, setup->kernel, setup->kh, particles_derivatives[i]->grad_P);
+		compute_grad(particles[i], Particle_get_Cs, setup->kernel, setup->kh, particles_derivatives[i]->grad_Cs);
+		particles_derivatives[i]->lapl_Cs = compute_lapl(particles[i], Particle_get_Cs, setup->kernel, setup->kh);
+	}
+
+	// Assemble residual based on the computed derivatives of the bulk particles
+	for (int i = 0; i < n_p; i++) {
+	    assemble_residual_NS(particles[i], particles_derivatives[i], residuals[i], setup);
+	}
+
+	// Integrate to update the values (i.e. density, velocities, pressure and positions, at time t+1) carried by the bulk particles
+	for (int i = 0; i < n_p; i++)
+		time_integrate(particles[i], residuals[i], setup->timestep);
+	
+	// Assign density, velocity and pressure to boundary particles based on the new updated values of te bulk particles
+}
+
+
 void compute_Cs(Particle *particle, Kernel kernel, double kh) {
 	particle->Cs = 0;
 	Particle *pi = particle;
@@ -210,6 +239,10 @@ void time_integrate(Particle* particle, Residual* residual, double delta_t) {
 	particle->rho += delta_t * residual->mass_eq;
 	particle->v->x += delta_t * residual->momentum_x_eq;
 	particle->v->y += delta_t * residual->momentum_y_eq;
+	
+// 	// Update position with an Euler explicit scheme // WARNING: before (explicit) or after (implicit) the updates of the field variables?
+// 	particle->pos->x += delta_t * particle->v->x - delta_t * particle->XSPH_correction->x;
+// 	particle->pos->y += delta_t * particle->v->y - delta_t * particle->XSPH_correction->y;
 
 	// Update pressure with Tait's equation of state
 	double B = squared(particle->param->sound_speed) * particle->param->rho_0 / particle->param->gamma;

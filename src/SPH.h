@@ -34,6 +34,7 @@ struct Residual {
 
 
 
+
 Setup* Setup_new(int iter, double timestep,double kh, Verlet* verlet, Kernel kernel,Free_surface_detection free_surface_detection,double interface_threshold, double XSPH_epsilon);
 void Setup_free(Setup* setup);
 

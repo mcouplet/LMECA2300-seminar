@@ -51,7 +51,7 @@ double compute_lapl(Particle *particle, scalar_getter get, Kernel kernel, double
         double fj = get(pj);
         double d2 = squared(pi->pos->x - pj->pos->x) + squared(pi->pos->y - pj->pos->y); // squared distance between particles
 //         xy *DXij = xy_new((pi->pos->x - pj->pos->x) / d2, (pi->pos->y - pj->pos->y) / d2); // Delta X_{ij}
-        xy *DXij = xy_new((pj->pos->x - pi->pos->x) / d2, (pj->pos->y - pi->pos->y) / d2); // WARNING
+        xy *DXij = xy_new((pj->pos->x - pi->pos->x) / d2, (pj->pos->y - pi->pos->y) / d2); // WARNING: which one to choose?
         if(d2 != 0) lapl += 2 * pj->m / pj->rho * (fi - fj) * (DXij->x * grad_W->x + DXij->y * grad_W->y);
         free(grad_W);
         free(DXij);

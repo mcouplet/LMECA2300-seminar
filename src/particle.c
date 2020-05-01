@@ -137,6 +137,17 @@ double Particle_get_Cs(Particle *particle) { return particle->Cs; }
 xy * Particle_get_normal(Particle *particle) { return particle->normal; }
 
 
+Boundary Boundary_new(xy* coord_1, xy* coord_2, Particle** part, int index_start_boundary, int nb_part_per_bound, int nb_rows_per_bound, double mass, xy* vel_BC, xy* acc_BC) {
+  Boundary* boundary = malloc(sizeof(Boundary));
+  boundary->nb_part_on_bound = nb_part_per_bound;
+  boundary->part_on_bound = (Particle**)malloc(nb_part_per_bound * sizeof(Particle*));
+  // loop on nb_part_on_bound
+//   part[index_start_boundary] = ...
+//   boundary->part_on_bound[i] = part[index_start_boundary];
+  return boundary;
+  
+}
+
 Verlet* Verlet_new(double kh, double L, int T) {
 	Verlet *v = malloc(sizeof *v);
 	v->kh = kh;
@@ -144,6 +155,7 @@ Verlet* Verlet_new(double kh, double L, int T) {
 	v->T = T;
 	return v;
 }
+
 ///////////////////////////update cells///////////////////////////
 Cell* localize_particle(Grid *grid, Particle *p) {
 	int i = floor((p->pos->x - grid->left) / grid->h);
