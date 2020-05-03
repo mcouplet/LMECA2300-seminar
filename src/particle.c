@@ -55,7 +55,7 @@ void Cell_free(Cell* cell) {
 	free(cell);
 }
 
-Particle* Particle_new(int index, double m, xy* pos, xy* v, double rho_0, double mu, double c_0, double gamma, double sigma) {
+Particle* Particle_new(int index, double m, xy* pos, xy* v, double rho_0, double mu, double c_0, double gamma, double sigma, double background_p, xy* gravity) {
 	Particle *particle = malloc(sizeof(Particle));
 	particle->index = index;
 	particle->m = m;
@@ -74,6 +74,8 @@ Particle* Particle_new(int index, double m, xy* pos, xy* v, double rho_0, double
 	particle->param->gamma = gamma;
 	particle->param->sound_speed = c_0;
 	particle->param->sigma = sigma;
+	particle->param->background_p = background_p;
+	particle->param->gravity = gravity;
 
 	particle->cell = NULL;
 	particle->neighborhood = List_new();
@@ -84,6 +86,7 @@ Particle* Particle_new(int index, double m, xy* pos, xy* v, double rho_0, double
 void Particle_free(Particle* particle) {
 	free(particle->pos);
 	free(particle->v);
+	free(particle->param->gravity);
 	free(particle->param);
 	free(particle->XSPH_correction);
 	List_free(particle->neighborhood, NULL);
@@ -137,16 +140,128 @@ double Particle_get_Cs(Particle *particle) { return particle->Cs; }
 xy * Particle_get_normal(Particle *particle) { return particle->normal; }
 
 
-Boundary Boundary_new(xy* coord_1, xy* coord_2, Particle** part, int index_start_boundary, int nb_part_per_bound, int nb_rows_per_bound, double mass, xy* vel_BC, xy* acc_BC) {
+int put_particles_left(double x, xy** coord, int nb_b) {
+  for(int i=0; i<nb_b; i++) {
+    if (coord[i]->x < x) return 0;  
+  }
+  return 1;
+}
+
+int put_particles_down(double y, xy** coord, int nb_b) {
+  for(int i=0; i<nb_b; i++) {
+    if (coord[i]->y < y) return 0;  
+  }
+  return 1;
+}
+
+void fill_pos_on_vertical_row(double x_min, double y_min, double h, int nb_part ,int ind, xy** pos) {
+  for (int i=0; i<nb_part; i++) {
+    pos[ind+i] = xy_new(x_min,y_min+i*h);
+  }
+}
+
+void fill_pos_on_horizontal_row(double x_min, double y_min, double h, int nb_part ,int ind, xy** pos) {
+  for (int i=0; i<nb_part; i++) {
+    pos[ind+i] = xy_new(x_min+i*h,y_min);
+//     printf("pos = %2.6f \n",pos[ind+i]->x);
+  }
+}
+
+Boundary* Boundary_new(int index_b, int nb_b, xy** coord, Particle** part, int index_start_boundary, int nb_part_per_bound, int nb_rows_per_bound, double m, double rho_0, 
+		       double mu, double c_0, double gamma, double background_p, xy* gravity, xy* vel_BC, xy* acc_BC, int nb_p_domain) {
   Boundary* boundary = malloc(sizeof(Boundary));
   boundary->nb_part_on_bound = nb_part_per_bound;
+  boundary->nb_part_in_domain = nb_p_domain;
   boundary->part_on_bound = (Particle**)malloc(nb_part_per_bound * sizeof(Particle*));
-  // loop on nb_part_on_bound
-//   part[index_start_boundary] = ...
-//   boundary->part_on_bound[i] = part[index_start_boundary];
+  boundary->v_imposed = xy_new(vel_BC->x, vel_BC->y);
+  boundary->acc_imposed = xy_new(acc_BC->x, acc_BC->y);
+  boundary->nb_boundaries = nb_b;
+  
+  
+  int nb_part_to_add_row = 0;
+  for (int j_row = 1; j_row < nb_rows_per_bound; j_row++) nb_part_to_add_row += j_row*2;
+  int nb_part_first_row = (int)(nb_part_per_bound-nb_part_to_add_row)/nb_rows_per_bound;
+  xy* coord_1 = coord[2*index_b];
+  xy* coord_2 = coord[2*index_b+1];
+//   printf("index_b = %d\n",index_b);
+//   printf("coord_1_x = %2.3f\n",coord_1->x);
+//   printf("coord_1_y = %2.3f\n",coord_1->y);
+//   printf("coord_2_x = %2.3f\n",coord_2->x);
+//   printf("coord_2_y = %2.3f\n",coord_2->y);
+  xy** pos = (xy**)malloc(nb_part_per_bound*sizeof(xy*));
+  int i=0;
+  
+  if (coord_1->x == coord_2->x){ // vertical boundary
+    double L_y = abs(coord_1->y - coord_2->y);
+    double h_y = L_y / ((double)nb_part_first_row - 1.0);
+    double y_min = coord_1->y;
+    if (y_min > coord_2->y) y_min = coord_2->y;
+    if (put_particles_left(coord_1->x, coord, nb_b)) { // put the rows of particles on the left of the domain boundary
+      double x_max = coord_1->x;
+      for(int r=0;r<nb_rows_per_bound;r++) { // loop on the rows
+	fill_pos_on_vertical_row(x_max-r*h_y, y_min-r*h_y, h_y, nb_part_first_row+2*r,i, pos);
+	i += nb_part_first_row+2*r;
+      }
+    }
+    else { // put the rows of particles on the right of the domain boundary
+      double x_min = coord_1->x;
+      for(int r=0;r<nb_rows_per_bound;r++) { // loop on the rows
+	fill_pos_on_vertical_row(x_min+r*h_y, y_min-r*h_y, h_y, nb_part_first_row+2*r,i, pos);
+	i += nb_part_first_row+2*r;
+      }
+    }
+  }
+  else if (coord_1->y == coord_2->y){ // horizontal boundary
+    double L_x = abs(coord_1->x - coord_2->x);
+    double h_x = L_x / ((double)nb_part_first_row - 1.0);
+    double x_min = coord_1->x;
+    if (x_min > coord_2->x) x_min = coord_2->x;
+    if (put_particles_down(coord_1->y, coord, nb_b)) { // put the rows of particles below the domain boundary
+      double y_max = coord_1->y;
+      for(int r=0;r<nb_rows_per_bound;r++) { // loop on the rows
+	fill_pos_on_horizontal_row(x_min-r*h_x, y_max-r*h_x, h_x, nb_part_first_row+2*r,i, pos);
+	i += nb_part_first_row+2*r;
+      }
+    }
+    else { // put the rows of particles above of the domain boundary
+      double y_min = coord_1->y;
+      for(int r=0;r<nb_rows_per_bound;r++) { // loop on the rows
+	fill_pos_on_horizontal_row(x_min-r*h_x, y_min+r*h_x, h_x, nb_part_first_row+2*r,i, pos);
+	i += nb_part_first_row+2*r;
+      }
+    }
+  }
+  else {
+    printf("WARNING: only horizontal or vertical boundaries are supported for the moment");
+  }
+    
+  int j = 0;
+  for (int i=index_start_boundary; i<index_start_boundary+nb_part_per_bound; i++) {
+//     printf("pos = %2.6f \n",pos[j]->x);
+      part[i] = Particle_new(i, m, pos[j], xy_new(0.0, 0.0), rho_0, mu, c_0, gamma, 0.0, background_p, gravity); // Initialize particles associated to the boundary in the whole set of particles
+      part[i]->on_free_surface = true;
+      boundary->part_on_bound[j] = part[i]; // Make the "part_on_boun" pointer of the boundary point to the particles associated to the boundary in the whole set of particles
+      j++;
+  }
+  
+
   return boundary;
   
 }
+
+void Boundary_free(Boundary* boundary)
+{
+  free_particles(boundary->part_on_bound,boundary->nb_part_on_bound);
+  free(boundary->v_imposed);
+  free(boundary->acc_imposed);
+}
+
+void free_boundaries(Boundary** boundaries, int N) {
+  for (int i = 0; i < N; i++)
+		Boundary_free(boundaries[i]);
+	free(boundaries);
+}
+
 
 Verlet* Verlet_new(double kh, double L, int T) {
 	Verlet *v = malloc(sizeof *v);
@@ -350,7 +465,8 @@ Particle** build_particles(int N, double L) {
 		double y = rand_interval(-L, L);
 		xy* pos = xy_new(x, y);
 		xy* vel = xy_new(0, 0);
-		particles[i] = Particle_new(i, 0, pos, vel, 0, 0, 0, 0, 0);
+		xy* gravity = xy_new(0.0,0.0);
+		particles[i] = Particle_new(i, 0, pos, vel, 0, 0, 0, 0, 0, 0, gravity);
 	}
 	return particles;
 }

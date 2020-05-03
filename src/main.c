@@ -17,8 +17,9 @@ void script2();
 int main() {
 	// _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF); // comment if on Linux
 	//script_csf_circle();
-	//script_circle_to_ellipse();
-	script_csf_circle_paper();
+// 	script_circle_to_ellipse();
+// 	script_csf_circle_paper();
+  script_lid_driven_cavity();
 	//script1();
 
 	return EXIT_SUCCESS;
@@ -40,6 +41,8 @@ void script_csf() {
 	double gamma = 7; // typical value for liquid (dimensionless)
 	double c_0 = 1.0;//1481; // sound speed in water at 20°C (in m/s)
 	double sigma = 72.86e-3; // surface tension of water-air interface at 20°C (in N/m)
+	double background_pressure = 0.0;
+	xy* gravity = xy_new(0.0,0.0);
 
 	// SPH parameters
 	int n_per_dim = 101; // number of particles per dimension
@@ -71,7 +74,7 @@ void script_csf() {
 			int index = i * n_per_dim + j;
 			xy *pos = xy_new(-l + i * h, -l + j * h);
 			xy *v = xy_new(0, 0); // initial velocity = 0
-			particles[index] = Particle_new(index, m, pos, v, rho_0, mu, c_0, gamma, sigma);
+			particles[index] = Particle_new(index, m, pos, v, rho_0, mu, c_0, gamma, sigma, background_pressure, gravity);
 			particles_derivatives[index] = Particle_derivatives_new(index);
 			residuals[index] = Residual_new();
 		}
@@ -121,6 +124,8 @@ void script_csf_circle() {
 	double gamma = 7.0; // typical value for liquid (dimensionless)
 	double c_0 = 1.0;//1481; // sound speed in water at 20°C (in m/s)
 	double sigma = 72.86e-3; // surface tension of water-air interface at 20°C (in N/m)
+	double background_pressure = 0.0;
+	xy* gravity = xy_new(0.0,0.0);
 
 	// Initialize particles in a circle
 	int n_p = squared(n_per_dim); // total number of particles
@@ -144,7 +149,7 @@ void script_csf_circle() {
 			// 			pos->x = pos_circle->x;
 			// 			pos->y = pos_circle->y;
 			xy *v = xy_new(0, 0); // initial velocity = 0
-			particles[index] = Particle_new(index, m, pos, v, rho_0, mu, c_0, gamma, sigma);
+			particles[index] = Particle_new(index, m, pos, v, rho_0, mu, c_0, gamma, sigma, background_pressure, gravity);
 			particles_derivatives[index] = Particle_derivatives_new(index);
 			residuals[index] = Residual_new();
 			k++;
@@ -188,6 +193,8 @@ void script_circle_to_ellipse() {
 	double gamma = 7.0; // typical value for liquid (dimensionless)
 	double c_0 = 1400.0;//1481; // sound speed in water at 20°C (in m/s)
 	double sigma = 0.0; // surface tension of water-air interface at 20°C (in N/m)
+	double background_pressure = 0.0;
+	xy* gravity = xy_new(0.0,0.0);
 
 	// SPH parameters
 	Verlet *verlet = NULL; // don't use Verlet (for now)
@@ -228,7 +235,7 @@ void script_circle_to_ellipse() {
 		if (b == 0) {
 			xy *pos = xy_new(0.0, 0.0);
 			xy *v = xy_new(0.0, 0.0);
-			particles[index] = Particle_new(index, m, pos, v, rho_0, mu, c_0, gamma, sigma);
+			particles[index] = Particle_new(index, m, pos, v, rho_0, mu, c_0, gamma, sigma, background_pressure, gravity);
 			particles_derivatives[index] = Particle_derivatives_new(index);
 			residuals[index] = Residual_new();
 			index++;
@@ -238,7 +245,7 @@ void script_circle_to_ellipse() {
 				k = (double)j / b;
 				xy *pos = xy_new(b*delta_s*cos(k*theta), b*delta_s*sin(k*theta));
 				xy *v = xy_new(-100.0*pos->x, 100.0*pos->y);
-				particles[index] = Particle_new(index, m, pos, v, rho_0, mu, c_0, gamma, sigma);
+				particles[index] = Particle_new(index, m, pos, v, rho_0, mu, c_0, gamma, sigma, background_pressure, gravity);
 				particles_derivatives[index] = Particle_derivatives_new(index);
 				residuals[index] = Residual_new();
 				index++;
@@ -298,6 +305,8 @@ void script_csf_circle_paper() {
 	double gamma = 7.0; // typical value for liquid (dimensionless)
 	double c_0 = 10.0;//5.0;//1481; // sound speed in water at 20°C (in m/s)
 	double sigma = 23.61e-3; // surface tension of water-air interface at 20°C (in N/m)
+	double background_pressure = 0.0;
+	xy* gravity = xy_new(0.0,0.0);
 	
 	// SPH parameters
 	Verlet *verlet = NULL; // don't use Verlet (for now)
@@ -339,7 +348,7 @@ void script_csf_circle_paper() {
 	  if (b==0) {
 	    xy *pos = xy_new(0.0, 0.0);
 	    xy *v = xy_new(0.0, 0.0);
-	    particles[index] = Particle_new(index, m, pos, v, rho_0, mu, c_0, gamma, sigma);
+	    particles[index] = Particle_new(index, m, pos, v, rho_0, mu, c_0, gamma, sigma, background_pressure, gravity);
 	    particles_derivatives[index] = Particle_derivatives_new(index);
 	    residuals[index] = Residual_new();
 	    index++;
@@ -353,7 +362,7 @@ void script_csf_circle_paper() {
 		  pos->y *= sqrt(2.0/sin(ecc*M_PI)) * cos(0.5*ecc*M_PI);
 		}
 		xy *v = xy_new(0.0, 0.0);
-		particles[index] = Particle_new(index, m, pos, v, rho_0, mu, c_0, gamma, sigma);
+		particles[index] = Particle_new(index, m, pos, v, rho_0, mu, c_0, gamma, sigma, background_pressure, gravity);
 		particles_derivatives[index] = Particle_derivatives_new(index);
 		residuals[index] = Residual_new();
 // 		if (b == N_c - 1) particles[index]->on_free_surface = true; // WARNING: to be removed
@@ -365,7 +374,7 @@ void script_csf_circle_paper() {
 	//Estimate maximum admissible time step for stability
 	double h_p = l / sqrt(N_tot);
 	double safety_param = 0.8;
-	dt = compute_admissible_dt(safety_param, h_p, c_0, rho_0, mu, sigma);
+	dt = compute_admissible_dt(safety_param, h_p, c_0, rho_0, mu, sigma, gravity);
 	n_iter = (int)(T/dt);
 
 	// Setup grid
@@ -392,10 +401,12 @@ void script_csf_circle_paper() {
 
 void script_lid_driven_cavity() {
 
+	// Test case taken from Adami et al., "A transport-velocity formulation for smoothed particle hydrodynamics" (2013)
+  
   	// Parameters of the problem
 	double L_y = 1.0;
 	double L_x = 1.0;
-	double dt = 0.001; // physical time step
+	double dt = 0.0; // physical time step --> set below in "compute_admissible_dt"
 	double T = 1.0; // duration of simulation
 	
 	// Physical parameters
@@ -405,31 +416,37 @@ void script_lid_driven_cavity() {
 	double mu = (rho_0*speed_upper_boundary*L_x) / Re;
 	double gamma = 7.0; // typical value for liquid (dimensionless)
 	double c_0 = 10.0*speed_upper_boundary;//5.0;//1481; // sound speed in water at 20°C (in m/s)
+	double background_pressure = 0.0;
+	xy* gravity = xy_new(0.0, 0.0);
 	
 	// SPH parameters
 	Verlet *verlet = NULL; // don't use Verlet (for now)
 	Kernel kernel = Cubic; // kernel choice
 	double XSPH_epsilon = 1.0;
-	Free_surface_detection surface_detection = DIVERGENCE;
+	Free_surface_detection surface_detection = NONE;
 	
 	// -------- NUMBER OF PARTICLES AND SIZE --------
 	
 	// 1/ *** In the domain ***
-	int N_x = 50;
-	int N_y = 50;
+	int N_x = 25;
+	int N_y = 25;
 	double h_x = L_x / ((double)N_x - 1.0);
 	double h_y = L_y / ((double)N_y - 1.0);
-	int total_nb_part_in_domain = N_x*N_y;
+	int N_x_corrected = N_x - 2; // remove particles on horizontal boundaries
+	int N_y_corrected = N_y - 2; // remove particles on vertical boundaries
+	int total_nb_part_in_domain = N_x_corrected*N_y_corrected;
 
 	double mass = rho_0 * h_x * h_y;
 	double kh = sqrt(21) * 2 * L_x / N_x;
 	
+	
 	// 2/ *** On the boundaries ****
 	int nb_boundaries = 4;
+	int nb_rows_per_bound = 3; // WARNING: we should add a number of rows such that the kernel of a particle next to a boundary will not be truncated
 	Boundary** boundaries  = (Boundary**)malloc(nb_boundaries * sizeof(Boundary*));
 	// Coordinates of the corners
 	xy* pos_corner_down_left = xy_new(0.0, 0.0);
-	xy* pos_corner_up_left = xy_new(L_y, 0.0);
+	xy* pos_corner_up_left = xy_new(0.0, L_y);
 	xy* pos_corner_up_right = xy_new(L_x, L_y);
 	xy* pos_corner_down_right = xy_new(L_x, 0.0);
 	xy** coord_corners = (xy**)malloc(nb_boundaries*2*sizeof(xy*));
@@ -438,10 +455,10 @@ void script_lid_driven_cavity() {
 	coord_corners[4] = pos_corner_up_right, coord_corners[5] = pos_corner_down_right; // Boundary 3
 	coord_corners[6] = pos_corner_down_right, coord_corners[7] = pos_corner_down_left; // Boundary 4
 	// Number of particles on the boundaries 
-	int nb_rows_per_bound = 3; // WARNING: we should add a number of rows such that the kernel of a particle next to a boundary will not be truncated
-	int nb_part_per_bound[nb_boundaries] = {N_y, N_x, N_y, N_x};
+	int nb_part_per_bound[4] = {N_y, N_x, N_y, N_x};
+	
 	int nb_part_per_row_to_add = 0;
-	for (int j_row = 1; j_row <= nb_rows_per_bound; j_row++) nb_part_per_row_to_add += j_row*2;
+	for (int j_row = 1; j_row < nb_rows_per_bound; j_row++) nb_part_per_row_to_add += j_row*2; // add 2 more particles per row added compared to the first row
 	int total_nb_part_on_bound = 0;
 	for (int i = 0; i<nb_boundaries; i++) {
 	    nb_part_per_bound[i] = nb_rows_per_bound*nb_part_per_bound[i] + nb_part_per_row_to_add;
@@ -450,14 +467,16 @@ void script_lid_driven_cavity() {
 	// Solid wall B.C. to be imposed on the boundaries // WARNING: only solid wall B.C. are possible for the moment. Might be good to have periodic and inflow/outflow B.C.
 	xy** vel_BC = (xy**)malloc(nb_boundaries*sizeof(xy*));
 	vel_BC[0] = xy_new(0.0, 0.0); // Boundary 1
-	vel_BC[0] = xy_new(speed_upper_boundary, 0.0); // Boundary 2
-	vel_BC[0] = xy_new(0.0, 0.0); // Boundary 3
-	vel_BC[0] = xy_new(0.0, 0.0); // Boundary 4
+	vel_BC[1] = xy_new(speed_upper_boundary, 0.0); // Boundary 2
+	vel_BC[2] = xy_new(0.0, 0.0); // Boundary 3
+	vel_BC[3] = xy_new(0.0, 0.0); // Boundary 4
 	xy** acc_BC = (xy**)malloc(nb_boundaries*sizeof(xy*));
 	acc_BC[0] = xy_new(0.0, 0.0); // Boundary 1
-	acc_BC[0] = xy_new(0.0, 0.0); // Boundary 2
-	acc_BC[0] = xy_new(0.0, 0.0); // Boundary 3
-	acc_BC[0] = xy_new(0.0, 0.0); // Boundary 4
+	acc_BC[1] = xy_new(0.0, 0.0); // Boundary 2
+	acc_BC[2] = xy_new(0.0, 0.0); // Boundary 3
+	acc_BC[3] = xy_new(0.0, 0.0); // Boundary 4
+	
+	
 	
 	// 3/ *** Combined ***
 	int N_tot = total_nb_part_in_domain + total_nb_part_on_bound;
@@ -467,53 +486,73 @@ void script_lid_driven_cavity() {
 	Residual** residuals = malloc(total_nb_part_in_domain * sizeof(Residual*));
 	
 	// -------- PROPERTIES OF PARTICLES 
-	
+	int* index_particles_in_domain = malloc(total_nb_part_in_domain*sizeof(int));
 	// 1/ *** In the domain ***
-	for (int i = 0; i < N_x; i++) {
-		for (int j = 0; j < N_y; j++) {
-			int index = i * N_x + j;
-			xy *pos = xy_new(0.0 + i * h_x, 0.0 + j * h_y);
+	int k = 0;
+	for (int i = 0; i < N_x_corrected; i++) {
+		for (int j = 0; j < N_y_corrected; j++) {
+			int index = i * N_x_corrected + j;
+			index_particles_in_domain[k] = index;
+			xy *pos = xy_new(h_x + i * h_x, h_y + j * h_y);
 			xy *v = xy_new(0, 0); // initial velocity = 0
-			particles[index] = Particle_new(index, mass, pos, v, rho_0, mu, c_0, gamma, 0.0);
+			particles[index] = Particle_new(index, mass, pos, v, rho_0, mu, c_0, gamma, 0.0, background_pressure, gravity);
 			particles_derivatives[index] = Particle_derivatives_new(index);
 			residuals[index] = Residual_new();
+			k++;
 		}
 	}
 	
 	// 2/ *** On the boundaries ****
 	int index_start_boundary = total_nb_part_in_domain; // the indices of the particles on the boundaries start after the last index of the particles in the domain
 	for (int i_b = 0; i_b < nb_boundaries; i_b++) {
-	    boundaries[i_b] = Boundary_new(coord_corners[2*i_b], coord_corners[2*i_b+1], particles, index_start_boundary, nb_part_per_bound[i_b], nb_rows_per_bound, mass, vel_BC[i_b], acc_BC[i_b]);
+	    boundaries[i_b] = Boundary_new(i_b, nb_boundaries, coord_corners, particles, index_start_boundary, nb_part_per_bound[i_b], nb_rows_per_bound,  mass, 
+					   rho_0, mu, c_0, gamma, background_pressure, gravity, vel_BC[i_b], acc_BC[i_b], total_nb_part_in_domain);
 	    index_start_boundary += nb_part_per_bound[i_b];
 	}
 	
+	
+	
 	//Estimate maximum admissible time step for stability
 	double h_p = h_x;
-	double safety_param = 0.8;
-	dt = compute_admissible_dt(safety_param, h_p, c_0, rho_0, mu, 0.0);
+	double safety_param = 1.0;
+	dt = compute_admissible_dt(safety_param, h_p, c_0, rho_0, mu, 0.0, gravity);
 	int n_iter = (int)(T/dt);
 	
+	
 	// Animation parameter
-	double T_anim = 10; // duration of animation
+	double T_anim = 1.0; // duration of animation
 	double dt_anim = T_anim / n_iter; // time step of animation
 
 	// Setup grid
-	Grid *grid = Grid_new(0.0, L_x, 0.0, L_y, kh);
+	Grid *grid = Grid_new(-L_x, 2.0*L_x, -L_y, 2.0*L_y, kh);
 	// Setup animation
 	Animation *animation = Animation_new(N_tot, dt_anim, grid, 1);
 	// Setup setup
 	Setup *setup = Setup_new(n_iter, dt, kh, verlet, kernel, surface_detection, 0.0, XSPH_epsilon);
 
-
-	simulate(grid, particles, particles_derivatives, residuals, N_tot, update_positions_with_boundaries, setup, animation);
+// 	for (int i=0; i<N_tot; i++) {
+// 	  double pos_x = particles[i]->pos->x;
+// 	  double pos_y = particles[i]->pos->y;
+// 	  printf("------- Particle %d : (x,y) = (%2.3f, %2.3f) \n", i, pos_x, pos_y);
+// // 	  double vel_x = particles[i]->v->x;
+// // 	  double vel_y = particles[i]->v->y;
+// // 	  printf("------- Particle %d : (x,y) = (%2.3f, %2.3f) \n", i, vel_x, vel_y);
+// 	}
+// 	
+	printf(">>>>> dt_admissible = %2.6f <<<<<< \n", dt);
+	printf(">>>>> kh = %2.6f <<<<<< \n", kh);
+	printf(">>>>> N_part_domain: %d, N_part_boundaries: %d, N_part_total: %d <<<<<< \n", total_nb_part_in_domain, total_nb_part_on_bound, N_tot);
+	
+	simulate_with_boundaries(grid, particles, particles_derivatives, residuals, N_tot, update_positions_project, setup, animation, boundaries, index_particles_in_domain);
 	
 	// Free stuff
 	free_particles(particles, N_tot);
-	free_particles_derivatives(particles_derivatives, N_tot);
-	free_Residuals(residuals, N_tot);
+	free_particles_derivatives(particles_derivatives, total_nb_part_in_domain);
+	free_Residuals(residuals, total_nb_part_in_domain);
 	Grid_free(grid);
 	Setup_free(setup);
 	Animation_free(animation);
+	free_boundaries(boundaries, total_nb_part_on_bound);
 
 }
 

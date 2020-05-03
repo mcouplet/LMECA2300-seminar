@@ -41,6 +41,8 @@ struct Physical_parameters {
 	double gamma;
 	double sound_speed;
 	double sigma;
+	double background_p;
+	xy* gravity;
 };
 
 struct Particle {
@@ -82,6 +84,8 @@ struct Verlet {
 
 struct Boundary {
         int nb_part_on_bound;
+	int nb_part_in_domain;
+	int nb_boundaries;
 	Particle** part_on_bound;
 	xy* v_imposed;
 	xy* acc_imposed;    
@@ -94,7 +98,7 @@ Grid* Grid_new(double x1, double x2, double y1, double y2, double kh); // Grid c
 void Grid_free(Grid* grid); // Grid destructor
 
 // Particle
-Particle* Particle_new(int index, double m, xy* pos, xy* v, double rho_0, double mu, double c_0, double gamma, double sigma); // Particle constructor
+Particle* Particle_new(int index, double m, xy* pos, xy* v, double rho_0, double mu, double c_0, double gamma, double sigma, double background_p, xy* gravity); // Particle constructor
 void Particle_free(Particle* particle);
 void free_particles(Particle** particles, int N);
 
@@ -134,7 +138,8 @@ void reset_grid(Grid* grid);
 void reset_particles(Particle** particles, int N, int iter, Verlet* verlet);
 
 // Boundary
-Boundary* Boundary_new(xy* coord_1, xy* coord_2, Particle** part, int index_start_boundary, int nb_part_per_bound, int nb_rows_per_bound, double mass, xy* vel_BC, xy* acc_BC);
+Boundary* Boundary_new(int index_b, int nb_b, xy** coord, Particle** part, int index_start_boundary, int nb_part_per_bound, int nb_rows_per_bound, double m, 
+		       double rho_0, double mu, double c_0, double gamma, double background_p, xy* gravity, xy* vel_BC, xy* acc_BC, int nb_part_in_domain);
 void Boundary_free(Boundary* boundary);
 void free_boundaries(Boundary** boundaries, int N);
 

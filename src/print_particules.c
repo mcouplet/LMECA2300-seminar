@@ -5,16 +5,15 @@ void colormap_Cs(Particle *p, float color[3]);
 // Fills data with particle data
 void fillData(GLfloat(*data)[8], Particle** particles, int N) {
 // 	float rmax = 100.0*sqrtf(2.0f);
-	double max_norm_fs = 0.0;
-	double fs_norm_local;
+	double max_norm_vel = 0.0;
+	double vel_norm_local;
 	for (int i = 0; i < N; i++) {
-	    xy* fs = xy_new(-particles[i]->param->sigma * particles[i]->normal->x * particles[i]->kappa, -particles[i]->param->sigma * particles[i]->normal->y * particles[i]->kappa);
-	    fs_norm_local = norm(fs);
-	    if (fs_norm_local > max_norm_fs) max_norm_fs = fs_norm_local;
+	    vel_norm_local = norm(particles[i]->v);
+	    if (vel_norm_local > max_norm_vel) max_norm_vel = vel_norm_local;
 	}
 //   	double max_pressure = -INFINITY;
 // 	for (int i = 0; i < N; i++) {
-// 	    if (particles[i]->P > max_pressure) max_pressure = particles[i]->P;
+// 	    if (particles[i]->P > max_pressure) max_pressure = particles[i]->v->x;
 // 	}
 	for (int i = 0; i < N; i++) {
 		Particle* p = particles[i];
@@ -25,13 +24,14 @@ void fillData(GLfloat(*data)[8], Particle** particles, int N) {
 		// colormap_cell(p, &data[i][4]); // fill color
 // 		colormap_Cs(p, &data[i][4]); // fill color
 // 		colormap_pressure(p, &data[i][4], max_pressure);
-		if (p->on_free_surface) {
+		colormap_velocity(p, &data[i][4], max_norm_vel);
+// 		if (p->on_free_surface) {
 // 		  colormap_uni_color_2(&data[i][4]);
-		  colormap_fs(p, &data[i][4], max_norm_fs);
-		}
-		else {
-		  colormap_uni_color(&data[i][4]);
-		}
+// // 		  colormap_fs(p, &data[i][4], max_norm_fs);
+// 		}
+// 		else {
+// 		  colormap_uni_color(&data[i][4]);
+// 		}
 		
 		data[i][7] = 0.8f; // transparency
 	}
@@ -124,7 +124,7 @@ void display_particles(Particle** particles, Animation* animation,bool end, int 
 	if (!end){
 		while (bov_window_get_time(window) - tbegin < animation->timeout) {
 			if(animation->grid != NULL)
-// 				bov_lines_draw(window,animation->grid,0, BOV_TILL_END);
+				bov_lines_draw(window,animation->grid,0, BOV_TILL_END);
 			bov_particles_draw(window, animation->particles, 0, BOV_TILL_END);
 // 			if (iter%10 == 0) bov_window_screenshot(window, screenshot_name);
 			bov_window_update(window);
@@ -134,7 +134,7 @@ void display_particles(Particle** particles, Animation* animation,bool end, int 
 		// we want to keep the window open with everything displayed
 		while (!bov_window_should_close(window)) {
 			if (animation->grid != NULL)
-// 				bov_lines_draw(window, animation->grid, 0, BOV_TILL_END);
+				bov_lines_draw(window, animation->grid, 0, BOV_TILL_END);
 			bov_particles_draw(window, animation->particles, 0, BOV_TILL_END);
 // 			bov_window_screenshot(window, screenshot_name);
 			bov_window_update_and_wait_events(window);
@@ -190,10 +190,22 @@ void colormap_fs(Particle *p, float color[3], double max_norm) {
 	color[2] = 0.0;//20*squared(fs->y/max_norm);
 }
 
+void colormap_velocity(Particle *p, float color[3], double max_norm) {
+	color[0] = 20*p->v->x/max_norm;//10*squared(p->v->x/max_norm) + 10*squared(p->v->y/max_norm);
+	color[1] = 20*p->v->y/max_norm;
+	if (p->on_free_surface)
+	  color[2] = 1.0;
+	else
+	  color[2] = 0.0;
+}
+
 void colormap_pressure(Particle *p, float color[3], double max_P) {
-	color[0] = 20*p->P / max_P;
-	color[1] = 0;
-	color[2] = 0.0;
+	color[0] = 20*p->v->x / max_P;
+	if (p->on_free_surface)
+	  color[1] = 1.0;//10*(abs(p->rho - max_P)) / max_P;
+	else
+	  color[1] = 0.0;
+	color[2] = 0;
 }
 
 void colours_neighbors(GLfloat(*data)[8], Particle** particles, int index)
